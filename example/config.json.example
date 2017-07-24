@@ -8,16 +8,16 @@
   },
   "defaultRequestOpts": {
     "headers": {
-      "user-sso": 212589146
+      "my-header": "my-header-value"
     },
     "json": true
   },
   "testSetConf": [
     {
-      "id": "plants"
+      "id": "testSet1"
     },
     {
-      "id": "users"
+      "id": "testSet2"
     }
   ]
 }
