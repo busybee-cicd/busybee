@@ -1,48 +1,53 @@
 const async = require('async');
 const { exec } = require('child_process');
 const request = require('request');
+const _ = require('lodash');
 
 // parse json
 const conf = 
 { 
-  "apiRoot": "https://google.com",
+  "apiRoot": "https://www.foaas.com",
   "parallelism": 2,
   "startingPort": 8080,
   "testSets": [
+    // a test set that needs its own env
     {
-      "name": "users",
+      "name": "set1",
       "tests": [
         {
           "request" : {
             "method": "GET",
-            "endpoint": "/search",
-            "query": {
-              "q": "users"
-            },
-            "body": null,
+            "endpoint": "/because/kevin",
+            "query": null,
+            "body": null
           },
           "expect": {
             "status": 200,
-            "body": null
+            "body": {
+              "message": "Why? Because fuck you, that's why.",
+              "subtitle": "- kevin"
+            }
           }
         }
       ]
     },
+    // another test set that needs its own env
     {
-      "name": "friends",
+      "name": "set2",
       "tests": [
         {
           "request" : {
             "method": "GET",
-            "endpoint": "/search",
-            "query": {
-              "q": "friends"
-            },
+            "endpoint": "/awesome/steve",
+            "query": null,
             "body": null
           },
           "expect": {
             "status": 200,
-            "body": null
+            "body": {
+              "message": "This is Fucking Awesome.",
+              "subtitle": "- steve"
+            }
           }
         }
       ]
@@ -102,7 +107,8 @@ function buildTestFns(tests) {
       // build request
       let opts = {
         url: conf["apiRoot"] + test.request.endpoint,
-        method: test.request.method
+        method: test.request.method,
+        json: true
       };
       
       if (test["body"])
@@ -123,6 +129,12 @@ function buildTestFns(tests) {
           testResult["status"] = res.statusCode == test.expect.status
             ? true
             : `Expected ${test.expect.status} was ${res.statusCode}`
+        }
+        
+        if (test.expect.body) {
+          testResult["body"] = _.isEqual(body, test.expect.body)
+            ? true
+            : `Expected ${JSON.stringify(test.expect.body)} was ${JSON.stringify(body)}`
         }
         
         cb(null, testResult);
