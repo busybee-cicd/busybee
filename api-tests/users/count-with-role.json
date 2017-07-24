@@ -1,0 +1,16 @@
+[{
+  "name": "user count with role 1",
+  "testSetId": "users",
+  "request": {
+    "method": "GET",
+    "endpoint": "/users/count-with-role",
+    "query": {
+      "roleId": 1
+    },
+    "body": null
+  },
+  "expect": {
+    "status": 200,
+    "body": 10
+  }
+}]

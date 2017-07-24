@@ -1,0 +1,23 @@
+{
+  "apiHost": "http://localhost",
+  "apiPort": 8180,
+  "apiRoot": "/v1",
+  "env": {
+    "singleServer": true,
+    "parallelism": 1
+  },
+  "defaultRequestOpts": {
+    "headers": {
+      "user-sso": 212589146
+    },
+    "json": true
+  },
+  "testSetConf": [
+    {
+      "id": "plants"
+    },
+    {
+      "id": "users"
+    }
+  ]
+}

@@ -5,11 +5,14 @@
   "main": "main.js",
   "dependencies": {
     "async": "^2.5.0",
+    "glob": "^7.1.2",
     "lodash": "^4.17.4",
     "request": "^2.81.0"
   },
   "devDependencies": {},
   "scripts": {
+    "start": "node main.js",
+    "debug": "NODE_DEBUG=request DEBUG=true node main.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Simon Townsend",
