@@ -78,33 +78,7 @@ function buildEnv(port, tests) {
       let res = data.trim();
       if (res == "ready") {
         // build api test functions
-        let testFns = tests.map((test) => {
-          return (cb2) => {
-            let opts = {
-              url: conf["apiRoot"] + test.request.endpoint,
-              method: test.request.method
-            };
-            
-            if (test["body"])
-              opts = Object.assign({}, opts, {"body": test["body"]});
-            
-            if (test["query"])
-              opts = Object.assign({}, opts, {"qs": test["query"]});
-            
-            // make request
-            request(opts, (err, res, body) => {
-              if (err)
-                cb2(err);
-              
-              // validate result
-              if (res.statusCode == test.expect.status) {
-                cb2(null, true);
-              } else {
-                cb2(true);
-              }
-            });
-          };
-        });
+        let testFns = buildTestFns(tests);
         
         // run api test functions
         let flow = conf["controlFlow"] || "parallel";
@@ -120,6 +94,41 @@ function buildEnv(port, tests) {
       cb(data);
     });
   };
+}
+
+function buildTestFns(tests) {
+  return tests.map((test) => {
+    return (cb) => {
+      // build request
+      let opts = {
+        url: conf["apiRoot"] + test.request.endpoint,
+        method: test.request.method
+      };
+      
+      if (test["body"])
+        opts = Object.assign({}, opts, {"body": test["body"]});
+      
+      if (test["query"])
+        opts = Object.assign({}, opts, {"qs": test["query"]});
+      
+      // make request
+      request(opts, (err, res, body) => {
+        if (err)
+          cb(err);
+        
+        // validate results
+        let testResult = {};
+        
+        if (test.expect.status) {
+          testResult["status"] = res.statusCode == test.expect.status
+            ? true
+            : `Expected ${test.expect.status} was ${res.statusCode}`
+        }
+        
+        cb(null, testResult);
+      });
+    };
+  });
 }
 
 
