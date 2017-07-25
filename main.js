@@ -16,7 +16,7 @@ if (!conf) {
 const apiRequest = request.defaults(conf.defaultRequestOpts || {});
 
 // build and env per test set while keeping track of parallelism
-let parallelismCount = 2;
+let parallelismCount = 1;
 let currentPort = conf["apiPort"];
 let testSets = [];
 _.forEach(conf["testSets"], (set, id) => {
@@ -97,7 +97,7 @@ function buildEnv(port, testSet) {
   return (cb) => {
     let envId = uuidv1();
     // run the env setup file and pass args
-    let envScript = exec(`sh test.sh ${port} ${envId}`)
+    let envScript = exec(`sh test.sh ${port} ${envId}`);
     envScript.stdout.on('data', (data) => {
       // data should prob return the id of the env for later
       let res = data.trim();

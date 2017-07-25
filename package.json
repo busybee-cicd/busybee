@@ -1,7 +1,7 @@
 {
-  "name": "smooth",
+  "name": "feeny",
   "version": "1.0.0",
-  "description": "it testing framework",
+  "description": "it test coordinator",
   "main": "main.js",
   "dependencies": {
     "async": "^2.5.0",
