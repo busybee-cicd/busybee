@@ -11,7 +11,7 @@ let program = require('commander');
 
 program
   .version('0.1.0')
-  .option('-d, --directory <directory>', 'Test Directory. defaults to api-tests/')
+  .option('-d, --directory <directory>', 'Test Directory. defaults to integration-tests/')
   .option('-c, --config <config>', 'Config File. defaults to config.json')
   .parse(process.argv);
 
