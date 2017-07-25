@@ -114,7 +114,9 @@ function buildEnv(port, testSet) {
         //confirm that the server is returning
         confirmHealthcheck(port, envId, (err, results) => {
           if (err) {
-            throw new Exception("Failed to confirm healthcheck!");
+            // attempt shutdown and throw exception
+            exec(`sh ${process.cwd()}/${conf.envStopScript} ${envId}`);
+            cb("Failed to confirm healthcheck!");
             return;
           }
 
