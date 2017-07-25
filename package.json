@@ -1,10 +1,14 @@
 {
   "name": "feeny",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "it test coordinator",
   "main": "main.js",
+  "bin": {
+    "feeny": "./main.js"
+  },
   "dependencies": {
     "async": "^2.5.0",
+    "commander": "^2.11.0",
     "glob": "^7.1.2",
     "lodash": "^4.17.4",
     "request": "^2.81.0",

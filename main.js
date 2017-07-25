@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const async = require('async');
 const { exec } = require('child_process');
 const request = require('request');
@@ -5,9 +7,16 @@ const _ = require('lodash');
 const parseFiles = require('./lib/parseFiles');
 const DEBUG = process.env.DEBUG;
 const uuidv1 = require('uuid/v1');
+let program = require('commander');
+
+program
+  .version('0.1.0')
+  .option('-d, --directory <directory>', 'Test Directory. defaults to api-tests/')
+  .option('-c, --config <config>', 'Config File. defaults to config.json')
+  .parse(process.argv);
 
 // parse json
-const conf = parseFiles.parse();
+const conf = parseFiles.parse(program);
 if (!conf) {
   throw new Exception("No config.json found");
 }
@@ -97,7 +106,7 @@ function buildEnv(port, testSet) {
   return (cb) => {
     let envId = uuidv1();
     // run the env setup file and pass args
-    let envScript = exec(`sh test.sh ${port} ${envId}`);
+    let envScript = exec(`sh ${process.cwd()}/${conf.envStartScript} ${port} ${envId}`);
     envScript.stdout.on('data', (data) => {
       // data should prob return the id of the env for later
       let res = data.trim();
@@ -125,7 +134,7 @@ function buildEnv(port, testSet) {
               results: testResults
             };
 
-            exec(`docker stack rm stack-${envId}`);
+            exec(`sh ${process.cwd()}/${conf.envStopScript} ${envId}`);
             cb(err2, testSetResults);
           });
         });
