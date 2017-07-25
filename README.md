@@ -3,6 +3,7 @@
 feeny
 ========
 
+## Quickstart
 ```
 mkdir api-tests
 cp example/config.json.example api-tests/config.json
