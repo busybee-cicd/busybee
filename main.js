@@ -2,18 +2,21 @@ const async = require('async');
 const { exec } = require('child_process');
 const request = require('request');
 const _ = require('lodash');
-const parseFiles = require('./parseFiles');
+const parseFiles = require('./lib/parseFiles');
 const DEBUG = process.env.DEBUG;
+const uuidv1 = require('uuid/v1');
 
 // parse json
 const conf = parseFiles.parse();
 if (!conf) {
   throw new Exception("No config.json found");
 }
+
+// setup default request
 const apiRequest = request.defaults(conf.defaultRequestOpts || {});
 
 // build and env per test set while keeping track of parallelism
-let parallelismCount = 1;
+let parallelismCount = 2;
 let currentPort = conf["apiPort"];
 let testSets = [];
 _.forEach(conf["testSets"], (set, id) => {
@@ -33,43 +36,98 @@ _.forEach(conf["testSets"], (set, id) => {
   }
 });
 
-function buildTestUrl(test, port) {
+function buildBaseUrl(port) {
   let url = conf.apiHost;
   if (port)
     url += `:${port}`;
   if (conf.apiRoot)
     url += conf.apiRoot;
+
+  return url;
+}
+
+function buildTestUrl(test, port) {
+  let url = buildBaseUrl(port);
   if (test.request.endpoint)
     url += test.request.endpoint
 
   return url;
 }
 
+function confirmHealthcheck(port, envId, cb) {
+  if (!conf.healthcheck) {
+    cb(true);
+  }
+
+  let url = buildBaseUrl(port);
+  let opts = {
+    url: `${url}${conf.healthcheck.endpoint}`
+  };
+
+  if (conf.healthcheck.query)
+    opts = Object.assign({}, opts, {qs: conf.healthcheck.query});
+
+  // retries the healthcheck endpoint every 3 seconds up to 20 times
+  // when successful calls the cb passed to confirmHealthcheck()
+  if (DEBUG) {
+    console.log("Healthcheck request Opts:");
+    console.log(opts);
+  }
+
+  async.retry({times: 20, interval: 5000},
+    (asyncCb) => {
+      console.log(`Attempting healthcheck for stack-${envId}...`);
+      apiRequest(opts, (err, res, body) => {
+        if (err) {
+          asyncCb("failed");
+          return
+        }
+
+        if (res && res.statusCode === 200) {
+          asyncCb(null, true);
+        } else {
+          asyncCb("failed");
+        }
+      })
+    }
+    , cb);
+}
+
 function buildEnv(port, testSet) {
   return (cb) => {
+    let envId = uuidv1();
     // run the env setup file and pass args
-    let envScript = exec(`sh test.sh ${port}`)
+    let envScript = exec(`sh test.sh ${port} ${envId}`)
     envScript.stdout.on('data', (data) => {
       // data should prob return the id of the env for later
       let res = data.trim();
       if (res == "ready") {
-        // build api test functions
-        let testFns = buildTestFns(testSet, port);
+        //confirm that the server is returning
+        confirmHealthcheck(port, envId, (err, results) => {
+          if (err) {
+            throw new Exception("Failed to confirm healthcheck!");
+            return;
+          }
 
-        // run api test functions
-        console.log(`Running Test Set: ${testSet.id}`);
-        if (testSet.description) {
-          console.log(`${testSet.description}`);
-        }
-        let flow = conf["controlFlow"] || "parallel";
-        async[flow](testFns, (err, testResults) => {
-          // pass test results
-          let testSetResults = {
-            name: testSet.id,
-            results: testResults
-          };
+          // build api test functions
+          let testFns = buildTestTasks(testSet, port);
 
-          cb(err, testSetResults);
+          // run api test functions
+          console.log(`Running Test Set: ${testSet.id}`);
+          if (testSet.description) {
+            console.log(`${testSet.description}`);
+          }
+          let flow = conf["controlFlow"] || "parallel";
+          async[flow](testFns, (err2, testResults) => {
+            // pass test results
+            let testSetResults = {
+              name: testSet.id,
+              results: testResults
+            };
+
+            exec(`docker stack rm stack-${envId}`);
+            cb(err2, testSetResults);
+          });
         });
       }
     });
@@ -81,7 +139,7 @@ function buildEnv(port, testSet) {
   };
 }
 
-function buildTestFns(testSet, port) {
+function buildTestTasks(testSet, port) {
   if (!testSet.tests) {
     console.log(`testSet ${testSet.name} has no tests`);
     return [];

@@ -1,0 +1,33 @@
+version: "3.1"
+
+services:
+
+  server:
+    image: VDCALQ05504.ics.cloud.ge.com:5000/config-reviewer-server:latest
+    ports:
+      - ${PORT}:8180
+    environment:
+      PORT: 8180
+      EUREKA_URI: http://eureka:3001
+      INTERNAL_URI: http://internal:8181
+      SPRING_RUN_PROFILES: cloud,battlecat
+      ROOT_LOG_LEVEL: INFO
+      APP_LOG_LEVEL: DEBUG
+    depends_on:
+      - zuul
+      - eureka
+
+  internal:
+    image: VDCALQ05504.ics.cloud.ge.com:5000/config-reviewer-internal:latest
+    ports:
+      - 8181:8181
+    environment:
+      PORT: 8181
+      http_proxy: http://iss-americas-pitc-cincinnatiz.proxy.corporate.ge.com:80
+      https_proxy: http://iss-americas-pitc-cincinnatiz.proxy.corporate.ge.com:80
+      DB_URL: jdbc:oracle:thin:@PDMALQ04-scan.pw.ge.com:1521/pnnpsq05
+      DB_USERNAME: SSO502728586
+      DB_PASSWORD: F78ju037tg
+      HIBERNATE_LOG_LEVEL: WARN
+      ROOT_LOG_LEVEL: INFO
+      APP_LOG_LEVEL: DEBUG
