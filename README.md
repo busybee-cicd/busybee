@@ -12,6 +12,9 @@ cp example/test.json.example api-tests/test.json
 npm install
 npm start
 ```
+Todo:
+- skipEnvSetup
+- test adapters
 
 ## What it is
 Feeny will coordinate the steps necessary to run your IT Tests and is unopinionated
