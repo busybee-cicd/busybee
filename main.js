@@ -1,24 +1,48 @@
 #!/usr/bin/env node
 
 const async = require('async');
-const { exec } = require('child_process');
 const request = require('request');
 const _ = require('lodash');
 const parseFiles = require('./lib/parseFiles');
-const DEBUG = process.env.DEBUG;
-const uuidv1 = require('uuid/v1');
+const EnvManager = require('./lib/envManager');
 let program = require('commander');
 
 program
   .version('0.1.0')
   .option('-d, --directory <directory>', 'Test Directory. defaults to integration-tests/')
-  .option('-c, --config <config>', 'Config File. defaults to config.json')
+  .option('-c, --config <config>', 'Config File. defaults to config.json. parsed as being relative to --directory')
+  .option('-D, --debug', 'debug mode')
   .parse(process.argv);
+
+const DEBUG = process.env.DEBUG || program.debug;
 
 // parse json
 const conf = parseFiles.parse(program);
 if (!conf) {
   throw new Exception("No config.json found");
+}
+
+let envManager = new EnvManager(conf);
+
+process.on('uncaughtException', (err) => {
+  shutdown(err);
+});
+
+process.on('SIGHUP', (err) => {
+  shutdown(err);
+});
+
+process.on('SIGINT', (err) => {
+  shutdown(err);
+});
+
+function shutdown(err) {
+  if (err)
+    console.log(err);
+
+  envManager.stopAll(() => {
+    process.exit(0);
+  });
 }
 
 // setup default request
@@ -93,6 +117,7 @@ function confirmHealthcheck(port, envId, cb) {
         }
 
         if (res && res.statusCode === 200) {
+          console.log("Healthcheck Confirmed!");
           asyncCb(null, true);
         } else {
           asyncCb("failed");
@@ -104,9 +129,9 @@ function confirmHealthcheck(port, envId, cb) {
 
 function buildEnv(port, testSet) {
   return (cb) => {
-    let envId = uuidv1();
+    let envId = envManager.generateId();
     // run the env setup file and pass args
-    let envScript = exec(`sh ${process.cwd()}/${conf.envStartScript} ${port} ${envId}`);
+    let envScript = envManager.start(port, envId);
     envScript.stdout.on('data', (data) => {
       // data should prob return the id of the env for later
       let res = data.trim();
@@ -115,7 +140,7 @@ function buildEnv(port, testSet) {
         confirmHealthcheck(port, envId, (err, results) => {
           if (err) {
             // attempt shutdown and throw exception
-            exec(`sh ${process.cwd()}/${conf.envStopScript} ${envId}`);
+            envManager.stop(envId);
             cb("Failed to confirm healthcheck!");
             return;
           }
@@ -136,14 +161,14 @@ function buildEnv(port, testSet) {
               results: testResults
             };
 
-            exec(`sh ${process.cwd()}/${conf.envStopScript} ${envId}`);
+            envManager.stop(envId)
             cb(err2, testSetResults);
           });
         });
       }
     });
 
-    envScript.stderr.on('data', (data) => {
+    envScript.stderr.once('data', (data) => {
       // something didn't work
       cb(data);
     });
