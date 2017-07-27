@@ -15,6 +15,11 @@ npm start
 Todo:
 - skipEnvSetup
 - test adapters
+- mock server based on tests?
+- commandline commands
+  - tests
+    - sets
+  - mocks
 
 ## What it is
 Feeny will coordinate the steps necessary to run your IT Tests and is unopinionated

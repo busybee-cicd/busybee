@@ -24,6 +24,15 @@ if (!conf) {
 
 let envManager = new EnvManager(conf);
 
+async function shutdown(err) {
+  if (err)
+    console.log(err);
+
+  //envManager.stopAll().then(() => process.exit(0));
+  await envManager.stopAll();
+  process.exit(0);
+}
+
 process.on('uncaughtException', (err) => {
   shutdown(err);
 });
@@ -36,14 +45,7 @@ process.on('SIGINT', (err) => {
   shutdown(err);
 });
 
-function shutdown(err) {
-  if (err)
-    console.log(err);
 
-  envManager.stopAll(() => {
-    process.exit(0);
-  });
-}
 
 // setup default request
 const apiRequest = request.defaults(conf.defaultRequestOpts || {});
