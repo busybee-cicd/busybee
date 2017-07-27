@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const async = require('async');
+const _async = require('async');
 const request = require('request');
 const _ = require('lodash');
 const parseFiles = require('./lib/parseFiles');
@@ -107,73 +107,88 @@ function confirmHealthcheck(port, envId, cb) {
     console.log(opts);
   }
 
-  async.retry({times: 20, interval: 5000},
-    (asyncCb) => {
-      console.log(`Attempting healthcheck for stack-${envId}...`);
-      apiRequest(opts, (err, res, body) => {
-        if (err) {
-          asyncCb("failed");
-          return
-        }
+  return new Promise((resolve, reject) => {
+    _async.retry({times: 20, interval: 5000},
+      (asyncCb) => {
+        console.log(`Attempting healthcheck for stack-${envId}...`);
+        apiRequest(opts, (err, res, body) => {
+          if (err) {
+            asyncCb("failed");
+            return
+          }
 
-        if (res && res.statusCode === 200) {
-          console.log("Healthcheck Confirmed!");
-          asyncCb(null, true);
+          if (res && res.statusCode === 200) {
+            console.log("Healthcheck Confirmed!");
+            asyncCb(null, true);
+          } else {
+            asyncCb("failed");
+          }
+        })
+      }
+      , (err, results) => {
+        if (err) {
+          reject(err);
         } else {
-          asyncCb("failed");
+          resolve(results);
         }
-      })
-    }
-    , cb);
+      });
+  });
+}
+
+function runApiTests(port, envId, testSet) {
+  // build api test functions
+  let testFns = buildTestTasks(testSet, port);
+
+  // run api test functions
+  console.log(`Running Test Set: ${testSet.id}`);
+  if (testSet.description) {
+    console.log(`${testSet.description}`);
+  }
+  let flow = conf["controlFlow"] || "parallel";
+
+  return new Promise((resolve, reject) => {
+    _async[flow](testFns, (err2, testResults) => {
+      // pass test results
+      let testSetResults = {
+        name: testSet.id,
+        results: testResults
+      };
+
+      envManager.stop(envId)
+        .then(() => {
+          if (err2) {
+            reject(err2);
+          } else {
+            resolve(testSetResults);
+          }
+        });
+    });
+  });
 }
 
 function buildEnv(port, testSet) {
   return (cb) => {
     let envId = envManager.generateId();
-    // run the env setup file and pass args
-    let envScript = envManager.start(port, envId);
-    envScript.stdout.on('data', (data) => {
-      // data should prob return the id of the env for later
-      let res = data.trim();
-      if (res == "ready") {
-        //confirm that the server is returning
-        confirmHealthcheck(port, envId, (err, results) => {
-          if (err) {
-            // attempt shutdown and throw exception
-            envManager.stop(envId);
-            cb("Failed to confirm healthcheck!");
-            return;
-          }
 
-          // build api test functions
-          let testFns = buildTestTasks(testSet, port);
+    let buildEnvFn = async () => {
+      await envManager.start(port, envId);
+      await confirmHealthcheck(port, envId);
+      let testSetResults = await runApiTests(port, envId, testSet);
 
-          // run api test functions
-          console.log(`Running Test Set: ${testSet.id}`);
-          if (testSet.description) {
-            console.log(`${testSet.description}`);
-          }
-          let flow = conf["controlFlow"] || "parallel";
-          async[flow](testFns, (err2, testResults) => {
-            // pass test results
-            let testSetResults = {
-              name: testSet.id,
-              results: testResults
-            };
+      return testSetResults;
+    }
 
-            envManager.stop(envId)
-            cb(err2, testSetResults);
-          });
-        });
-      }
-    });
-
-    envScript.stderr.once('data', (data) => {
-      // something didn't work
-      cb(data);
-    });
+    buildEnvFn()
+      .then((testSetResults) => {
+        cb(null, testSetResults);
+      })
+      .catch((err) => {
+        envManager.stop(envId);
+        cb(err);
+      });
   };
 }
+
 
 function buildTestTasks(testSet, port) {
   if (!testSet.tests) {
@@ -246,7 +261,6 @@ let parallelism = 1;
 if (conf.env && conf.env.parallelism)
   parallelism = conf.env.parallelism
 
-async.parallelLimit(testSets, parallelism, (err, results) => {
-  console.log("RESULTS")
+_async.parallelLimit(testSets, parallelism, (err, results) => {
   console.log(err || JSON.stringify(results, null, '\t'));
 });
