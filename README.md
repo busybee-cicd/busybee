@@ -13,7 +13,6 @@ npm install
 npm start
 ```
 Todo:
-- skipEnvSetup
 - test adapters
 - mock server based on tests?
 - support https://github.com/postmanlabs/newman#using-newman-as-a-nodejs-module ?
@@ -22,9 +21,10 @@ Todo:
   - tests
     - sets
   - mocks
+- support healthcheck script
 
 ## What it is
-Feeny will coordinate the steps necessary to run your IT Tests and is unopinionated
+Feeny will coordinate the steps necessary to run your Functional Tests and is unopinionated
 when it comes to deciding how your environments are started, when you deem an environment
 is ready, what technologies you're using, etc. Feeny is only concerned with the following:  
 

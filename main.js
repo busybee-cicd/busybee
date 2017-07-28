@@ -3,7 +3,7 @@
 const _async = require('async');
 const _ = require('lodash');
 const parseFiles = require('./lib/parseFiles');
-const ApiManager = require('./lib/apiManager');
+const RESTManager = require('./lib/restManager');
 const EnvManager = require('./lib/envManager');
 const TestManager = require('./lib/testManager');
 let program = require('commander');
@@ -30,16 +30,21 @@ const conf = Object.assign({}, parsedConf, {
 });
 
 // 2. instantiate EnvManager and ApiManager. handle shutdown signals
-let envManager = new EnvManager(conf);
-let apiManager = new ApiManager(conf);
-let testManager = new TestManager(conf, envManager, apiManager);
+let restManager = new RESTManager(conf);
+let envManager = new EnvManager(conf, restManager);
+let testManager = new TestManager(conf, envManager, restManager);
 
 async function shutdown(err) {
   if (err)
     console.log(err);
 
   //envManager.stopAll().then(() => process.exit(0));
-  await envManager.stopAll();
+  try {
+    await envManager.stopAll();
+  } catch (e) {
+    console.log(e);
+  }
+
   process.exit(0);
 }
 
@@ -56,7 +61,7 @@ process.on('SIGINT', (err) => {
 });
 
 
-testManager.buildApiTestSetTasks();
+testManager.buildTestSetTasks();
 
 // spin up testSetTasks in parallel and then run tests
 let parallelism = 1;
