@@ -16,6 +16,8 @@ Todo:
 - skipEnvSetup
 - test adapters
 - mock server based on tests?
+- support https://github.com/postmanlabs/newman#using-newman-as-a-nodejs-module ?
+  - may just want a commandline opt for running postman tests and another for converting them to Feeny formay since Feeny supports additional features like sets and indexes.
 - commandline commands
   - tests
     - sets
