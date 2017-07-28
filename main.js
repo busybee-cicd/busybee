@@ -13,7 +13,7 @@ program
   .option('-d, --directory <directory>', 'Test Directory. defaults to integration-tests/')
   .option('-c, --config <config>', 'Config File. defaults to config.json. parsed as being relative to --directory')
   .option('-D, --debug', 'debug mode')
-  .option('-s, --skip-env-provisioning', 'Will skip provisioning of environments for each Test Set. Assumes envs are already running')
+  .option('-s, --skipEnvProvisioning', 'Will skip provisioning of environments for each Test Set. Assumes envs are already running')
   .parse(process.argv);
 
 const DEBUG = process.env.DEBUG || program.debug;
