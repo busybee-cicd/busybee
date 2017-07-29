@@ -2,15 +2,18 @@
   "name": "feeny",
   "version": "1.1.0",
   "description": "it test coordinator",
-  "main": "main.js",
+  "main": "feeny.js",
   "bin": {
-    "feeny": "./main.js"
+    "feeny": "./feeny.js"
   },
   "dependencies": {
     "async": "^2.5.0",
+    "body-parser": "^1.17.2",
     "commander": "^2.11.0",
+    "express": "^4.15.3",
     "glob": "^7.1.2",
     "lodash": "^4.17.4",
+    "object-hash": "^1.1.8",
     "request": "^2.81.0",
     "uuid": "^3.1.0"
   },

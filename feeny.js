@@ -6,6 +6,8 @@ const parseFiles = require('./lib/parseFiles');
 const RESTManager = require('./lib/restManager');
 const EnvManager = require('./lib/envManager');
 const TestManager = require('./lib/testManager');
+const MockServer = require('./lib/mockServer');
+let mockServer;
 let program = require('commander');
 
 program
@@ -14,6 +16,7 @@ program
   .option('-c, --config <config>', 'Config File. defaults to config.json. parsed as being relative to --directory')
   .option('-D, --debug', 'debug mode')
   .option('-s, --skipEnvProvisioning', 'Will skip provisioning of environments for each Test Set. Assumes envs are already running')
+  .option('-m, --mockServer', 'Run the mock server')
   .parse(process.argv);
 
 const DEBUG = process.env.DEBUG || program.debug;
@@ -28,6 +31,10 @@ const conf = Object.assign({}, parsedConf, {
   cmdOpts: program,
   debug: DEBUG
 });
+
+if (conf.cmdOpts.mockServer) {
+  mockServer = new MockServer(conf);
+};
 
 // 2. instantiate EnvManager and ApiManager. handle shutdown signals
 let restManager = new RESTManager(conf);
@@ -60,7 +67,7 @@ process.on('SIGINT', (err) => {
   shutdown(err);
 });
 
-
+return
 testManager.buildTestSetTasks();
 
 // spin up testSetTasks in parallel and then run tests
