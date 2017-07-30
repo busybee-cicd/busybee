@@ -41,7 +41,8 @@ lives, though we provide examples of how to accomplish this. It is up to you to 
 returning "success" back to Feeny so that Feeny can continue on to the next step.
 
 ## helpful information
-1. env.startScript is passed `envId`, `apiHost`, `port`, `testDirectoryPath` as arguments
+- env.startScript is passed `envId`, `apiHost`, `port`, `testDirectoryPath` as arguments.
+- env.stopScript is passed  `envId` as an argument.
 
 ## Todo
 - test adapters
