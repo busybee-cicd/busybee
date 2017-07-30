@@ -7,6 +7,8 @@ const RESTManager = require('./lib/restManager');
 const EnvManager = require('./lib/envManager');
 const TestManager = require('./lib/testManager');
 const MockServer = require('./lib/mockServer');
+const fs = require('fs');
+const path = require('path');
 let mockServer;
 let Commander = require('commander');
 
@@ -34,6 +36,23 @@ Commander
     const conf = parseConfiguration(options);
     let mockServer = new MockServer(conf);
   });
+
+  Commander
+    .command('init')
+    .description('set up feeny folder and example config/test')
+    .action(() => {
+      const exampleConf = require('./example/config.json');
+      const exampleTest = require('./example/test.json');
+      const feenyDir = path.join(process.cwd(), 'feeny');
+      if (!fs.existsSync(feenyDir))
+        fs.mkdirSync(feenyDir);
+      if (!fs.exists(path.join(feenyDir, 'test.json')))
+        fs.writeFileSync(path.join(feenyDir, 'test.json'), JSON.stringify(exampleTest, null, '\t'));
+      if (!fs.exists(path.join(feenyDir, 'config.json')))
+        fs.writeFileSync(path.join(feenyDir, 'config.json'), JSON.stringify(exampleConf, null, '\t'));
+
+      console.log("Feeny initialized!");
+    });
 
 Commander.parse(process.argv);
 

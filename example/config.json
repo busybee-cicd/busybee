@@ -1,0 +1,40 @@
+{
+  "restApi": {
+    "protocol": "http",
+    "host": "localhost",
+    "port": 8180,
+    "root": "/v1",
+    "defaultRequestOpts": {
+      "headers": {
+        "my-header": "myHeaderValue"
+      },
+      "json": true
+    },
+    "testSetConf": [
+      {
+        "id": "myTestSet"
+      }
+    ]
+  },
+  "ui": {
+
+  },
+  "env": {
+    "singleServer": true,
+    "parallelism": 2,
+    "startScript": "envStart.sh",
+    "stopScript": "envStop.sh",
+    "healthcheck": {
+      "type": "REST",
+      "request": {
+        "endpoint": "/healthcheck",
+        "query": {
+          "myQueryParam": "myQueryValue"
+        },
+        "body": {
+          "myBodyKey": "myBodyValue"
+        }
+      }
+    }
+  }
+}
