@@ -2,3 +2,4 @@ node_modules
 api-tests/*
 .DS_Store
 test/
+feeny/
