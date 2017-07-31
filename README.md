@@ -46,8 +46,10 @@ returning "success" back to Feeny so that Feeny can continue on to the next step
 
 ## Todo
 - test adapters
-- support https://github.com/postmanlabs/newman#using-newman-as-a-nodejs-module ?
-  - may just want a commandline opt for running postman tests and another for converting them to Feeny formay since Feeny supports additional features like sets and indexes.
+  - support https://github.com/postmanlabs/newman#using-newman-as-a-nodejs-module ?
+    - may just want a commandline opt for running postman tests and another for converting them to Feeny formay since Feeny supports additional features like sets and indexes.
 - support healthcheck script
 - transpile to support older version of node
 - decide how to handle mocks of errors. add a { mock: true } property to the test config?
+- support testSets with state
+- support behavior,  delays in mocks (timeout)
