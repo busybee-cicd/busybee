@@ -31,6 +31,7 @@ Commander
   .command('mock')
   .description('runs a mock REST API server using your tests as mocks')
   .option('-d, --directory <directory>', 'Test Directory. defaults to feeny/')
+  .option('-D, --debug', 'debug mode')
   .option('-c, --config <config>', 'Config File. defaults to config.json. parsed as being relative to --directory')
   .action((options) => {
     const conf = parseConfiguration(options);
