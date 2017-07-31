@@ -44,6 +44,19 @@ returning "success" back to Feeny so that Feeny can continue on to the next step
 - env.startScript is passed `envId`, `apiHost`, `port`, `testDirectoryPath` as arguments.
 - env.stopScript is passed  `envId` as an argument.
 
+## Configuration
+By default, Feeny will look from configuration in feeny/config.json
+
+### restApi
+- `protocol` - rest api protocol
+- `host` - rest api host
+- `port` - rest api port
+- `root` - root context of all api calls ie) /v1.
+- `defaultRequestOpts` - an object representing request params to be sent by default on
+each api request. defaultRequestOpts can be overridden with-in individual tests.
+- `testSetConf` - an array of testSet configurations. only required if assigning tests to one or more
+testSets.
+
 ## Todo
 - test adapters
   - support https://github.com/postmanlabs/newman#using-newman-as-a-nodejs-module ?
