@@ -21,6 +21,7 @@ Commander
   .option('-d, --directory <directory>', 'Test Directory. defaults to feeny/')
   .option('-c, --config <config>', 'Config File. defaults to config.json. parsed as being relative to --directory')
   .option('-D, --debug', 'debug mode')
+  .option('-h, --host <host>', 'config.apiServer host')
   .option('-s, --skipEnvProvisioning', 'Will skip provisioning of environments for each Test Set. Assumes envs are already running')
   .action((options) => {
     const conf = parseConfiguration(options);
