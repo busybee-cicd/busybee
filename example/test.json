@@ -1,7 +1,9 @@
 [{
   "name": "my test",
-  "testSetId": "myTestSet",
-  "testIndex": 0,
+  "testSet": {
+    "id": "My Test Set",
+    "index": 0
+  },
   "request": {
     "method": "GET",
     "endpoint": "/my-endpoint",

@@ -12,7 +12,7 @@
     },
     "testSetConf": [
       {
-        "id": "myTestSet"
+        "id": "My Test Set"
       }
     ]
   },
@@ -34,6 +34,26 @@
         "body": {
           "myBodyKey": "myBodyValue"
         }
+      }
+    }
+  },
+  "mockServer": {
+    "port": 3030,
+    "root": "/my/mockserver/root/v1",
+    "proxy": {
+      "protocol": "http",
+      "host": "localhost",
+      "port": 3000
+    },
+    "decorateRequestOpts": {
+      "headers": {
+        "my-header": "myHeaderValue"
+      },
+      "query": {
+        "myQueryParam": "myQueryValue"
+      },
+      "body": {
+        "myBodyKey": "myBodyValue"
       }
     }
   }
