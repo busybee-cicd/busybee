@@ -63,6 +63,7 @@ testSets.
     - may just want a commandline opt for running postman tests and another for converting them to Feeny formay since Feeny supports additional features like sets and indexes.
 - support healthcheck script
 - transpile to support older version of node
-- decide how to handle mocks of errors. add a { mock: true } property to the test config?
-- support testSets with state
-- support behavior,  delays in mocks (timeout)
+- Mock Server
+  - decide how to handle mocks of errors. add a { mock: true } property to the test config?
+  - support testSets with state
+  - support behavior, delays in mocks (timeout)

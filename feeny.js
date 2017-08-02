@@ -24,7 +24,7 @@ Commander
   .option('-h, --host <host>', 'config.apiServer host')
   .option('-s, --skipEnvProvisioning', 'Will skip provisioning of environments for each Test Set. Assumes envs are already running')
   .action((options) => {
-    const conf = parseConfiguration(options);
+    const conf = parseConfiguration(options, 'test');
     initTests(conf);
   });
 
@@ -35,7 +35,7 @@ Commander
   .option('-D, --debug', 'debug mode')
   .option('-c, --config <config>', 'Config File. defaults to config.json. parsed as being relative to --directory')
   .action((options) => {
-    const conf = parseConfiguration(options);
+    const conf = parseConfiguration(options, 'mock');
     let mockServer = new MockServer(conf);
   });
 
@@ -58,11 +58,11 @@ Commander
 
 Commander.parse(process.argv);
 
-function parseConfiguration(cmdOpts) {
+function parseConfiguration(cmdOpts, mode) {
   const DEBUG = process.env.DEBUG || cmdOpts.debug;
 
   // 1. parse config and merge in any useful command line args
-  let parsedConf = parseFiles.parse(cmdOpts, DEBUG);
+  let parsedConf = parseFiles.parse(cmdOpts, mode, DEBUG);
   if (!parsedConf) {
     throw new Exception("No config.json found");
   }
@@ -113,7 +113,17 @@ function initTests(conf) {
   if (conf.env && conf.env.parallelism)
     parallelism = conf.env.parallelism
 
-  _async.parallelLimit(testManager.testSetTasks, parallelism, (err, results) => {
+  // run the api tests
+  _async.parallelLimit(testManager.restApiTestSetTask, parallelism, (err, results) => {
     console.log(err || JSON.stringify(results, null, '\t'));
+    //let conf = this.conf;
+
+    // if (conf.onComplete || conf.cmdOpts.onComplete) {
+    //   let onCompleteFn = conf.onComplete ?
+    //     require(fs.join(conf.filePaths.feenyDir, conf.onComplete))
+    //     : require(this.conf.cmdOpts.onComplete);
+    // }
   });
+
+  // run the ui tests
 }
