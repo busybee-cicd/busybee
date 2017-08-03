@@ -121,13 +121,12 @@ function initTests(conf) {
   // run the api tests
   _async.parallelLimit(testManager.restApiTestSetTask, parallelism, (err, results) => {
     if (conf.onCompleteScript || conf.cmdOpts.onCompleteScript) {
-      logger.debug("onCompleteScript");
       let scriptPath = conf.onCompleteScript ?
         path.join(conf.filePaths.feenyDir, conf.onCompleteScript)
         : path.join(conf.filePaths.feenyDir, conf.cmdOpts.onCompleteScript);
 
-      logger.debug(scriptPath);
       try {
+        logger.debug(`Running onCompleteScript: ${scriptPath}`);
         require(scriptPath)(err, results);
       } catch (e) {
         console.log(e);
