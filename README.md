@@ -96,7 +96,6 @@ Configuration opts for provisioning Test Set Environments
 - support healthcheck script
 - transpile to support older version of node
 - Mock Server
-  - decide how to handle mocks of errors. add a { mock: true } property to the test config?
   - support testSets with state
   - support behavior, delays in mocks (timeout)
   - support a .spec file for documenting endpoints?
