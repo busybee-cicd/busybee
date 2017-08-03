@@ -7,9 +7,11 @@ const RESTManager = require('./lib/restManager');
 const EnvManager = require('./lib/envManager');
 const TestManager = require('./lib/testManager');
 const MockServer = require('./lib/mockServer');
+const Logger = require('./lib/logger');
 const fs = require('fs');
 const path = require('path');
 let mockServer;
+let logger;
 let Commander = require('commander');
 
 Commander
@@ -23,8 +25,10 @@ Commander
   .option('-D, --debug', 'debug mode')
   .option('-h, --host <host>', 'config.apiServer host')
   .option('-s, --skipEnvProvisioning', 'Will skip provisioning of environments for each Test Set. Assumes envs are already running')
+  .option('-o, --onCompleteScript <onCompleteScript>', 'The filename of javascript module placed in your feeny/ directory. Will be called on complete. ex module) module.exports = (err, results) => { console.log(err || JSON.stringify(results)); }')
   .action((options) => {
     const conf = parseConfiguration(options, 'test');
+    logger = new Logger(conf);
     initTests(conf);
   });
 
@@ -36,6 +40,7 @@ Commander
   .option('-c, --config <config>', 'Config File. defaults to config.json. parsed as being relative to --directory')
   .action((options) => {
     const conf = parseConfiguration(options, 'mock');
+    logger = new Logger(conf);
     let mockServer = new MockServer(conf);
   });
 
@@ -115,14 +120,21 @@ function initTests(conf) {
 
   // run the api tests
   _async.parallelLimit(testManager.restApiTestSetTask, parallelism, (err, results) => {
-    console.log(err || JSON.stringify(results, null, '\t'));
-    //let conf = this.conf;
+    if (conf.onCompleteScript || conf.cmdOpts.onCompleteScript) {
+      logger.debug("onCompleteScript");
+      let scriptPath = conf.onCompleteScript ?
+        path.join(conf.filePaths.feenyDir, conf.onCompleteScript)
+        : path.join(conf.filePaths.feenyDir, conf.cmdOpts.onCompleteScript);
 
-    // if (conf.onComplete || conf.cmdOpts.onComplete) {
-    //   let onCompleteFn = conf.onComplete ?
-    //     require(fs.join(conf.filePaths.feenyDir, conf.onComplete))
-    //     : require(this.conf.cmdOpts.onComplete);
-    // }
+      logger.debug(scriptPath);
+      try {
+        require(scriptPath)(err, results);
+      } catch (e) {
+        console.log(e);
+      }
+    } else {
+      console.log(err || JSON.stringify(results, null, '\t'));
+    }
   });
 
   // run the ui tests
