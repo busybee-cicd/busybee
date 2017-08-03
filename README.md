@@ -84,7 +84,7 @@ Configuration opts for provisioning Test Set Environments
 
 #### HealthCheckConf
 - `type` - String:
-- `request` - Obj: Optional based on 'type'
+- `request` - Object: Optional based on 'type'
   - "request": {
     "endpoint": "/privileges"
   }
