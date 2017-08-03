@@ -10,7 +10,7 @@
       },
       "json": true
     },
-    "testSetConf": [
+    "testSetConfs": [
       {
         "id": "My Test Set"
       }

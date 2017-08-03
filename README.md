@@ -47,15 +47,46 @@ returning "success" back to Feeny so that Feeny can continue on to the next step
 ## Configuration
 By default, Feeny will look from configuration in feeny/config.json
 
-### restApi
-- `protocol` - rest api protocol
-- `host` - rest api host
-- `port` - rest api port
-- `root` - root context of all api calls ie) /v1.
-- `defaultRequestOpts` - an object representing request params to be sent by default on
+- `onCompleteScript` - String: The name of a .sh file that will be run on completion of all TestSets.
+- `restApi` - [RestApi](#RestApi)
+- `env` - [Env](#Env)
+
+
+#### Config Object Dictionary
+
+##### RestApi
+- `protocol` - String: rest api protocol
+- `host` - String: rest api host
+- `port` - Number: rest api port
+- `root` - String: root context of all api calls ie) /v1.
+- `defaultRequestOpts` - [DefaultRequestOpts](#DefaultRequestOpts): an object representing request params to be sent by default on
 each api request. defaultRequestOpts can be overridden with-in individual tests.
-- `testSetConf` - an array of testSet configurations. only required if assigning tests to one or more
-testSets.
+- `testSetConfs` - [Array:TestSetConf](#TestSetConf): an array of testSet configurations. only required if assigning tests to one or more testSets. If none are specified all tests will be added to a 'default' Test Set.
+
+##### DefaultRequestOpts  
+Options sent by on each request by default  
+- `headers` - Object: request headers as key/value pairs. ie) {'my-header': 'my-header-value'}
+- `query` - Object: request query params as key/value pairs ie) {'my-query-param': 'my-query-value'}
+- `body` - Object: request body as key/value pairs ie) {'my-body-prop': 'my-body-prop-value'}
+
+##### TestSetConf
+Every TestSet must have a TestSetConf defined in the top-level conf before it can be references in a Test. This ensures that all TestSet id's are known before writing a new test and helps avoid accidentally adding a test to an existing TestSet.
+- `id` - String: a unique id used to identify the Test Set.
+
+#### Env
+Configuration opts for provisioning Test Set Environments
+- `singleServer` - Boolean: Describes if all environments will be deployed to the same server or not. Primarily used to coordinate ports when provisioning an env.
+- `parallelism` - Number: The max number of environments to run simultaneously.
+- `startScript` - String:
+- `stopScript` - String:
+- `healthcheck` - [HealthCheckConf](#HealthCheckConf)
+
+#### HealthCheckConf
+- `type` - String:
+- `request` - Obj: Optional based on 'type'
+  - "request": {
+    "endpoint": "/privileges"
+  }
 
 ## Todo
 - test adapters
@@ -67,3 +98,4 @@ testSets.
   - decide how to handle mocks of errors. add a { mock: true } property to the test config?
   - support testSets with state
   - support behavior, delays in mocks (timeout)
+  - support a .spec file for documenting endpoints?
