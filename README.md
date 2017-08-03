@@ -45,8 +45,9 @@ returning "success" back to Feeny so that Feeny can continue on to the next step
 - env.stopScript is passed  `envId` as an argument.
 
 ## Configuration
-By default, Feeny will look from configuration in feeny/config.json
+By default, Feeny will look for configuration in feeny/config.json
 
+### config.json
 - `onCompleteScript` - String: The name of a .sh file that will be run on completion of all TestSets.
 - `restApi` - [RestApi](#RestApi)
 - `env` - [Env](#Env)
