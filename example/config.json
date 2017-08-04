@@ -10,14 +10,18 @@
       },
       "json": true
     },
-    "testSetConfs": [
+    "testEnvConfs": [
       {
-        "id": "My Test Set"
+        "id": "My Test Env",
+        "testSetConfs": [
+          {
+            "id": "My Test Set"
+          }
+        ]
       }
     ]
   },
   "ui": {
-
   },
   "env": {
     "singleServer": true,

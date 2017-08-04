@@ -111,7 +111,7 @@ function initTests(conf) {
     shutdown(err);
   });
 
-  testManager.buildTestSetTasks();
+  testManager.buildTestEnvTasks();
 
   // spin up testSetTasks in parallel and then run tests
   let parallelism = 1;
@@ -119,7 +119,7 @@ function initTests(conf) {
     parallelism = conf.env.parallelism
 
   // run the api tests
-  _async.parallelLimit(testManager.restApiTestSetTask, parallelism, (err, results) => {
+  _async.parallelLimit(testManager.restApiTestEnvTasks, parallelism, (err, results) => {
     if (conf.onCompleteScript || conf.cmdOpts.onCompleteScript) {
       let scriptPath = conf.onCompleteScript ?
         path.join(conf.filePaths.feenyDir, conf.onCompleteScript)
