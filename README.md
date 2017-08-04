@@ -62,7 +62,7 @@ By default, Feeny will look for configuration in feeny/config.json
 - `root` - String: root context of all api calls ie) /v1.
 - `defaultRequestOpts` - [DefaultRequestOpts](#DefaultRequestOpts): an object representing request params to be sent by default on
 each api request. defaultRequestOpts can be overridden with-in individual tests.
-- `testSetConfs` - [Array:TestSetConf](#TestSetConf): an array of testSet configurations. only required if assigning tests to one or more testSets. If none are specified all tests will be added to a 'default' Test Set.
+- `testEnvConfs` - [Array:TestEnvConf](#TestEnvConf) Only required if using TestSets. Allows you to separate 1 or more TestSet's into different different environments to avoid interaction.
 
 ##### DefaultRequestOpts  
 Options sent by on each request by default  
@@ -70,8 +70,12 @@ Options sent by on each request by default
 - `query` - Object: request query params as key/value pairs ie) {'my-query-param': 'my-query-value'}
 - `body` - Object: request body as key/value pairs ie) {'my-body-prop': 'my-body-prop-value'}
 
+##### TestEnvConf
+- `id` - String: a unique id used to identify this TestEnv.
+- `testSetConfs` - [Array:TestSetConf](#TestSetConf): A TestEnv can only have tests added to it via a TestSet and therefore requires at least one TestSetConf.
+
 ##### TestSetConf
-Every TestSet must have a TestSetConf defined in the top-level conf before it can be references in a Test. This ensures that all TestSet id's are known before writing a new test and helps avoid accidentally adding a test to an existing TestSet.
+**IMPORTANT** the `id` field of a TestSetConf must be unique across environments
 - `id` - String: a unique id used to identify the Test Set.
 
 #### Env
