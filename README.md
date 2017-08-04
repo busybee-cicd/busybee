@@ -84,17 +84,21 @@ Configuration opts for provisioning Test Set Environments
 
 #### HealthCheckConf
 - `type` - String:
+- `retries` - Number:
 - `request` - Object: Optional based on 'type'
-  - "request": {
-    "endpoint": "/privileges"
-  }
+  ```
+    "request": {
+      "endpoint": "/privileges",
+      "timeout": 1500
+    }
+  ```
 
 ## Todo
 - test adapters
   - support https://github.com/postmanlabs/newman#using-newman-as-a-nodejs-module ?
     - may just want a commandline opt for running postman tests and another for converting them to Feeny formay since Feeny supports additional features like sets and indexes.
 - support healthcheck script
-- transpile to support older version of node
+- transpile to support older versions of node
 - Mock Server
   - support testSets with state
   - support behavior, delays in mocks (timeout)
