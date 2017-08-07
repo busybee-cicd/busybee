@@ -1,49 +1,48 @@
 {
-  "restApi": {
-    "protocol": "http",
-    "host": "localhost",
-    "port": 8180,
-    "root": "/v1",
-    "env": {
-      "startScript": "envStart.sh",
-      "stopScript": "envStop.sh",
-      "healthcheck": {
-        "type": "REST",
-        "request": {
-          "endpoint": "/healthcheck",
-          "query": {
-            "myQueryParam": "myQueryValue"
-          },
-          "body": {
-            "myBodyKey": "myBodyValue"
-          }
-        }
-      }
-    },
-    "defaultRequestOpts": {
-      "headers": {
-        "my-header": "myHeaderValue"
-      },
-      "json": true
-    },
-    "testEnvConfs": [
-      {
-        "id": "My Test Env",
-        "testSetConfs": [
-          {
-            "id": "My Test Set"
-          }
-        ]
-      }
-    ]
-  },
-  "ui": {
-    "skip": true
-  },
   "env": {
     "singleServer": true,
     "parallelism": 2
   },
+  "testSuites": [
+    {
+      "protocol": "http",
+      "host": "localhost",
+      "port": 8180,
+      "root": "/v1",
+      "env": {
+        "startScript": "envStart.sh",
+        "stopScript": "envStop.sh",
+        "healthcheck": {
+          "type": "REST",
+          "request": {
+            "endpoint": "/healthcheck",
+            "query": {
+              "myQueryParam": "myQueryValue"
+            },
+            "body": {
+              "myBodyKey": "myBodyValue"
+            }
+          }
+        }
+      },
+      "defaultRequestOpts": {
+        "headers": {
+          "my-header": "myHeaderValue"
+        },
+        "json": true
+      },
+      "envInstanceConfs": [
+        {
+          "id": "My Test Env",
+          "testSetConfs": [
+            {
+              "id": "My Test Set"
+            }
+          ]
+        }
+      ]
+    }
+  ],
   "mockServer": {
     "port": 3030,
     "root": "/my/mockserver/root/v1",

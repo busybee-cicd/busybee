@@ -25,7 +25,7 @@ Commander
   .option('-D, --debug', 'debug mode')
   .option('-h, --host <host>', 'config.apiServer host')
   .option('-s, --skipEnvProvisioning', 'Will skip provisioning of environments for each Test Set. Assumes envs are already running')
-  .option('-sr, --skipREST', 'Skips REST Api Testing')
+  .option('-sts, --skipTestSuite', 'list of comma-separated TestSuite ids to skip')
   .option('-o, --onCompleteScript <onCompleteScript>', 'The filename of javascript module placed in your feeny/ directory. Will be called on complete. ex module) module.exports = (err, results) => { console.log(err || JSON.stringify(results)); }')
   .action((options) => {
     const conf = parseConfiguration(options, 'test');
@@ -74,17 +74,15 @@ function parseConfiguration(cmdOpts, mode) {
   }
 
   return Object.assign({}, parsedConf, {
-    cmdOpts: cmdOpts,
-    debug: DEBUG
+    cmdOpts: cmdOpts
   });
 }
 
 
 function initTests(conf) {
   // 2. instantiate EnvManager and ApiManager. handle shutdown signals
-  let restManager = new RESTManager(conf);
-  let envManager = new EnvManager(conf, restManager);
-  let testManager = new TestManager(conf, envManager, restManager);
+  let envManager = new EnvManager(conf);
+  let testManager = new TestManager(conf, envManager);
 
   function shutdown(err) {
     if (err)
@@ -112,7 +110,8 @@ function initTests(conf) {
     shutdown(err);
   });
 
-  testManager.buildTestEnvTasks();
+  testManager.buildTestSuiteTasks();
+  //testManager.buildTestEnvTasks();
 
   // spin up testSetTasks in parallel and then run tests
   let parallelism = 1;
@@ -120,7 +119,15 @@ function initTests(conf) {
     parallelism = conf.env.parallelism
 
   // run the api tests
-  _async.parallelLimit(testManager.restApiTestEnvTasks, parallelism, (err, results) => {
+  // TODO: allow ordering of TestSuites and TestEnvs
+  let envTasks = [];
+  _.forEach(testManager.testSuiteTasks, (suiteTask) => {
+    suiteTask.envTasks.forEach((envTask) => {
+      envTasks.push(envTask);
+    });
+  });
+
+  _async.parallelLimit(envTasks, parallelism, (err, results) => {
     if (conf.onCompleteScript || conf.cmdOpts.onCompleteScript) {
       let scriptPath = conf.onCompleteScript ?
         path.join(conf.filePaths.feenyDir, conf.onCompleteScript)

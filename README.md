@@ -62,7 +62,7 @@ By default, Feeny will look for configuration in feeny/config.json
 - `root` - String: root context of all api calls ie) /v1.
 - `defaultRequestOpts` - [DefaultRequestOpts](#DefaultRequestOpts): an object representing request params to be sent by default on
 each api request. defaultRequestOpts can be overridden with-in individual tests.
-- `testEnvConfs` - [Array:TestEnvConf](#TestEnvConf) Only required if using TestSets. Allows you to separate 1 or more TestSet's into different different environments to avoid interaction.
+- `envInstanceConfs` - [Array:TestEnvInstanceConf](#TestEnvInstanceConf) Only required if using TestSets. Allows you to separate 1 or more TestSet's into different different environments to avoid interaction.
 
 ##### DefaultRequestOpts  
 Options sent by on each request by default  
@@ -70,7 +70,7 @@ Options sent by on each request by default
 - `query` - Object: request query params as key/value pairs ie) {'my-query-param': 'my-query-value'}
 - `body` - Object: request body as key/value pairs ie) {'my-body-prop': 'my-body-prop-value'}
 
-##### TestEnvConf
+##### TestEnvInstanceConf
 - `id` - String: a unique id used to identify this TestEnv.
 - `testSetConfs` - [Array:TestSetConf](#TestSetConf): A TestEnv can only have tests added to it via a TestSet and therefore requires at least one TestSetConf.
 
