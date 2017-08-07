@@ -39,10 +39,23 @@ Commander
   .option('-d, --directory <directory>', 'Test Directory. defaults to feeny/')
   .option('-D, --debug', 'debug mode')
   .option('-c, --config <config>', 'Config File. defaults to config.json. parsed as being relative to --directory')
+  .option('-t, --testSuite <id>', 'Required. The ID of the REST Api TestSuite that you would like to run a mock server for')
   .action((options) => {
     const conf = parseConfiguration(options, 'mock');
     logger = new Logger(conf);
-    let mockServer = new MockServer(conf);
+    if (!options.testSuite) {
+      logger.error(`'--testSuite' is a required argument, exiting`);
+      return;
+    }
+
+    // identify the TestSuite.
+    let testSuite = _.find(conf.testSuites, (suite) => { return suite.id == options.testSuite; });
+    if (!testSuite) {
+      logger.error(`No TestSuite with the id ${options.testSuite} could be identified, exiting`);
+      return
+    }
+
+    let mockServer = new MockServer(testSuite, {debug: conf.debug});
   });
 
   Commander
