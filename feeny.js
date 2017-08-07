@@ -25,6 +25,7 @@ Commander
   .option('-D, --debug', 'debug mode')
   .option('-h, --host <host>', 'config.apiServer host')
   .option('-s, --skipEnvProvisioning', 'Will skip provisioning of environments for each Test Set. Assumes envs are already running')
+  .option('-sr, --skipREST', 'Skips REST Api Testing')
   .option('-o, --onCompleteScript <onCompleteScript>', 'The filename of javascript module placed in your feeny/ directory. Will be called on complete. ex module) module.exports = (err, results) => { console.log(err || JSON.stringify(results)); }')
   .action((options) => {
     const conf = parseConfiguration(options, 'test');

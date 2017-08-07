@@ -4,6 +4,22 @@
     "host": "localhost",
     "port": 8180,
     "root": "/v1",
+    "env": {
+      "startScript": "envStart.sh",
+      "stopScript": "envStop.sh",
+      "healthcheck": {
+        "type": "REST",
+        "request": {
+          "endpoint": "/healthcheck",
+          "query": {
+            "myQueryParam": "myQueryValue"
+          },
+          "body": {
+            "myBodyKey": "myBodyValue"
+          }
+        }
+      }
+    },
     "defaultRequestOpts": {
       "headers": {
         "my-header": "myHeaderValue"
@@ -26,21 +42,7 @@
   },
   "env": {
     "singleServer": true,
-    "parallelism": 2,
-    "startScript": "envStart.sh",
-    "stopScript": "envStop.sh",
-    "healthcheck": {
-      "type": "REST",
-      "request": {
-        "endpoint": "/healthcheck",
-        "query": {
-          "myQueryParam": "myQueryValue"
-        },
-        "body": {
-          "myBodyKey": "myBodyValue"
-        }
-      }
-    }
+    "parallelism": 2
   },
   "mockServer": {
     "port": 3030,
