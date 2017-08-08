@@ -58,7 +58,7 @@ By default, Feeny will look for configuration in feeny/config.json
 
 *The following fields are available based on the value of the `type` field*
 
-**REST**
+##### REST
 - `protocol`* - String: rest api protocol
 - `host`* - String: REST api host
 - `port`* - Number: REST api port
@@ -67,7 +67,7 @@ By default, Feeny will look for configuration in feeny/config.json
 each api request. defaultRequestOpts can be overridden with-in individual tests.
 - `mockServer` - [MockServer](#MockServer)
 
-**other**  
+##### other
 TODO
 
 ---
