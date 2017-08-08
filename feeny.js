@@ -2,7 +2,7 @@
 
 const _async = require('async');
 const _ = require('lodash');
-const parseFiles = require('./lib/parseFiles');
+const ConfigParser = require('./lib/configParser');
 const RESTManager = require('./lib/restManager');
 const EnvManager = require('./lib/envManager');
 const TestManager = require('./lib/testManager');
@@ -20,15 +20,16 @@ Commander
 Commander
   .command('test')
   .description('execute tests')
-  .option('-d, --directory <directory>', 'Test Directory. defaults to feeny/')
   .option('-c, --config <config>', 'Config File. defaults to config.json. parsed as being relative to --directory')
+  .option('-d, --directory <directory>', 'Test Directory. defaults to feeny/')
   .option('-D, --debug', 'debug mode')
   .option('-h, --host <host>', 'config.apiServer host')
-  .option('-s, --skipEnvProvisioning', 'Will skip provisioning of environments for each Test Set. Assumes envs are already running')
-  .option('-sr, --skipREST', 'Skips REST Api Testing')
   .option('-o, --onCompleteScript <onCompleteScript>', 'The filename of javascript module placed in your feeny/ directory. Will be called on complete. ex module) module.exports = (err, results) => { console.log(err || JSON.stringify(results)); }')
+  .option('-s, --skipEnvProvisioning <ids>', 'list of comma-separated TestSuite ids. Environments will not be provisioned for these TestSuites prior to running tests')
+  .option('-sts, --skipTestSuite <ids>', 'list of comma-separated TestSuite ids to skip')
   .action((options) => {
-    const conf = parseConfiguration(options, 'test');
+    let configParser = new ConfigParser(options);
+    const conf = configParser.parse('test');
     logger = new Logger(conf);
     initTests(conf);
   });
@@ -36,13 +37,29 @@ Commander
 Commander
   .command('mock')
   .description('runs a mock REST API server using your tests as mocks')
+  .option('-c, --config <config>', 'Config File. defaults to config.json. parsed as being relative to --directory')
   .option('-d, --directory <directory>', 'Test Directory. defaults to feeny/')
   .option('-D, --debug', 'debug mode')
-  .option('-c, --config <config>', 'Config File. defaults to config.json. parsed as being relative to --directory')
+  .option('-np, --noProxy, Will ignore any config.json proxy configuration and skip proxy attempts')
+  .option('-t, --testSuite <id>', 'Required. The ID of the REST Api TestSuite that you would like to run a mock server for')
   .action((options) => {
-    const conf = parseConfiguration(options, 'mock');
+    let configParser = new ConfigParser(options);
+    const conf = configParser.parse('mock');
     logger = new Logger(conf);
-    let mockServer = new MockServer(conf);
+    if (!options.testSuite) {
+      logger.error(`'--testSuite' is a required argument, exiting`);
+      return;
+    }
+
+    // identify the TestSuite.
+    let testSuite = _.find(conf.testSuites, (suite) => { return suite.id == options.testSuite; });
+    if (!testSuite) {
+      logger.error(`No TestSuite with the id ${options.testSuite} could be identified, exiting`);
+      return
+    }
+
+    testSuite.cmdOpts = options;
+    let mockServer = new MockServer(testSuite, {debug: conf.debug});
   });
 
   Commander
@@ -74,17 +91,15 @@ function parseConfiguration(cmdOpts, mode) {
   }
 
   return Object.assign({}, parsedConf, {
-    cmdOpts: cmdOpts,
-    debug: DEBUG
+    cmdOpts: cmdOpts
   });
 }
 
 
 function initTests(conf) {
   // 2. instantiate EnvManager and ApiManager. handle shutdown signals
-  let restManager = new RESTManager(conf);
-  let envManager = new EnvManager(conf, restManager);
-  let testManager = new TestManager(conf, envManager, restManager);
+  let envManager = new EnvManager(conf);
+  let testManager = new TestManager(conf, envManager);
 
   function shutdown(err) {
     if (err)
@@ -112,15 +127,24 @@ function initTests(conf) {
     shutdown(err);
   });
 
-  testManager.buildTestEnvTasks();
+  testManager.buildTestSuiteTasks();
+  //testManager.buildTestEnvTasks();
 
   // spin up testSetTasks in parallel and then run tests
   let parallelism = 1;
-  if (conf.env && conf.env.parallelism)
-    parallelism = conf.env.parallelism
+  if (conf.envResources && conf.envResources.parallelism)
+    parallelism = conf.envResources.parallelism
 
   // run the api tests
-  _async.parallelLimit(testManager.restApiTestEnvTasks, parallelism, (err, results) => {
+  // TODO: allow ordering of TestSuites and TestEnvs
+  let envTasks = [];
+  _.forEach(testManager.testSuiteTasks, (suiteTask) => {
+    suiteTask.envTasks.forEach((envTask) => {
+      envTasks.push(envTask);
+    });
+  });
+
+  _async.parallelLimit(envTasks, parallelism, (err, results) => {
     if (conf.onCompleteScript || conf.cmdOpts.onCompleteScript) {
       let scriptPath = conf.onCompleteScript ?
         path.join(conf.filePaths.feenyDir, conf.onCompleteScript)

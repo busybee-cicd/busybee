@@ -40,53 +40,64 @@ It does not include the implementation of how to spin up your environment or whe
 lives, though we provide examples of how to accomplish this. It is up to you to provide a shell script that does the dirty work of launching an env and then
 returning "success" back to Feeny so that Feeny can continue on to the next step.
 
-## helpful information
-- env.startScript is passed `envId`, `apiHost`, `port`, `testDirectoryPath` as arguments.
-- env.stopScript is passed  `envId` as an argument.
-
 ## Configuration
 By default, Feeny will look for configuration in feeny/config.json
 
 ### config.json
 - `onCompleteScript` - String: The name of a .sh file that will be run on completion of all TestSets.
-- `restApi` - [RestApi](#RestApi)
-- `env` - [Env](#Env)
-
+- `testSuites` - [Array:TestSuite](#TestSuite)
+- `envResources` - [EnvResources](#EnvResources)
 
 #### Config Object Dictionary
+---
+##### TestSuite
+- `id`* - String: A unique id for this Test Suite
+- `type`* - String `allowed: [REST, other]`: Dictates how the Test Suite is parsed. Feeny has it's own REST api testing implementation. For all other test suites choose 'other'
+- `skip` - Boolean `default:false`: Whether or not to skip this Test Suite
+- `env` - [Env](#Env)
+- `envInstances`* - [Array:EnvInstance](#TestEnvInstance)
 
-##### RestApi
-- `protocol` - String: rest api protocol
-- `host` - String: rest api host
-- `port` - Number: rest api port
+*The following fields are available based on the value of the `type` field*
+
+**REST**
+- `protocol`* - String: rest api protocol
+- `host`* - String: REST api host
+- `port`* - Number: REST api port
 - `root` - String: root context of all api calls ie) /v1.
 - `defaultRequestOpts` - [DefaultRequestOpts](#DefaultRequestOpts): an object representing request params to be sent by default on
 each api request. defaultRequestOpts can be overridden with-in individual tests.
-- `testEnvConfs` - [Array:TestEnvConf](#TestEnvConf) Only required if using TestSets. Allows you to separate 1 or more TestSet's into different different environments to avoid interaction.
+- `mockServer` - [MockServer](#MockServer)
 
+**other**  
+TODO
+
+---
 ##### DefaultRequestOpts  
 Options sent by on each request by default  
 - `headers` - Object: request headers as key/value pairs. ie) {'my-header': 'my-header-value'}
 - `query` - Object: request query params as key/value pairs ie) {'my-query-param': 'my-query-value'}
 - `body` - Object: request body as key/value pairs ie) {'my-body-prop': 'my-body-prop-value'}
-
-##### TestEnvConf
-- `id` - String: a unique id used to identify this TestEnv.
-- `testSetConfs` - [Array:TestSetConf](#TestSetConf): A TestEnv can only have tests added to it via a TestSet and therefore requires at least one TestSetConf.
-
-##### TestSetConf
-**IMPORTANT** the `id` field of a TestSetConf must be unique across environments
-- `id` - String: a unique id used to identify the Test Set.
-
-#### Env
+---
+##### EnvResources
 Configuration opts for provisioning Test Set Environments
-- `singleServer` - Boolean: Describes if all environments will be deployed to the same server or not. Primarily used to coordinate ports when provisioning an env.
+- `multiServer` - Boolean: By default we assume all envs will be deployed to the same server and therefore the port is incremented per env. If true, the port will remain the same for each env.
 - `parallelism` - Number: The max number of environments to run simultaneously.
-- `startScript` - String:
-- `stopScript` - String:
-- `healthcheck` - [HealthCheckConf](#HealthCheckConf)
-
-#### HealthCheckConf
+---
+##### Env
+Not to be confused with [EnvInstance](#EnvInstance). Env represents the base Environment configuration that will be shared by all instances of your Test Suite environment.
+- `startScript` - String: A shell script expected to start your environment. Receives the following arguments `envId`, `apiHost`, `port`, `testDirectoryPath`
+- `stopScript` - String: A shell script expected to stop your environment. Receives `envId` as an argument
+- `healthcheck` - [HealthCheck](#HealthCheck)
+---
+##### EnvInstance
+- `id` - String: a unique id used to identify this TestEnv.
+- `testSets` - [Array:TestSet](#TestSet): A TestEnv can only have tests added to it via a TestSet and therefore requires at least one TestSet.
+---
+##### TestSet
+**IMPORTANT** the `id` field of a TestSet must be unique across environments
+- `id` - String: a unique id used to identify the Test Set.
+---
+#### HealthCheck
 - `type` - String:
 - `retries` - Number:
 - `request` - Object: Optional based on 'type'
@@ -96,8 +107,9 @@ Configuration opts for provisioning Test Set Environments
       "timeout": 1500
     }
   ```
-
+---
 ## Todo
+- update logger to support env var based log-levels
 - test adapters
   - support https://github.com/postmanlabs/newman#using-newman-as-a-nodejs-module ?
     - may just want a commandline opt for running postman tests and another for converting them to Feeny formay since Feeny supports additional features like sets and indexes.
