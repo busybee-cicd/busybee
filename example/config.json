@@ -31,10 +31,10 @@
         },
         "json": true
       },
-      "envInstanceConfs": [
+      "envInstances": [
         {
           "id": "My Test Env",
-          "testSetConfs": [
+          "testSets": [
             {
               "id": "My Test Set"
             }
