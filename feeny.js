@@ -132,8 +132,8 @@ function initTests(conf) {
 
   // spin up testSetTasks in parallel and then run tests
   let parallelism = 1;
-  if (conf.env && conf.env.parallelism)
-    parallelism = conf.env.parallelism
+  if (conf.envResources && conf.envResources.parallelism)
+    parallelism = conf.envResources.parallelism
 
   // run the api tests
   // TODO: allow ordering of TestSuites and TestEnvs
