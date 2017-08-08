@@ -45,7 +45,7 @@ By default, Feeny will look for configuration in feeny/config.json
 
 ### config.json
 - `onCompleteScript` - String: The name of a .sh file that will be run on completion of all TestSets.
-- `testSuites` - [Array:TestSuite](#TestSuite)
+- `testSuites`* - [Array:TestSuite](#TestSuite)
 - `envResources` - [EnvResources](#EnvResources)
 
 ---
@@ -53,7 +53,7 @@ By default, Feeny will look for configuration in feeny/config.json
 - `id`* - String: A unique id for this Test Suite
 - `type`* - String `allowed: [REST, other]`: Dictates how the Test Suite is parsed. Feeny has it's own REST api testing implementation. For all other test suites choose 'other'
 - `skip` - Boolean `default:false`: Whether or not to skip this Test Suite
-- `env` - [Env](#Env)
+- `env`* - [Env](#Env)
 - `envInstances`* - [Array:EnvInstance](#TestEnvInstance)
 
 *The following fields are available based on the value of the `type` field*
@@ -86,25 +86,29 @@ Configuration opts for provisioning Test Set Environments
 ---
 #### Env
 Not to be confused with [EnvInstance](#EnvInstance). Env represents the base Environment configuration that will be shared by all instances of your Test Suite environment.
-- `startScript` - String: A shell script expected to start your environment. Receives the following arguments `envId`, `apiHost`, `port`, `testDirectoryPath`
-- `stopScript` - String: A shell script expected to stop your environment. Receives `envId` as an argument
-- `healthcheck` - [HealthCheck](#HealthCheck)
+- `startScript`* - String: A shell script expected to start your environment. Receives the following arguments `envId`, `apiHost`, `port`, `testDirectoryPath`
+- `stopScript`* - String: A shell script expected to stop your environment. Receives `envId` as an argument
+- `healthcheck`* - [HealthCheck](#HealthCheck)
 
 ---
 #### EnvInstance
-- `id` - String: a unique id used to identify this TestEnv.
-- `testSets` - [Array:TestSet](#TestSet): A TestEnv can only have tests added to it via a TestSet and therefore requires at least one TestSet.
+- `id`* - String: a unique id used to identify this TestEnv.
+- `testSets`* - [Array:TestSet](#TestSet): A TestEnv can only have tests added to it via a TestSet and therefore requires at least one TestSet.
 
 ---
 #### TestSet
 **IMPORTANT** the `id` field of a TestSet must be unique across environments
-- `id` - String: a unique id used to identify the Test Set.
+- `id`* - String: a unique id used to identify the Test Set.
 
 ---
 #### HealthCheck
-- `type` - String:
-- `retries` - Number:
-- `request` - Object: Optional based on 'type'
+- `type`* - String `allowed: [REST]`
+- `retries` - Number
+
+*The following fields are available based on the value of the `type` field*
+
+##### REST
+- `request`* - Object
   ```
     "request": {
       "endpoint": "/privileges",
