@@ -48,9 +48,8 @@ By default, Feeny will look for configuration in feeny/config.json
 - `testSuites` - [Array:TestSuite](#TestSuite)
 - `envResources` - [EnvResources](#EnvResources)
 
-#### Config Object Dictionary
 ---
-##### TestSuite
+#### TestSuite
 - `id`* - String: A unique id for this Test Suite
 - `type`* - String `allowed: [REST, other]`: Dictates how the Test Suite is parsed. Feeny has it's own REST api testing implementation. For all other test suites choose 'other'
 - `skip` - Boolean `default:false`: Whether or not to skip this Test Suite
@@ -72,30 +71,35 @@ each api request. defaultRequestOpts can be overridden with-in individual tests.
 TODO
 
 ---
-##### DefaultRequestOpts  
+#### DefaultRequestOpts  
 Options sent by on each request by default  
 - `headers` - Object: request headers as key/value pairs. ie) {'my-header': 'my-header-value'}
 - `query` - Object: request query params as key/value pairs ie) {'my-query-param': 'my-query-value'}
 - `body` - Object: request body as key/value pairs ie) {'my-body-prop': 'my-body-prop-value'}
+
 ---
-##### EnvResources
+#### EnvResources
 Configuration opts for provisioning Test Set Environments
 - `multiServer` - Boolean: By default we assume all envs will be deployed to the same server and therefore the port is incremented per env. If true, the port will remain the same for each env.
 - `parallelism` - Number: The max number of environments to run simultaneously.
+
 ---
-##### Env
+#### Env
 Not to be confused with [EnvInstance](#EnvInstance). Env represents the base Environment configuration that will be shared by all instances of your Test Suite environment.
 - `startScript` - String: A shell script expected to start your environment. Receives the following arguments `envId`, `apiHost`, `port`, `testDirectoryPath`
 - `stopScript` - String: A shell script expected to stop your environment. Receives `envId` as an argument
 - `healthcheck` - [HealthCheck](#HealthCheck)
+
 ---
-##### EnvInstance
+#### EnvInstance
 - `id` - String: a unique id used to identify this TestEnv.
 - `testSets` - [Array:TestSet](#TestSet): A TestEnv can only have tests added to it via a TestSet and therefore requires at least one TestSet.
+
 ---
-##### TestSet
+#### TestSet
 **IMPORTANT** the `id` field of a TestSet must be unique across environments
 - `id` - String: a unique id used to identify the Test Set.
+
 ---
 #### HealthCheck
 - `type` - String:
@@ -107,6 +111,7 @@ Not to be confused with [EnvInstance](#EnvInstance). Env represents the base Env
       "timeout": 1500
     }
   ```
+
 ---
 ## Todo
 - update logger to support env var based log-levels
