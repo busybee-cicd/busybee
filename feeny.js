@@ -2,7 +2,7 @@
 
 const _async = require('async');
 const _ = require('lodash');
-const parseFiles = require('./lib/parseFiles');
+const ConfigParser = require('./lib/configParser');
 const RESTManager = require('./lib/restManager');
 const EnvManager = require('./lib/envManager');
 const TestManager = require('./lib/testManager');
@@ -28,7 +28,8 @@ Commander
   .option('-s, --skipEnvProvisioning <ids>', 'list of comma-separated TestSuite ids. Environments will not be provisioned for these TestSuites prior to running tests')
   .option('-sts, --skipTestSuite <ids>', 'list of comma-separated TestSuite ids to skip')
   .action((options) => {
-    const conf = parseConfiguration(options, 'test');
+    let configParser = new ConfigParser(options);
+    const conf = configParser.parse('test');
     logger = new Logger(conf);
     initTests(conf);
   });
@@ -42,7 +43,8 @@ Commander
   .option('-np, --noProxy, Will ignore any config.json proxy configuration and skip proxy attempts')
   .option('-t, --testSuite <id>', 'Required. The ID of the REST Api TestSuite that you would like to run a mock server for')
   .action((options) => {
-    const conf = parseConfiguration(options, 'mock');
+    let configParser = new ConfigParser(options);
+    const conf = configParser.parse('mock');
     logger = new Logger(conf);
     if (!options.testSuite) {
       logger.error(`'--testSuite' is a required argument, exiting`);
