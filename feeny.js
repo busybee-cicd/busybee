@@ -17,6 +17,7 @@ let Commander = require('commander');
 Commander
   .version('0.1.0')
 
+// TODO: REMOVE protocol and host from cmdOpts...need to be per test suite
 Commander
   .command('test')
   .description('execute tests')
