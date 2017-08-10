@@ -1,19 +1,33 @@
 {
-  "env": {
-    "singleServer": true,
-    "parallelism": 2
+  "envResources": {
+    "hosts": [
+      {
+        "name": "localhost"
+      }
+    ]
   },
   "testSuites": [
     {
+      "id": "My Test Suite",
+      "type": "REST",
+      "skip": false,
       "protocol": "http",
-      "host": "localhost",
       "port": 8180,
       "root": "/v1",
+      "defaultRequestOpts": {
+        "headers": {
+          "my-header": "myHeaderValue"
+        },
+        "json": true
+      },
       "env": {
+        "parallel": true,
+        "resourceCost": 50,
         "startScript": "envStart.sh",
         "stopScript": "envStop.sh",
         "healthcheck": {
           "type": "REST",
+          "retries": 30,
           "request": {
             "endpoint": "/healthcheck",
             "query": {
@@ -21,15 +35,10 @@
             },
             "body": {
               "myBodyKey": "myBodyValue"
-            }
+            },
+            "timeout": 5000
           }
         }
-      },
-      "defaultRequestOpts": {
-        "headers": {
-          "my-header": "myHeaderValue"
-        },
-        "json": true
       },
       "envInstances": [
         {
@@ -40,27 +49,27 @@
             }
           ]
         }
-      ]
-    }
-  ],
-  "mockServer": {
-    "port": 3030,
-    "root": "/my/mockserver/root/v1",
-    "proxy": {
-      "protocol": "http",
-      "host": "localhost",
-      "port": 3000
-    },
-    "decorateRequestOpts": {
-      "headers": {
-        "my-header": "myHeaderValue"
-      },
-      "query": {
-        "myQueryParam": "myQueryValue"
-      },
-      "body": {
-        "myBodyKey": "myBodyValue"
+      ],
+      "mockServer": {
+        "port": 3030,
+        "root": "/my/mockserver/root/v1",
+        "proxy": {
+          "protocol": "http",
+          "host": "localhost",
+          "port": 3000
+        },
+        "injectedRequestOpts": {
+          "headers": {
+            "my-header": "myHeaderValue"
+          },
+          "query": {
+            "myQueryParam": "myQueryValue"
+          },
+          "body": {
+            "myBodyKey": "myBodyValue"
+          }
+        }
       }
     }
-  }
+  ]
 }
