@@ -60,7 +60,6 @@ By default, Feeny will look for configuration in feeny/config.json
 
 ##### REST
 - `protocol`* - String: rest api protocol
-- `host`* - String: REST api host
 - `port`* - Number: REST api port
 - `root` - String: root context of all api calls ie) /v1.
 - `defaultRequestOpts` - [DefaultRequestOpts](#DefaultRequestOpts): an object representing request params to be sent by default on
@@ -80,8 +79,11 @@ Options sent by on each request by default
 ---
 #### EnvResources
 Configuration opts for provisioning Test Set Environments
-- `multiServer` - Boolean: By default we assume all envs will be deployed to the same server and therefore the port is incremented per env. If true, the port will remain the same for each env.
-- `parallelism` - Number: The max number of environments to run simultaneously.
+- `hosts` - [Array:Host](#Host)
+
+---
+#### Host
+- `name` - String: hostName of an available resource.
 
 ---
 #### Env
@@ -116,6 +118,35 @@ Not to be confused with [EnvInstance](#EnvInstance). Env represents the base Env
     }
   ```
 
+---
+####  MockServer
+A MockServer configuration allows for REST-based tests to be parsed and have their responses served when the defined request is made to the mock server. This effectively allows for you to define a test (request/response) prior to implementing the feature and have a server ready to server this response for UI developers.
+- `port` - String: port to run the mock server on. defaults to the port defined in the [TestSuite](#TestSuite) being mocked.
+- `root` - String: a root context that should be prepended to paths defined in a Test Suite and/or Test.
+- `proxy` - [Array:MockProxy](#MockProxy)
+- `injectedRequestOpts` - [RequestOpts](#RequestOpts) - allows UI developers to mimic an intermediate service which may decorate the request with additional headers, params, body, etc. Opts specified in this section will be merged into the request once it arrives at the Mock Server but before attempting to match a mocked test.
+
+---
+#### MockProxy
+A MockProxy defines a actual server running a full-implemented api. When running a MockServer if a route is not matched the request will be proxied to this server allowing for partial mocking.
+- `protocol`* - String `allowed: [http, https]`: protocol of the target server
+- `host`* - String: hostName of the target server
+- `port`* - Number: port of the target server
+
+---
+#### RequestOpts
+```
+ex)
+"headers": {
+  "my-header": "myHeaderValue"
+},
+"query": {
+  "myQueryParam": "myQueryValue"
+},
+"body": {
+  "myBodyKey": "myBodyValue"
+}
+```
 ---
 ## Todo
 - update logger to support env var based log-levels
