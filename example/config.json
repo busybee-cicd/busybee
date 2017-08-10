@@ -2,7 +2,8 @@
   "envResources": {
     "hosts": [
       {
-        "name": "localhost"
+        "name": "localhost",
+        "capacity": 100
       }
     ]
   },

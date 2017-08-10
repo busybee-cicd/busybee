@@ -79,15 +79,18 @@ Options sent by on each request by default
 ---
 #### EnvResources
 Configuration opts for provisioning Test Set Environments
-- `hosts` - [Array:Host](#Host)
+- `hosts`* - [Array:Host](#Host)
 
 ---
 #### Host
-- `name` - String: hostName of an available resource.
+- `name`* - String: hostName of an available resource.
+- `capacity` - Integer: A crude measurement of the total resources available at this host. By default, 100. 100. In this scenario, a [TestSuite.env](#TestSuite) with a `resourceCost` of 50 would be able to run 2 instances on this host simultaneously. When an instance of a Test Suite is added to a host its resourceCost is added to the `load` of that host. If an instance's (resourceCost + host.currentLoad) > capacity then the instance will wait until instances are removed from the host.
 
 ---
 #### Env
 Not to be confused with [EnvInstance](#EnvInstance). Env represents the base Environment configuration that will be shared by all instances of your Test Suite environment.
+- `parallel` - Boolean: Dictates whether or not this Test Suite is allowed to run multiple instances on a single resource simultaneously
+- `resourceCost` - A measurement of how many 'resource units' 1 instance of this env will consume while running. See [Host.capacity](#Host)
 - `startScript`* - String: A shell script expected to start your environment. Receives the following arguments `envId`, `apiHost`, `port`, `testDirectoryPath`
 - `stopScript`* - String: A shell script expected to stop your environment. Receives `envId` as an argument
 - `healthcheck`* - [HealthCheck](#HealthCheck)
