@@ -60,7 +60,6 @@ By default, Feeny will look for configuration in feeny/config.json
 
 ##### REST
 - `protocol`* - String: rest api protocol
-- `host`* - String: REST api host
 - `port`* - Number: REST api port
 - `root` - String: root context of all api calls ie) /v1.
 - `defaultRequestOpts` - [DefaultRequestOpts](#DefaultRequestOpts): an object representing request params to be sent by default on
@@ -80,12 +79,18 @@ Options sent by on each request by default
 ---
 #### EnvResources
 Configuration opts for provisioning Test Set Environments
-- `multiServer` - Boolean: By default we assume all envs will be deployed to the same server and therefore the port is incremented per env. If true, the port will remain the same for each env.
-- `parallelism` - Number: The max number of environments to run simultaneously.
+- `hosts`* - [Array:Host](#Host)
+
+---
+#### Host
+- `name`* - String: hostName of an available resource.
+- `capacity` - Integer: A crude measurement of the total resources available at this host. By default, 100. 100. In this scenario, a [TestSuite.env](#TestSuite) with a `resourceCost` of 50 would be able to run 2 instances on this host simultaneously. When an instance of a Test Suite is added to a host its resourceCost is added to the `load` of that host. If an instance's (resourceCost + host.currentLoad) > capacity then the instance will wait until instances are removed from the host.
 
 ---
 #### Env
 Not to be confused with [EnvInstance](#EnvInstance). Env represents the base Environment configuration that will be shared by all instances of your Test Suite environment.
+- `parallel` - Boolean: Dictates whether or not this Test Suite is allowed to run multiple instances on a single resource simultaneously
+- `resourceCost` - A measurement of how many 'resource units' 1 instance of this env will consume while running. See [Host.capacity](#Host)
 - `startScript`* - String: A shell script expected to start your environment. Receives the following arguments `envId`, `apiHost`, `port`, `testDirectoryPath`
 - `stopScript`* - String: A shell script expected to stop your environment. Receives `envId` as an argument
 - `healthcheck`* - [HealthCheck](#HealthCheck)
@@ -117,6 +122,35 @@ Not to be confused with [EnvInstance](#EnvInstance). Env represents the base Env
   ```
 
 ---
+####  MockServer
+A MockServer configuration allows for REST-based tests to be parsed and have their responses served when the defined request is made to the mock server. This effectively allows for you to define a test (request/response) prior to implementing the feature and have a server ready to server this response for UI developers.
+- `port` - String: port to run the mock server on. defaults to the port defined in the [TestSuite](#TestSuite) being mocked.
+- `root` - String: a root context that should be prepended to paths defined in a Test Suite and/or Test.
+- `proxy` - [Array:MockProxy](#MockProxy)
+- `injectedRequestOpts` - [RequestOpts](#RequestOpts) - allows UI developers to mimic an intermediate service which may decorate the request with additional headers, params, body, etc. Opts specified in this section will be merged into the request once it arrives at the Mock Server but before attempting to match a mocked test.
+
+---
+#### MockProxy
+A MockProxy defines a actual server running a full-implemented api. When running a MockServer if a route is not matched the request will be proxied to this server allowing for partial mocking.
+- `protocol`* - String `allowed: [http, https]`: protocol of the target server
+- `host`* - String: hostName of the target server
+- `port`* - Number: port of the target server
+
+---
+#### RequestOpts
+```
+ex)
+"headers": {
+  "my-header": "myHeaderValue"
+},
+"query": {
+  "myQueryParam": "myQueryValue"
+},
+"body": {
+  "myBodyKey": "myBodyValue"
+}
+```
+---
 ## Todo
 - update logger to support env var based log-levels
 - test adapters
@@ -125,6 +159,7 @@ Not to be confused with [EnvInstance](#EnvInstance). Env represents the base Env
 - support healthcheck script
 - transpile to support older versions of node
 - Mock Server
+  - injectedRequestOpts on proxied calls as well.
   - support testSets with state
   - support behavior, delays in mocks (timeout)
   - support a .spec file for documenting endpoints?
