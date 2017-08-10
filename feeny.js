@@ -145,7 +145,7 @@ function initTests(conf) {
     });
   });
 
-  _async.parallelLimit(envTasks, parallelism, (err, results) => {
+  _async.parallel(envTasks, (err, results) => {
     if (conf.onCompleteScript || conf.cmdOpts.onCompleteScript) {
       let scriptPath = conf.onCompleteScript ?
         path.join(conf.filePaths.feenyDir, conf.onCompleteScript)

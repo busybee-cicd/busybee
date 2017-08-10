@@ -125,6 +125,7 @@ Not to be confused with [EnvInstance](#EnvInstance). Env represents the base Env
 - support healthcheck script
 - transpile to support older versions of node
 - Mock Server
+  - injectedRequestOpts on proxied calls as well.
   - support testSets with state
   - support behavior, delays in mocks (timeout)
   - support a .spec file for documenting endpoints?
