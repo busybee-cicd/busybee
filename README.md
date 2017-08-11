@@ -23,22 +23,19 @@ feeny --help
 ## About
 
 ### What it is
-Feeny will coordinate the steps necessary to run your Functional Tests and is unopinionated
-when it comes to deciding how your environments are started, when you deem an environment
-is ready, what technologies you're using, etc. Feeny is only concerned with the following:  
+Feeny will coordinate the steps necessary to run your Functional Tests. It is unopinionated
+when it comes to deciding how your environments are started, when they're ready, what technologies are used, etc. Feeny is only concerned with the following:  
 
-1. Figure out how many Test Sets we're dealing with. Each test set will run against its own environment
-so if you don't want tests to interact with one another, separate them into Test Sets.
-2. Spin up a separate environment for each test set.
-3. Run the tests against each environment.
-4. Spin down each environment.
+1. Figure out how many [Test Suites](#TestSuite) we're dealing with.
+2. Figure out how many [Environments](#Env) are required for each [Test Suite](#TestSuite)
+3. Figure out how many [Test Sets][#TestSet] to run against each [Environment](#Env).
+2. Spin up each [Environment](#Env)
+3. Run the [Test Sets](#TestSet)
+4. Spin down each [Environment](#Env).
 5. Report results.
 
 ### What it isn't
-It is not a magic bullet. You still have to write tests.
-It does not include the implementation of how to spin up your environment or where you environment
-lives, though we provide examples of how to accomplish this. It is up to you to provide a shell script that does the dirty work of launching an env and then
-returning "success" back to Feeny so that Feeny can continue on to the next step.
+It is not a magic bullet. You still have to write tests. You still have to provide 'start' and 'stop' scripts detailing how start/stop your environments. If your [Test Suite](#TestSuite) is not a REST [Test Suite](#TestSuite) then you will also need to provide a 'run' script that actually runs your tests once the environment as been provisioned.
 
 ## Configuration
 By default, Feeny will look for configuration in feeny/config.json
