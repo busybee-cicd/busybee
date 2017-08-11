@@ -66,8 +66,8 @@ Commander
     .command('init')
     .description('set up feeny folder and example config/test')
     .action(() => {
-      const exampleConf = require('./example/config.json');
-      const exampleTest = require('./example/test.json');
+      const exampleConf = require('./init/config.json');
+      const exampleTest = require('./init/test.json');
       const feenyDir = path.join(process.cwd(), 'feeny');
       if (!fs.existsSync(feenyDir))
         fs.mkdirSync(feenyDir);

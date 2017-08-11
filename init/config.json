@@ -1,0 +1,47 @@
+{
+  "envResources": {
+    "hosts": [
+      {
+        "name": "localhost"
+      }
+    ]
+  },
+  "testSuites": [
+    {
+      "id": "My Test Suite",
+      "type": "REST",
+      "protocol": "http",
+      "port": 8180,
+      "root": "/v1",
+      "env": {
+        "startScript": "envStart.sh",
+        "stopScript": "envStop.sh",
+        "healthcheck": {
+          "type": "REST",
+          "request": {
+            "endpoint": "/healthcheck"
+          }
+        }
+      },
+      "envInstances": [
+        {
+          "id": "My Test Env",
+          "testSets": [
+            {
+              "id": "My Test Set"
+            }
+          ]
+        }
+      ],
+      "mockServer": {
+        "port": 3001,
+        "root": "/my/mockserver/root/v1",
+        "proxy": {
+          "protocol": "http",
+          "host": "localhost",
+          "port": 3000
+        }
+      }
+    }
+  ]
+}

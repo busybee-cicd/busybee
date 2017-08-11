@@ -1,0 +1,28 @@
+[{
+  "name": "my test",
+  "skip": false,
+  "mock": false,
+  "testSet": {
+    "id": "My Test Set",
+    "index": 0
+  },
+  "request": {
+    "method": "GET",
+    "endpoint": "/my-endpoint",
+    "query": {
+      "myQueryParam": "myQueryValue"
+    },
+    "body": {
+      "myBodyKey": "myBodyValue"
+    }
+  },
+  "expect": {
+    "status": 200,
+    "headers": {
+      "my-expected-header": "myExpectedHeaderValue"
+    },
+    "body": {
+      "myExpectedKey": "myExpectedValue"
+    }
+  }
+}]
