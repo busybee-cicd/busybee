@@ -24,6 +24,7 @@ Commander
   .option('-c, --config <config>', 'Config File. defaults to config.json. parsed as being relative to --directory')
   .option('-d, --directory <directory>', 'Test Directory. defaults to feeny/')
   .option('-D, --debug', 'convenience flag for debug mode')
+  .option('-l, --localMode', 'ignores any host configuration in favor of localhost with a capacity of 100')
   .option('-L, --logLevel <level>', '[DEBUG, INFO, WARN, ERROR]')
   .option('-o, --onComplete <onComplete>', 'The filename of javascript module placed in your feeny/ directory. Will be called on complete. ex module) module.exports = (err, results) => { console.log(err || JSON.stringify(results)); }')
   .option('-s, --skipEnvProvisioning <ids>', 'list of comma-separated TestSuite ids. Environments will not be provisioned for these TestSuites prior to running tests')
