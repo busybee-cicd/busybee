@@ -3,7 +3,7 @@
 const _async = require('async');
 const _ = require('lodash');
 const ConfigParser = require('./lib/configParser');
-const RESTManager = require('./lib/restManager');
+const RESTSuiteManager = require('./lib/restSuiteManager');
 const EnvManager = require('./lib/envManager');
 const TestManager = require('./lib/testManager');
 const MockServer = require('./lib/mockServer');
@@ -32,7 +32,7 @@ Commander
   .action((options) => {
     let configParser = new ConfigParser(options);
     const conf = configParser.parse('test');
-    logger = new Logger(conf);
+    logger = new Logger(conf, this);
     initTests(conf);
   });
 
@@ -55,7 +55,7 @@ Commander
     }
 
     // identify the TestSuite.
-    let testSuite = _.find(conf.testSuites, (suite) => { return suite.id == options.testSuite; });
+    let testSuite = _.find(conf.parsedTestSuites, (suite) => { return suite.suiteID == options.testSuite; });
     if (!testSuite) {
       logger.error(`No TestSuite with the id ${options.testSuite} could be identified, exiting`);
       return
