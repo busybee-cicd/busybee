@@ -44,7 +44,7 @@ returning "success" back to Feeny so that Feeny can continue on to the next step
 By default, Feeny will look for configuration in feeny/config.json
 
 ### config.json
-- `onCompleteScript` - String: The name of a .sh file that will be run on completion of all TestSets.
+- `onComplete` - String: The name of a .js file to call on completion of all Test Suites. Must export a single function with the signature (errors, results).
 - `testSuites`* - [Array:TestSuite](#TestSuite)
 - `envResources` - [EnvResources](#EnvResources)
 
@@ -91,8 +91,8 @@ Configuration opts for provisioning Test Set Environments
 Not to be confused with [EnvInstance](#EnvInstance). Env represents the base Environment configuration that will be shared by all instances of your Test Suite environment.
 - `parallel` - Boolean: Dictates whether or not this Test Suite is allowed to run multiple instances on a single resource simultaneously
 - `resourceCost` - A measurement of how many 'resource units' 1 instance of this env will consume while running. See [Host.capacity](#Host)
-- `startScript`* - String: A shell script expected to start your environment. Receives the following arguments `envId`, `apiHost`, `port`, `testDirectoryPath`
-- `stopScript`* - String: A shell script expected to stop your environment. Receives `envId` as an argument
+- `startScript`* - String: A shell script expected to start your environment. Receives the following arguments `generatedEnvID`, `hostName`, `port`, `testDirectoryPath`
+- `stopScript`* - String: A shell script expected to stop your environment. Receives the following arguments `generatedEnvID`, `hostName`, `port`, `testDirectoryPath`
 - `healthcheck`* - [HealthCheck](#HealthCheck)
 
 ---

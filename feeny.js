@@ -24,7 +24,7 @@ Commander
   .option('-c, --config <config>', 'Config File. defaults to config.json. parsed as being relative to --directory')
   .option('-d, --directory <directory>', 'Test Directory. defaults to feeny/')
   .option('-D, --debug', 'debug mode')
-  .option('-o, --onCompleteScript <onCompleteScript>', 'The filename of javascript module placed in your feeny/ directory. Will be called on complete. ex module) module.exports = (err, results) => { console.log(err || JSON.stringify(results)); }')
+  .option('-o, --onComplete <onComplete>', 'The filename of javascript module placed in your feeny/ directory. Will be called on complete. ex module) module.exports = (err, results) => { console.log(err || JSON.stringify(results)); }')
   .option('-s, --skipEnvProvisioning <ids>', 'list of comma-separated TestSuite ids. Environments will not be provisioned for these TestSuites prior to running tests')
   .option('-sts, --skipTestSuite <ids>', 'list of comma-separated TestSuite ids to skip')
   .action((options) => {
@@ -141,13 +141,13 @@ function initTests(conf) {
   });
 
   _async.parallel(envTasks, (err, results) => {
-    if (conf.onCompleteScript || conf.cmdOpts.onCompleteScript) {
-      let scriptPath = conf.onCompleteScript ?
-        path.join(conf.filePaths.feenyDir, conf.onCompleteScript)
-        : path.join(conf.filePaths.feenyDir, conf.cmdOpts.onCompleteScript);
+    if (conf.onComplete || conf.cmdOpts.onComplete) {
+      let scriptPath = conf.onComplete ?
+        path.join(conf.filePaths.feenyDir, conf.onComplete)
+        : path.join(conf.filePaths.feenyDir, conf.cmdOpts.onComplete);
 
       try {
-        logger.debug(`Running onCompleteScript: ${scriptPath}`);
+        logger.debug(`Running onComplete: ${scriptPath}`);
         require(scriptPath)(err, results);
       } catch (e) {
         console.log(e);
