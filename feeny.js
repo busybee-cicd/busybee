@@ -59,7 +59,7 @@ Commander
     }
 
     testSuite.cmdOpts = options;
-    let mockServer = new MockServer(testSuite, {debug: conf.debug});
+    let mockServer = new MockServer(testSuite, conf);
   });
 
   Commander
@@ -82,17 +82,13 @@ Commander
 Commander.parse(process.argv);
 
 function parseConfiguration(cmdOpts, mode) {
-  const DEBUG = process.env.DEBUG || cmdOpts.debug;
-
   // 1. parse config and merge in any useful command line args
-  let parsedConf = parseFiles.parse(cmdOpts, mode, DEBUG);
+  let parsedConf = parseFiles.parse(cmdOpts, mode);
   if (!parsedConf) {
     throw new Exception("No config.json found");
   }
 
-  return Object.assign({}, parsedConf, {
-    cmdOpts: cmdOpts
-  });
+  return parsedConf;
 }
 
 
