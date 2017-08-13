@@ -114,7 +114,8 @@ Not to be confused with [EnvInstance](#EnvInstance). Env represents the base Env
   ```
     "request": {
       "endpoint": "/privileges",
-      "timeout": 1500
+      "timeout": 1500,
+      "port": 3000
     }
   ```
 
