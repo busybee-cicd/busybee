@@ -1,4 +1,4 @@
-![busybee](https://github.build.ge.com/212589146/busybee/blob/master/img/busybee7.png =300x)
+<img alt="busybee" src="https://github.build.ge.com/212589146/busybee/blob/master/img/busybee7.png" width="300" />
 
 busybee
 ========
