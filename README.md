@@ -1,6 +1,6 @@
-![feeny](https://github.build.ge.com/212589146/feeny/blob/master/feeny.jpg)
+![busybee](https://github.build.ge.com/212589146/busybee/blob/master/img/busybee.svg)
 
-feeny
+busybee
 ========
 
 * [Requirements](#Requirements)
@@ -15,16 +15,16 @@ feeny
 
 ## Quickstart
 ```
-npm install -g git+https://502740163@github.build.ge.com/212589146/feeny.git
-feeny init
-feeny --help
+npm install -g git+https://502740163@github.build.ge.com/212589146/busybee.git
+busybee init
+busybee --help
 ```
 
 ## About
 
 ### What it is
-Feeny will coordinate the steps necessary to run your Functional Tests. It is unopinionated
-when it comes to deciding how your environments are started, when they're ready, what technologies are used, etc. Feeny is only concerned with the following:  
+Busybee will coordinate the steps necessary to run your Functional Tests. It is unopinionated
+when it comes to deciding how your environments are started, when they're ready, what technologies are used, etc. Busybee is only concerned with the following:  
 
 1. Figure out how many [Test Suites](#TestSuite) we're dealing with.
 2. Figure out how many [Environments](#Env) are required for each [Test Suite](#TestSuite)
@@ -38,7 +38,7 @@ when it comes to deciding how your environments are started, when they're ready,
 It is not a magic bullet. You still have to write tests. You still have to provide 'start' and 'stop' scripts detailing how start/stop your environments. If your [Test Suite](#TestSuite) is not a REST [Test Suite](#TestSuite) then you will also need to provide a 'run' script that actually runs your tests once the environment as been provisioned.
 
 ## Configuration
-By default, Feeny will look for configuration in feeny/config.json
+By default, Busybee will look for configuration in busybee/config.json
 
 ### config.json
 - `onComplete` - String: The name of a .js file to call on completion of all Test Suites. Must export a single function with the signature (errors, results).
@@ -48,7 +48,7 @@ By default, Feeny will look for configuration in feeny/config.json
 ---
 #### TestSuite
 - `id`* - String: A unique id for this Test Suite
-- `type`* - String `allowed: [REST, other]`: Dictates how the Test Suite is parsed. Feeny has it's own REST api testing implementation. For all other test suites choose 'other'
+- `type`* - String `allowed: [REST, other]`: Dictates how the Test Suite is parsed. Busybee has it's own REST api testing implementation. For all other test suites choose 'other'
 - `skip` - Boolean `default:false`: Whether or not to skip this Test Suite
 - `env`* - [Env](#Env)
 - `envInstances`* - [Array:EnvInstance](#TestEnvInstance)
@@ -152,7 +152,7 @@ ex)
 ## Todo
 - test adapters
   - support https://github.com/postmanlabs/newman#using-newman-as-a-nodejs-module ?
-    - may just want a commandline opt for running postman tests and another for converting them to Feeny formay since Feeny supports additional features like sets and indexes.
+    - may just want a commandline opt for running postman tests and another for converting them to Busybee formay since Busybee supports additional features like sets and indexes.
 - support healthcheck script
 - transpile to support older versions of node
 - Mock Server

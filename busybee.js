@@ -22,11 +22,11 @@ Commander
   .command('test')
   .description('execute tests')
   .option('-c, --config <config>', 'Config File. defaults to config.json. parsed as being relative to --directory')
-  .option('-d, --directory <directory>', 'Test Directory. defaults to feeny/')
+  .option('-d, --directory <directory>', 'Test Directory. defaults to busybee/')
   .option('-D, --debug', 'convenience flag for debug mode')
   .option('-l, --localMode', 'ignores any host configuration in favor of localhost with a capacity of 100')
   .option('-L, --logLevel <level>', '[DEBUG, INFO, WARN, ERROR]')
-  .option('-o, --onComplete <onComplete>', 'The filename of javascript module placed in your feeny/ directory. Will be called on complete. ex module) module.exports = (err, results) => { console.log(err || JSON.stringify(results)); }')
+  .option('-o, --onComplete <onComplete>', 'The filename of javascript module placed in your busybee/ directory. Will be called on complete. ex module) module.exports = (err, results) => { console.log(err || JSON.stringify(results)); }')
   .option('-s, --skipEnvProvisioning <ids>', 'list of comma-separated TestSuite ids. Environments will not be provisioned for these TestSuites prior to running tests')
   .option('-sts, --skipTestSuite <ids>', 'list of comma-separated TestSuite ids to skip')
   .action((options) => {
@@ -40,7 +40,7 @@ Commander
   .command('mock')
   .description('runs a mock REST API server using your tests as mocks')
   .option('-c, --config <config>', 'Config File. defaults to config.json. parsed as being relative to --directory')
-  .option('-d, --directory <directory>', 'Test Directory. defaults to feeny/')
+  .option('-d, --directory <directory>', 'Test Directory. defaults to busybee/')
   .option('-D, --debug', 'convenience flag for debug mode')
   .option('-L, --logLevel <level>', '[DEBUG, INFO, WARN, ERROR]')
   .option('-np, --noProxy, Will ignore any config.json proxy configuration and skip proxy attempts')
@@ -67,19 +67,19 @@ Commander
 
   Commander
     .command('init')
-    .description('set up feeny folder and example config/test')
+    .description('set up busybee folder and example config/test')
     .action(() => {
       const exampleConf = require('./init/config.json');
       const exampleTest = require('./init/test.json');
-      const feenyDir = path.join(process.cwd(), 'feeny');
-      if (!fs.existsSync(feenyDir))
-        fs.mkdirSync(feenyDir);
-      if (!fs.exists(path.join(feenyDir, 'test.json')))
-        fs.writeFileSync(path.join(feenyDir, 'test.json'), JSON.stringify(exampleTest, null, '\t'));
-      if (!fs.exists(path.join(feenyDir, 'config.json')))
-        fs.writeFileSync(path.join(feenyDir, 'config.json'), JSON.stringify(exampleConf, null, '\t'));
+      const busybeeDir = path.join(process.cwd(), 'busybee');
+      if (!fs.existsSync(busybeeDir))
+        fs.mkdirSync(busybeeDir);
+      if (!fs.exists(path.join(busybeeDir, 'test.json')))
+        fs.writeFileSync(path.join(busybeeDir, 'test.json'), JSON.stringify(exampleTest, null, '\t'));
+      if (!fs.exists(path.join(busybeeDir, 'config.json')))
+        fs.writeFileSync(path.join(busybeeDir, 'config.json'), JSON.stringify(exampleConf, null, '\t'));
 
-      console.log("Feeny initialized!");
+      console.log("Busybee initialized!");
     });
 
 Commander.parse(process.argv);
@@ -146,8 +146,8 @@ function initTests(conf) {
   _async.parallel(envTasks, (err, results) => {
     if (conf.onComplete || conf.cmdOpts.onComplete) {
       let scriptPath = conf.onComplete ?
-        path.join(conf.filePaths.feenyDir, conf.onComplete)
-        : path.join(conf.filePaths.feenyDir, conf.cmdOpts.onComplete);
+        path.join(conf.filePaths.busybeeDir, conf.onComplete)
+        : path.join(conf.filePaths.busybeeDir, conf.cmdOpts.onComplete);
 
       try {
         logger.debug(`Running onComplete: ${scriptPath}`);
