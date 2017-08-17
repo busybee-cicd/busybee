@@ -48,7 +48,7 @@ Commander
   .action((options) => {
     let configParser = new ConfigParser(options);
     const conf = configParser.parse('mock');
-    logger = new Logger(conf);
+    logger = new Logger(conf, this);
     if (!options.testSuite) {
       logger.error(`'--testSuite' is a required argument, exiting`);
       return;
