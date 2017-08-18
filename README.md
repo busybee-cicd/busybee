@@ -159,3 +159,4 @@ ex)
   - support testSets with state
   - support behavior, delays in mocks (timeout)
   - support a .spec file for documenting endpoints?
+- do a true portscan when searching for open ports
