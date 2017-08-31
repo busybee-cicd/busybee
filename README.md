@@ -28,7 +28,7 @@ when it comes to deciding how your environments are started, when they're ready,
 
 1. Figure out how many [Test Suites](#TestSuite) we're dealing with.
 2. Figure out how many [Environments](#Env) are required for each [Test Suite](#TestSuite)
-3. Figure out how many [Test Sets][#TestSet] to run against each [Environment](#Env).
+3. Figure out how many [Test Sets](#TestSet) to run against each [Environment](#Env).
 2. Spin up each [Environment](#Env)
 3. Run the [Test Sets](#TestSet)
 4. Spin down each [Environment](#Env).
