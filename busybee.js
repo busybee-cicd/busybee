@@ -127,12 +127,6 @@ function initTests(conf) {
   });
 
   testManager.buildTestSuiteTasks();
-  //testManager.buildTestEnvTasks();
-
-  // spin up testSetTasks in parallel and then run tests
-  let parallelism = 1;
-  if (conf.envResources && conf.envResources.parallelism)
-    parallelism = conf.envResources.parallelism
 
   // run the api tests
   // TODO: allow ordering of TestSuites and TestEnvs
