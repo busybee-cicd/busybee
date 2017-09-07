@@ -46,13 +46,14 @@ Commander
   .option('-np, --noProxy, Will ignore any config.json proxy configuration and skip proxy attempts')
   .option('-t, --testSuite <id>', 'Required. The ID of the REST Api TestSuite that you would like to run a mock server for')
   .action((options) => {
+    if (!options.testSuite) {
+      console.log(`'--testSuite' is a required argument, exiting`);
+      return;
+    }
     let configParser = new ConfigParser(options);
     const conf = configParser.parse('mock');
     logger = new Logger(conf, this);
-    if (!options.testSuite) {
-      logger.error(`'--testSuite' is a required argument, exiting`);
-      return;
-    }
+
 
     // identify the TestSuite.
     let testSuite = _.find(conf.parsedTestSuites, (suite) => { return suite.suiteID == options.testSuite; });
