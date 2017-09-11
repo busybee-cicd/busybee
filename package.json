@@ -2,9 +2,10 @@
   "name": "busybee",
   "version": "1.1.0",
   "description": "it test coordinator",
-  "main": "busybee.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "bin": {
-    "busybee": "./busybee.js"
+    "busybee": "./dist/index.js"
   },
   "dependencies": {
     "async": "^2.5.0",
@@ -19,8 +20,12 @@
     "request": "^2.81.0",
     "uuid": "^3.1.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@types/node": "^8.0.28",
+    "typescript": "^2.5.2"
+  },
   "scripts": {
+    "build": "tsc",
     "start": "node main.js",
     "debug": "NODE_DEBUG=request DEBUG=true node main.js",
     "test": "echo \"Error: no test specified\" && exit 1"

@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "lib": ["es6"],
+        "outDir": "./dist",
+        "target": "es5",
+        "sourceMap": true,
+        "inlineSources": true,
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "types" : ["node"]
+
+    },
+    "include": ["./src/**/*"]
+}
