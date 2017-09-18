@@ -2,6 +2,7 @@
 "use strict";
 var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
+require('source-map-support').install();
 var _async = require("async");
 var _ = require("lodash");
 var Commander = require("commander");
@@ -19,7 +20,7 @@ Commander
 Commander
     .command('test')
     .description('execute tests')
-    .option('-c, --config <config>', 'Config File. defaults to config.json. parsed as being relative to --directory')
+    .option('-c, --userConfigFile <userConfigFile>', 'Config File. defaults to userConfigFile.json. parsed as being relative to --directory')
     .option('-d, --directory <directory>', 'Test Directory. defaults to busybee/')
     .option('-D, --debug', 'convenience flag for debug mode')
     .option('-l, --localMode', 'ignores any host configuration in favor of localhost with a capacity of 100')
@@ -36,11 +37,11 @@ Commander
 Commander
     .command('mock')
     .description('runs a mock REST API server using your tests as mocks')
-    .option('-c, --config <config>', 'Config File. defaults to config.json. parsed as being relative to --directory')
+    .option('-c, --userConfigFile <userConfigFile>', 'Config File. defaults to userConfigFile.json. parsed as being relative to --directory')
     .option('-d, --directory <directory>', 'Test Directory. defaults to busybee/')
     .option('-D, --debug', 'convenience flag for debug mode')
     .option('-L, --logLevel <level>', '[DEBUG, INFO, WARN, ERROR]')
-    .option('-np, --noProxy, Will ignore any config.json proxy configuration and skip proxy attempts')
+    .option('-np, --noProxy, Will ignore any userConfigFile.json proxy configuration and skip proxy attempts')
     .option('-t, --testSuite <id>', 'Required. The ID of the REST Api TestSuite that you would like to run a mock server for')
     .action(function (options) {
     if (!options.testSuite) {
@@ -57,21 +58,21 @@ Commander
         return;
     }
     testSuite.cmdOpts = options;
-    var mockServer = new MockServer_1.MockServer(testSuite, conf);
+    new MockServer_1.MockServer(testSuite, conf);
 });
 Commander
     .command('init')
-    .description('set up busybee folder and example config/test')
+    .description('set up busybee folder and example userConfigFile/test')
     .action(function () {
-    var exampleConf = require('./init/config.json');
+    var exampleConf = require('./init/userConfigFile.json');
     var exampleTest = require('./init/test.json');
     var busybeeDir = path.join(process.cwd(), 'busybee');
     if (!fs.existsSync(busybeeDir))
         fs.mkdirSync(busybeeDir);
     if (!fs.exists(path.join(busybeeDir, 'test.json'), null))
         fs.writeFileSync(path.join(busybeeDir, 'test.json'), JSON.stringify(exampleTest, null, '\t'));
-    if (!fs.exists(path.join(busybeeDir, 'config.json'), null))
-        fs.writeFileSync(path.join(busybeeDir, 'config.json'), JSON.stringify(exampleConf, null, '\t'));
+    if (!fs.exists(path.join(busybeeDir, 'userConfigFile.json'), null))
+        fs.writeFileSync(path.join(busybeeDir, 'userConfigFile.json'), JSON.stringify(exampleConf, null, '\t'));
     console.log("Busybee initialized!");
 });
 Commander.parse(process.argv);

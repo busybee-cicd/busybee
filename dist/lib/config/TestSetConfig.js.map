@@ -1,0 +1,1 @@
+{"version":3,"file":"TestSetConfig.js","sourceRoot":"","sources":["../../../src/lib/config/TestSetConfig.ts"],"names":[],"mappings":";;AAAA;IAAA;IAEA,CAAC;IAAD,oBAAC;AAAD,CAAC,AAFD,IAEC;AAFY,sCAAa","sourcesContent":["export class TestSetConfig {\r\n  id: string;\r\n}\r\n"]}

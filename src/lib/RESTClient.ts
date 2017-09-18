@@ -1,6 +1,7 @@
 import * as request from 'request';
 import * as _ from 'lodash';
 import {Logger} from './Logger';
+import {RequestOptsConfig} from "./config/common/RequestOptsConfig";
 
 export class RESTClient {
 
@@ -46,7 +47,7 @@ export class RESTClient {
     return url;
   }
 
-  buildRequest(requestConf, port) {
+  buildRequest(requestConf: RequestOptsConfig, port: number) {
     this.logger.debug(`buildRequestUrl <requestConf> ${port}`);
     this.logger.debug(requestConf);
 
@@ -60,7 +61,7 @@ export class RESTClient {
     }
 
     let req = {
-      method: requestConf.method,
+      method: requestConf.method || 'GET',
       url: url,
       qs: requestConf.query,
       headers: requestConf.headers,

@@ -1,4 +1,5 @@
 import * as _ from 'lodash';
+import {BusybeeParsedConfig} from "./config/BusybeeParsedConfig";
 
 export class Logger {
 
@@ -8,7 +9,7 @@ export class Logger {
   private logLevel: string;
   private levelMap: any;
 
-  constructor(conf, clazz) {
+  constructor(conf: any, clazz) {
     this.conf = conf;
     this.className = clazz.constructor.name;
     this.logLevel = conf.logLevel || 'INFO';

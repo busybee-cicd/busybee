@@ -46,7 +46,7 @@ var RESTSuiteManager = /** @class */ (function () {
         this.restClient = new RESTClient_1.RESTClient(conf, suiteEnvConf);
     }
     ///////// TestRunning
-    RESTSuiteManager.prototype.runRESTApiTestSets = function (currentEnv, restManager) {
+    RESTSuiteManager.prototype.runRESTApiTestSets = function (currentEnv) {
         var _this = this;
         // TODO: logic for running TestSets in order
         return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
@@ -56,8 +56,8 @@ var RESTSuiteManager = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         this.logger.debug("runRESTApiTestSets " + currentEnv.suiteID + " " + currentEnv.suiteEnvID);
-                        testSetPromises = _.map(currentEnv.testSets, function (testSet, id) {
-                            return _this.runRESTApiTestSet(currentEnv, testSet, restManager);
+                        testSetPromises = _.map(currentEnv.testSets.values(), function (testSet) {
+                            return _this.runRESTApiTestSet(currentEnv, testSet);
                         });
                         _a.label = 1;
                     case 1:
@@ -83,7 +83,7 @@ var RESTSuiteManager = /** @class */ (function () {
             });
         }); });
     };
-    RESTSuiteManager.prototype.runRESTApiTestSet = function (currentEnv, testSet, restManager) {
+    RESTSuiteManager.prototype.runRESTApiTestSet = function (currentEnv, testSet) {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
             return __generator(this, function (_a) {
@@ -133,7 +133,7 @@ var RESTSuiteManager = /** @class */ (function () {
                     return cb(null);
                 }
                 // build request
-                var port = currentEnv.ports[0]; // the REST api port should be passed first in the config.
+                var port = currentEnv.ports[0]; // the REST api port should be passed first in the userConfigFile.
                 var opts = _this.restClient.buildRequest(test.request, port);
                 _this.logger.debug(opts);
                 // figure out if this test is running at a specific index. (just nice for consoling)

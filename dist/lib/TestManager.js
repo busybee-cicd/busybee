@@ -50,15 +50,17 @@ var TestManager = /** @class */ (function () {
         var _this = this;
         this.logger.debug('buildTestSuiteTasks');
         var conf = this.conf;
-        //this.logger.debug(conf.parsedTestSuites, true);
-        _.forEach(conf.parsedTestSuites, function (testSuite, suiteID) {
+        conf.parsedTestSuites.forEach(function (testSuite, suiteID) {
             if (testSuite.skip) {
                 return;
             }
             // parse the envs of this TestSuite
             _this.testSuiteTasks[suiteID] = { envTasks: [] };
             //conf.parsedTestSuites[suiteID].envTasks = [];
-            _.forEach(testSuite.testEnvs, function (testEnv, suiteEnvID) {
+            _this.logger.debug(suiteID);
+            _this.logger.debug(testSuite);
+            testSuite.testEnvs.forEach(function (testEnv, suiteEnvID) {
+                _this.logger.debug(testEnv, true);
                 if (testSuite.type === "REST") {
                     // 1. make sure testSets exist for this testEnv
                     if (_.isEmpty(testEnv.testSets)) {
@@ -67,7 +69,7 @@ var TestManager = /** @class */ (function () {
                     }
                     // 2. confirm the testSet contains tests
                     var hasTests_1 = false;
-                    _.forEach(testEnv.testSets, function (testSet, testSetID) {
+                    testEnv.testSets.forEach(function (testSet) {
                         if (testSet.tests && testSet.tests.length > 0) {
                             hasTests_1 = true;
                             return false;
@@ -77,15 +79,15 @@ var TestManager = /** @class */ (function () {
                         _this.logger.debug("testEnv " + testEnv.suiteEnvID + " contains 0 tests. skipping");
                         return;
                     }
-                    _this.testSuiteTasks[suiteID].envTasks.push(_this.buildRESTTestEnvTask(_this.envManager, suiteID, testEnv.suiteEnvID, testEnv.testSet));
+                    _this.testSuiteTasks[suiteID].envTasks.push(_this.buildRESTTestEnvTask(_this.envManager, suiteID, testEnv.suiteEnvID));
                 }
                 else {
-                    _this.testSuiteTasks[suiteID].envTasks.push(_this.buildTestEnvTask(_this.envManager, suiteID, testEnv.suiteEnvID, testEnv.testSet));
+                    _this.testSuiteTasks[suiteID].envTasks.push(_this.buildTestEnvTask(_this.envManager, suiteID, testEnv.suiteEnvID));
                 }
             });
         });
     };
-    TestManager.prototype.buildRESTTestEnvTask = function (envManager, suiteID, suiteEnvID, testSets) {
+    TestManager.prototype.buildRESTTestEnvTask = function (envManager, suiteID, suiteEnvID) {
         var _this = this;
         this.logger.debug("buildRESTTestEnvTask " + suiteID + " " + suiteEnvID);
         var generatedEnvID = envManager.generateId();
@@ -99,7 +101,7 @@ var TestManager = /** @class */ (function () {
                             generatedEnvID = _a.sent();
                             currentEnv = envManager.getCurrentEnv(generatedEnvID);
                             restManager = new RESTSuiteManager_1.RESTSuiteManager(this.conf, currentEnv);
-                            return [4 /*yield*/, restManager.runRESTApiTestSets(currentEnv, restManager)];
+                            return [4 /*yield*/, restManager.runRESTApiTestSets(currentEnv)];
                         case 2:
                             testSetResults = _a.sent();
                             return [2 /*return*/, testSetResults];
@@ -114,8 +116,8 @@ var TestManager = /** @class */ (function () {
             })
                 .catch(function (err) {
                 console.trace();
-                _this.logger.debug("buildRESTTestEnvTask: ERROR CAUGHT WHILE RUNNING TEST SETS");
-                _this.logger.debug(err);
+                _this.logger.error("buildRESTTestEnvTask: ERROR CAUGHT WHILE RUNNING TEST SETS");
+                _this.logger.error(err);
                 envManager.stop(generatedEnvID)
                     .then(function () { cb(err); })
                     .catch(function (err2) { return cb(err2); });
@@ -125,7 +127,7 @@ var TestManager = /** @class */ (function () {
     /*
       TODO: use the GenericSuiteManager to kick off tests
     */
-    TestManager.prototype.buildTestEnvTask = function (envManager, suiteID, suiteEnvID, testSets) {
+    TestManager.prototype.buildTestEnvTask = function (envManager, suiteID, suiteEnvID) {
         var _this = this;
         this.logger.debug("buildTestEnvTask " + suiteID + " " + suiteEnvID);
         var generatedEnvID = envManager.generateId();

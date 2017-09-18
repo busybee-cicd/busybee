@@ -48,7 +48,7 @@ var RESTClient = /** @class */ (function () {
             }
         }
         var req = {
-            method: requestConf.method,
+            method: requestConf.method || 'GET',
             url: url,
             qs: requestConf.query,
             headers: requestConf.headers,

@@ -2,6 +2,7 @@ import * as _async from 'async';
 import * as _ from 'lodash';
 import {Logger} from './Logger';
 import {RESTClient} from './RESTClient';
+import {SuiteEnvInfo} from "./models/SuiteEnvInfo";
 
 export class RESTSuiteManager {
 
@@ -17,12 +18,13 @@ export class RESTSuiteManager {
 
   ///////// TestRunning
 
-  runRESTApiTestSets(currentEnv, restManager) {
+
+  runRESTApiTestSets(currentEnv: SuiteEnvInfo) {
     // TODO: logic for running TestSets in order
     return new Promise(async (resolve, reject) => {
       this.logger.debug(`runRESTApiTestSets ${currentEnv.suiteID} ${currentEnv.suiteEnvID}`);
-      let testSetPromises = _.map(currentEnv.testSets, (testSet, id) => {
-        return this.runRESTApiTestSet(currentEnv, testSet, restManager);
+      let testSetPromises = _.map(currentEnv.testSets.values(), (testSet) => {
+        return this.runRESTApiTestSet(currentEnv, testSet);
       });
 
       let testSetResults;
@@ -43,7 +45,7 @@ export class RESTSuiteManager {
 
   }
 
-  async runRESTApiTestSet(currentEnv, testSet, restManager) {
+  async runRESTApiTestSet(currentEnv, testSet) {
     this.logger.debug(`runRESTApiTestSet ${currentEnv.ports} ${testSet.id}`);
 
     return new Promise((resolve, reject) => {
@@ -94,7 +96,7 @@ export class RESTSuiteManager {
         }
 
         // build request
-        let port = currentEnv.ports[0]; // the REST api port should be passed first in the config.
+        let port = currentEnv.ports[0]; // the REST api port should be passed first in the userConfigFile.
         let opts = this.restClient.buildRequest(test.request, port);
         this.logger.debug(opts);
 

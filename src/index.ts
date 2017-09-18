@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-
+import {BusybeeParsedConfig} from "./lib/config/BusybeeParsedConfig";
+require('source-map-support').install();
 import * as _async from 'async';
 import * as _ from 'lodash';
 import * as Commander from 'commander';
@@ -20,7 +21,7 @@ Commander
 Commander
   .command('test')
   .description('execute tests')
-  .option('-c, --config <config>', 'Config File. defaults to config.json. parsed as being relative to --directory')
+  .option('-c, --userConfigFile <userConfigFile>', 'Config File. defaults to userConfigFile.json. parsed as being relative to --directory')
   .option('-d, --directory <directory>', 'Test Directory. defaults to busybee/')
   .option('-D, --debug', 'convenience flag for debug mode')
   .option('-l, --localMode', 'ignores any host configuration in favor of localhost with a capacity of 100')
@@ -30,7 +31,7 @@ Commander
   .option('-sts, --skipTestSuite <ids>', 'list of comma-separated TestSuite ids to skip')
   .action((options) => {
     let configParser = new ConfigParser(options);
-    const conf = configParser.parse('test');
+    const conf: BusybeeParsedConfig = configParser.parse('test');
     logger = new Logger(conf, this);
     initTests(conf);
   });
@@ -38,11 +39,11 @@ Commander
 Commander
   .command('mock')
   .description('runs a mock REST API server using your tests as mocks')
-  .option('-c, --config <config>', 'Config File. defaults to config.json. parsed as being relative to --directory')
+  .option('-c, --userConfigFile <userConfigFile>', 'Config File. defaults to userConfigFile.json. parsed as being relative to --directory')
   .option('-d, --directory <directory>', 'Test Directory. defaults to busybee/')
   .option('-D, --debug', 'convenience flag for debug mode')
   .option('-L, --logLevel <level>', '[DEBUG, INFO, WARN, ERROR]')
-  .option('-np, --noProxy, Will ignore any config.json proxy configuration and skip proxy attempts')
+  .option('-np, --noProxy, Will ignore any userConfigFile.json proxy configuration and skip proxy attempts')
   .option('-t, --testSuite <id>', 'Required. The ID of the REST Api TestSuite that you would like to run a mock server for')
   .action((options) => {
     if (!options.testSuite) {
@@ -62,22 +63,22 @@ Commander
     }
 
     testSuite.cmdOpts = options;
-    let mockServer = new MockServer(testSuite, conf);
+    new MockServer(testSuite, conf);
   });
 
   Commander
     .command('init')
-    .description('set up busybee folder and example config/test')
+    .description('set up busybee folder and example userConfigFile/test')
     .action(() => {
-      const exampleConf = require('./init/config.json');
+      const exampleConf = require('./init/userConfigFile.json');
       const exampleTest = require('./init/test.json');
       const busybeeDir = path.join(process.cwd(), 'busybee');
       if (!fs.existsSync(busybeeDir))
         fs.mkdirSync(busybeeDir);
       if (!fs.exists(path.join(busybeeDir, 'test.json'), null))
         fs.writeFileSync(path.join(busybeeDir, 'test.json'), JSON.stringify(exampleTest, null, '\t'));
-      if (!fs.exists(path.join(busybeeDir, 'config.json'), null))
-        fs.writeFileSync(path.join(busybeeDir, 'config.json'), JSON.stringify(exampleConf, null, '\t'));
+      if (!fs.exists(path.join(busybeeDir, 'userConfigFile.json'), null))
+        fs.writeFileSync(path.join(busybeeDir, 'userConfigFile.json'), JSON.stringify(exampleConf, null, '\t'));
 
       console.log("Busybee initialized!");
     });
@@ -85,7 +86,7 @@ Commander
 Commander.parse(process.argv);
 
 
-function initTests(conf) {
+function initTests(conf: BusybeeParsedConfig) {
   // 2. instantiate EnvManager and ApiManager. handle shutdown signals
   let envManager = new EnvManager(conf);
   let testManager = new TestManager(conf, envManager);
