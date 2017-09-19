@@ -4,12 +4,12 @@ import {JsonProperty} from "json-typescript-mapper";
 
 export class BusybeeUserConfig {
   envResources: EnvResourceConfig[];
-  testSuites: TestSuiteConfig[];
   onComplete: string;
+  testSuites: TestSuiteConfig[];
 
   constructor() {
     this.envResources = void 0;
-    this.testSuites = void 0;
     this.onComplete = void 0;
+    this.testSuites = void 0;
   }
 }

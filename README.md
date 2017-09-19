@@ -37,14 +37,13 @@ when it comes to deciding how your environments are started, when they're ready,
 ### What it isn't
 It is not a magic bullet. You still have to write tests. You still have to provide 'start' and 'stop' scripts detailing how start/stop your environments. If your [Test Suite](#TestSuite) is not a REST [Test Suite](#TestSuite) then you will also need to provide a 'run' script that actually runs your tests once the environment as been provisioned.
 
-## Configuration
+## Configuration (BusybeeUserConfig)
 By default, Busybee will look for configuration in busybee/config.json
 
 ### config.json
+- `envResources` - [Array:EnvResource](#EnvResource)
 - `onComplete` - String: The name of a .js file to call on completion of all Test Suites. Must export a single function with the signature (errors, results).
 - `testSuites`* - [Array:TestSuite](#TestSuite)
-- `envResources` - [EnvResources](#EnvResources)
-
 ---
 #### TestSuite
 - `id`* - String: A unique id for this Test Suite
@@ -53,18 +52,17 @@ By default, Busybee will look for configuration in busybee/config.json
 - `env`* - [Env](#Env)
 - `envInstances`* - [Array:EnvInstance](#TestEnvInstance)
 
-*The following fields are available based on the value of the `type` field*
+*The following fields are availble IF type == 'REST'*
 
 ##### REST
 - `protocol`* - String: rest api protocol
-- `port`* - Number: REST api port
+- `host` - String: optional host. Only required if --skipEnvProvisioning is enabled.
+- `ports`* - Array:Number: Ports required by this suite. By default the first port supplied will be used for your healthcheck port if not specific in the [HealthCheck](#HealthCheck)
 - `root` - String: root context of all api calls ie) /v1.
 - `defaultRequestOpts` - [DefaultRequestOpts](#DefaultRequestOpts): an object representing request params to be sent by default on
 each api request. defaultRequestOpts can be overridden with-in individual tests.
 - `mockServer` - [MockServer](#MockServer)
 
-##### other
-TODO
 
 ---
 #### DefaultRequestOpts  
@@ -74,7 +72,7 @@ Options sent by on each request by default
 - `body` - Object: request body as key/value pairs ie) {'my-body-prop': 'my-body-prop-value'}
 
 ---
-#### EnvResources
+#### EnvResource
 Configuration opts for provisioning Test Set Environments
 - `hosts`* - [Array:Host](#Host)
 
@@ -107,7 +105,7 @@ Not to be confused with [EnvInstance](#EnvInstance). Env represents the base Env
 - `type`* - String `allowed: [REST]`
 - `retries` - Number
 
-*The following fields are available based on the value of the `type` field*
+*The following fields are availble IF [TestSuite.type](#TestSuite) == 'REST'*
 
 ##### REST
 - `request`* - Object
@@ -118,6 +116,17 @@ Not to be confused with [EnvInstance](#EnvInstance). Env represents the base Env
       "port": 3000
     }
   ```
+
+---
+#### RequestOptsConfig
+- `headers` - Object:
+- `query` - Object:
+- `body` - Object:
+- `json` - Boolean: passes 'application/json' header and parses returned body as json.
+- `endpoint` - String:
+- `timeout` - Integer: timeout in seconds
+- `port` -
+- `method` - String: `allowed: [GET, PUT, POST, DELETE]`
 
 ---
 ####  MockServer
