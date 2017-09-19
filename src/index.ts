@@ -51,12 +51,12 @@ Commander
       return;
     }
     let configParser = new ConfigParser(options);
-    const conf = configParser.parse('mock');
+    const conf: BusybeeParsedConfig = configParser.parse('mock');
     logger = new Logger(conf, this);
 
 
     // identify the TestSuite.
-    let testSuite = _.find(conf.parsedTestSuites, (suite) => { return suite.suiteID == options.testSuite; });
+    let testSuite = _.find(conf.parsedTestSuites.values(), (suite) => { return suite.suiteID == options.testSuite; });
     if (!testSuite) {
       logger.error(`No TestSuite with the id ${options.testSuite} could be identified, exiting`);
       return

@@ -52,7 +52,7 @@ Commander
     var conf = configParser.parse('mock');
     logger = new Logger_1.Logger(conf, _this);
     // identify the TestSuite.
-    var testSuite = _.find(conf.parsedTestSuites, function (suite) { return suite.suiteID == options.testSuite; });
+    var testSuite = _.find(conf.parsedTestSuites.values(), function (suite) { return suite.suiteID == options.testSuite; });
     if (!testSuite) {
         logger.error("No TestSuite with the id " + options.testSuite + " could be identified, exiting");
         return;

@@ -6,6 +6,9 @@ import * as hash from 'object-hash';
 import * as httpProxy from 'http-proxy';
 import * as qs from 'querystring';
 import {Logger} from './Logger';
+import {ParsedTestSuite} from "./config/parsed/ParsedTestSuiteConfig";
+import {BusybeeParsedConfig} from "./config/BusybeeParsedConfig";
+import {MockServerConfig} from "./config/common/MockServerConfig";
 
 export class MockServer {
 
@@ -15,15 +18,15 @@ export class MockServer {
   private routeMap: any;
   private proxy: any;
 
-  constructor(testSuiteConf, conf) {
+  constructor(testSuiteConf: ParsedTestSuite, conf: BusybeeParsedConfig) {
     this.conf = conf;
     this.testSuiteConf = testSuiteConf;
     this.logger = new Logger(conf, this);
     this.logger.info('Initializing Mock Server');
     this.routeMap = {}; // store the routes and all of the known request combos for each route
 
-    let serverConf = this.testSuiteConf.mockServer;
-    if (serverConf && serverConf.proxy && (testSuiteConf.cmdOpts && !testSuiteConf.cmdOpts.noProxy)) {
+    let serverConf:MockServerConfig = this.testSuiteConf.mockServer;
+    if (serverConf && serverConf.proxy && (conf.cmdOpts && !conf.cmdOpts)) {
       if (!serverConf.proxy.protocol || !serverConf.proxy.host || !serverConf.proxy.port) {
         this.logger.warn(`WARNING: mockServer proxy configuration does not contain required properties 'protocol', 'host' and 'port' \n Requests will not be proxied`);
       } else {
@@ -98,8 +101,8 @@ export class MockServer {
     }
 
     // build the routeMap
-    _.each(this.testSuiteConf.testEnvs, (testEnv, envId) => {
-      _.each(testEnv.testSets, (testSet, testSetName) => {
+    this.testSuiteConf.testEnvs.forEach((testEnv, envId) => {
+      testEnv.testSets.forEach((testSet, testSetName) => {
         testSet.tests.forEach((mock) => {
           this.updateRouteMap(mock);
         });
@@ -193,7 +196,6 @@ export class MockServer {
   addRoute(endpoint, reqMethodMap) {
     this.logger.debug(`addRoute ${endpoint}, ${JSON.stringify(reqMethodMap)}`);
 
-    let mockServerConf = this.testSuiteConf.mockServer;
     _.forEach(reqMethodMap, (statusMap, methodName) => {
       // 1. build a controller
       let ctrl = (req, res) => {

@@ -16,7 +16,7 @@ var MockServer = /** @class */ (function () {
         this.logger.info('Initializing Mock Server');
         this.routeMap = {}; // store the routes and all of the known request combos for each route
         var serverConf = this.testSuiteConf.mockServer;
-        if (serverConf && serverConf.proxy && (testSuiteConf.cmdOpts && !testSuiteConf.cmdOpts.noProxy)) {
+        if (serverConf && serverConf.proxy && (conf.cmdOpts && !conf.cmdOpts)) {
             if (!serverConf.proxy.protocol || !serverConf.proxy.host || !serverConf.proxy.port) {
                 this.logger.warn("WARNING: mockServer proxy configuration does not contain required properties 'protocol', 'host' and 'port' \n Requests will not be proxied");
             }
@@ -83,8 +83,8 @@ var MockServer = /** @class */ (function () {
             });
         }
         // build the routeMap
-        _.each(this.testSuiteConf.testEnvs, function (testEnv, envId) {
-            _.each(testEnv.testSets, function (testSet, testSetName) {
+        this.testSuiteConf.testEnvs.forEach(function (testEnv, envId) {
+            testEnv.testSets.forEach(function (testSet, testSetName) {
                 testSet.tests.forEach(function (mock) {
                     _this.updateRouteMap(mock);
                 });
@@ -173,7 +173,6 @@ var MockServer = /** @class */ (function () {
     MockServer.prototype.addRoute = function (endpoint, reqMethodMap) {
         var _this = this;
         this.logger.debug("addRoute " + endpoint + ", " + JSON.stringify(reqMethodMap));
-        var mockServerConf = this.testSuiteConf.mockServer;
         _.forEach(reqMethodMap, function (statusMap, methodName) {
             // 1. build a controller
             var ctrl = function (req, res) {
