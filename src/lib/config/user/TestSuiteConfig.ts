@@ -6,13 +6,14 @@ export class TestSuiteConfig {
   id: string;
   type: string;
   skip: boolean;
-  protocol: string;
-  host: string;
-  root: string;
-  ports: number[];
-  defaultRequestOpts: RequestOptsConfig;
   env: EnvConfig;
   envInstances: EnvInstanceConfig[];
+  // REST-type-specific
+  protocol: string;
+  host: string;
+  ports: number[];
+  root: string;
+  defaultRequestOpts: RequestOptsConfig;
   mockServer: MockServerConfig;
 
   constructor() {
