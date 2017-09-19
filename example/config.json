@@ -13,7 +13,7 @@
       "type": "REST",
       "skip": false,
       "protocol": "http",
-      "port": 8180,
+      "ports": [8180],
       "root": "/v1",
       "defaultRequestOpts": {
         "headers": {

@@ -1,0 +1,1 @@
+{"version":3,"file":"ProxyConfig.js","sourceRoot":"","sources":["../../../../src/lib/config/user-facing/ProxyConfig.ts"],"names":[],"mappings":";;AAAA;IAAA;IAIA,CAAC;IAAD,kBAAC;AAAD,CAAC,AAJD,IAIC;AAJY,kCAAW","sourcesContent":["export class ProxyConfig {\r\n  protocol: string;\r\n  host: string;\r\n  port: number;\r\n}\r\n"]}
