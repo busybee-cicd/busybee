@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import {BusybeeParsedConfig} from "./lib/config/BusybeeParsedConfig";
+import {BusybeeParsedConfig} from "./config/BusybeeParsedConfig";
 require('source-map-support').install();
 import * as _async from 'async';
 import * as _ from 'lodash';
@@ -7,8 +7,8 @@ import * as Commander from 'commander';
 import * as fs from 'fs';
 import * as path from 'path';
 import {ConfigParser} from  './lib/ConfigParser';
-import {EnvManager} from './lib/EnvManager';
-import {TestManager} from './lib/TestManager';
+import {EnvManager} from './managers/EnvManager';
+import {TestManager} from './managers/TestManager';
 import {MockServer} from './lib/MockServer';
 import {Logger} from './lib/Logger';
 let logger;

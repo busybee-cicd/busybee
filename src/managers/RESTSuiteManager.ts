@@ -1,8 +1,8 @@
 import * as _async from 'async';
 import * as _ from 'lodash';
-import {Logger} from './Logger';
-import {RESTClient} from './RESTClient';
-import {SuiteEnvInfo} from "./models/SuiteEnvInfo";
+import {Logger} from '../lib/Logger';
+import {RESTClient} from '../lib/RESTClient';
+import {SuiteEnvInfo} from "../lib/SuiteEnvInfo";
 
 export class RESTSuiteManager {
 

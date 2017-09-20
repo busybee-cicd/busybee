@@ -1,7 +1,7 @@
 import {ParsedTestSuite} from "../config/parsed/ParsedTestSuiteConfig";
 import {ParsedTestSetConfig} from "../config/parsed/ParsedTestSetConfig";
 import {RequestOptsConfig} from "../config/common/RequestOptsConfig";
-import {TypedMap} from "../TypedMap";
+import {TypedMap} from "./TypedMap";
 export class SuiteEnvInfo {
   startScript: string;
   stopScript: string;

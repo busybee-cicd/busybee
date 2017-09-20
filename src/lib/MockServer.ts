@@ -6,9 +6,9 @@ import * as hash from 'object-hash';
 import * as httpProxy from 'http-proxy';
 import * as qs from 'querystring';
 import {Logger} from './Logger';
-import {ParsedTestSuite} from "./config/parsed/ParsedTestSuiteConfig";
-import {BusybeeParsedConfig} from "./config/BusybeeParsedConfig";
-import {MockServerConfig} from "./config/common/MockServerConfig";
+import {ParsedTestSuite} from "../config/parsed/ParsedTestSuiteConfig";
+import {BusybeeParsedConfig} from "../config/BusybeeParsedConfig";
+import {MockServerConfig} from "../config/common/MockServerConfig";
 
 export class MockServer {
 

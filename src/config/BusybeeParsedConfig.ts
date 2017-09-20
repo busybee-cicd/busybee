@@ -1,15 +1,14 @@
 import * as uuidv1 from 'uuid/v1';
 import {TestSuiteConfig} from "./user/TestSuiteConfig";
 import {BusybeeUserConfig} from "./BusybeeUserConfig";
-import {Logger} from "../Logger";
-import * as path from 'path';
+import {Logger} from "../lib/Logger";
 import * as glob from 'glob';
 import * as fs from 'fs';
 import * as _ from 'lodash';
 import {EnvResourceConfig} from "./common/EnvResourceConfig";
 import {ParsedTestSuite} from "./parsed/ParsedTestSuiteConfig";
 import {FilePathsConfig} from "./parsed/FilePathsConfig";
-import {TypedMap} from "../TypedMap";
+import {TypedMap} from "../lib/TypedMap";
 
 export class BusybeeParsedConfig {
   private logger: Logger;

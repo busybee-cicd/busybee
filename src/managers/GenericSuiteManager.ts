@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import * as path from 'path';
-import {Logger} from './Logger';
+import {Logger} from '../lib/Logger';
 import {EnvManager} from "./EnvManager";
 
 export class GenericSuiteManager {

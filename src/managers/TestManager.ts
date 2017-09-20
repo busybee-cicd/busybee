@@ -1,10 +1,10 @@
 import * as _ from 'lodash';
-import {Logger} from "./Logger";
+import {Logger} from "../lib/Logger";
 import {RESTSuiteManager} from './RESTSuiteManager';
 import {GenericSuiteManager} from './GenericSuiteManager';
 import {EnvManager} from "./EnvManager";
-import {BusybeeParsedConfig} from "./config/BusybeeParsedConfig";
-import {SuiteEnvInfo} from "./models/SuiteEnvInfo";
+import {BusybeeParsedConfig} from "../config/BusybeeParsedConfig";
+import {SuiteEnvInfo} from "../lib/SuiteEnvInfo";
 
 export class TestManager {
 

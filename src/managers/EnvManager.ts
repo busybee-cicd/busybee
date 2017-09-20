@@ -6,17 +6,15 @@ import * as path from 'path';
 import * as _ from 'lodash';
 import * as _async from 'async';
 import * as portscanner from 'portscanner';
-import {Logger} from './Logger';
-import {RESTClient} from './RESTClient';
-import {BusybeeUserConfig} from "./config/BusybeeUserConfig";
-import {BusybeeParsedConfig} from "./config/BusybeeParsedConfig";
-import {EnvResourceConfig} from "./config/common/EnvResourceConfig";
-import {HostConfig} from "./config/user/HostConfig";
-import {RequestOptsConfig} from "./config/common/RequestOptsConfig";
-import {ParsedTestSetConfig} from "./config/parsed/ParsedTestSetConfig";
-import {TypedMap} from "./TypedMap";
-import {ParsedTestSuite} from "./config/parsed/ParsedTestSuiteConfig";
-import {SuiteEnvInfo} from "./models/SuiteEnvInfo";
+import {Logger} from '../lib/Logger';
+import {RESTClient} from '../lib/RESTClient';
+import {BusybeeParsedConfig} from "../config/BusybeeParsedConfig";
+import {EnvResourceConfig} from "../config/common/EnvResourceConfig";
+import {HostConfig} from "../config/user/HostConfig";
+import {RequestOptsConfig} from "../config/common/RequestOptsConfig";
+import {TypedMap} from "../lib/TypedMap";
+import {ParsedTestSuite} from "../config/parsed/ParsedTestSuiteConfig";
+import {SuiteEnvInfo} from "../lib/SuiteEnvInfo";
 
 
 
