@@ -52,17 +52,28 @@ export class BusybeeParsedConfig {
       skipTestSuites = this.cmdOpts.skipTestSuite.split(',');
     }
 
-    userConf.testSuites.forEach((testSuite) => {
-      let suiteID = testSuite.id || uuidv1();
-      if (skipTestSuites && skipTestSuites.indexOf(suiteID)) {
-        return;
-      }
-
-      // parse this testSuite
-      let parsedTestSuite = this.parseTestSuite(testSuite, suiteID, mode);
+    // TODO: figure out why we can only pass 1 testSuite when in mock mode. in theory we should be able to parse all
+    // test suites regardless of mode. However, if we do...for some reason the test suite to be mocked does not include
+    // any tests.
+    if (mode === 'mock') {
+      let testSuite = _.find(userConf.testSuites, (suite) => { return suite.id == this.cmdOpts.testSuite; });
+      let parsedTestSuite = this.parseTestSuite(testSuite, testSuite.id, mode);
       parsedTestSuites.set(parsedTestSuite.suiteID, parsedTestSuite);
       this.logger.debug(this.parsedTestSuites, true);
-    });
+    } else {
+      userConf.testSuites.forEach((testSuite) => {
+        let suiteID = testSuite.id || uuidv1();
+        if (skipTestSuites && skipTestSuites.indexOf(suiteID)) {
+          return;
+        }
+
+        // parse this testSuite
+        let parsedTestSuite = this.parseTestSuite(testSuite, suiteID, mode);
+        parsedTestSuites.set(parsedTestSuite.suiteID, parsedTestSuite);
+        this.logger.debug(this.parsedTestSuites, true);
+      });
+    }
+
 
     return this.parseTestFiles(parsedTestSuites, mode);
   }
@@ -95,8 +106,9 @@ export class BusybeeParsedConfig {
         }
 
         tests.forEach((test) => {
+          if (test.skip) { return; }
           if (mode == 'test') {
-            if (test.mock || test.skip) { return; }
+            if (test.mock) { return; }
           }
           if (mode == 'mock') {
             test.testSet = { id: 'default' }

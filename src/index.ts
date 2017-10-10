@@ -43,6 +43,7 @@ Commander
   .option('-d, --directory <directory>', 'Test Directory. defaults to busybee/')
   .option('-D, --debug', 'convenience flag for debug mode')
   .option('-L, --logLevel <level>', '[DEBUG, INFO, WARN, ERROR]')
+  .option('-l, --localMode', 'ignores any host configuration in favor of localhost with a capacity of 100')
   .option('-np, --noProxy, Will ignore any userConfigFile.json proxy configuration and skip proxy attempts')
   .option('-t, --testSuite <id>', 'Required. The ID of the REST Api TestSuite that you would like to run a mock server for')
   .action((options) => {

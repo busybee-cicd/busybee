@@ -4,6 +4,7 @@ import * as bodyParser from 'body-parser';
 import * as _ from 'lodash';
 import * as hash from 'object-hash';
 import * as httpProxy from 'http-proxy';
+let restream = require('./restream');
 import * as qs from 'querystring';
 import {Logger} from './Logger';
 import {ParsedTestSuite} from "../config/parsed/ParsedTestSuiteConfig";
@@ -26,7 +27,8 @@ export class MockServer {
     this.routeMap = {}; // store the routes and all of the known request combos for each route
 
     let serverConf:MockServerConfig = this.testSuiteConf.mockServer;
-    if (serverConf && serverConf.proxy && (conf.cmdOpts && !conf.cmdOpts)) {
+    if (serverConf && serverConf.proxy && (conf.cmdOpts && !conf.cmdOpts.noProxy)) {
+      this.logger.info(`Proxy config detected`);
       if (!serverConf.proxy.protocol || !serverConf.proxy.host || !serverConf.proxy.port) {
         this.logger.warn(`WARNING: mockServer proxy configuration does not contain required properties 'protocol', 'host' and 'port' \n Requests will not be proxied`);
       } else {
@@ -49,6 +51,7 @@ export class MockServer {
   init() {
     server.set('etag', false);
     server.use(bodyParser.json()); // for parsing application/json
+    server.use(restream());
     server.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
     if (this.corsActive()) {
       server.use((req, res, next) => {
@@ -67,7 +70,7 @@ export class MockServer {
 
   getServerPort() {
     let conf = this.testSuiteConf;
-    let port = conf.port;
+    let port = conf.ports[0];
     if (conf.mockServer && conf.mockServer.port) {
       port = conf.mockServer.port;
     }
@@ -101,6 +104,8 @@ export class MockServer {
     }
 
     // build the routeMap
+    this.logger.debug('testSuiteConf');
+    this.logger.debug(this.testSuiteConf.testEnvs, true);
     this.testSuiteConf.testEnvs.forEach((testEnv, envId) => {
       testEnv.testSets.forEach((testSet, testSetName) => {
         testSet.tests.forEach((mock) => {
@@ -199,6 +204,7 @@ export class MockServer {
     _.forEach(reqMethodMap, (statusMap, methodName) => {
       // 1. build a controller
       let ctrl = (req, res) => {
+        this.logger.debug(req.path);
         // First we check to see if the requester wants a mock with a specific status. If not, we default to 200
         let requestedStatus = 200;
         if (req.header('busybee-mock-status')) {

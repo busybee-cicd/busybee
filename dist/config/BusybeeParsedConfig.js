@@ -38,16 +38,27 @@ var BusybeeParsedConfig = /** @class */ (function () {
         if (this.cmdOpts.skipTestSuite) {
             skipTestSuites = this.cmdOpts.skipTestSuite.split(',');
         }
-        userConf.testSuites.forEach(function (testSuite) {
-            var suiteID = testSuite.id || uuidv1();
-            if (skipTestSuites && skipTestSuites.indexOf(suiteID)) {
-                return;
-            }
-            // parse this testSuite
-            var parsedTestSuite = _this.parseTestSuite(testSuite, suiteID, mode);
+        // TODO: figure out why we can only pass 1 testSuite when in mock mode. in theory we should be able to parse all
+        // test suites regardless of mode. However, if we do...for some reason the test suite to be mocked does not include
+        // any tests.
+        if (mode === 'mock') {
+            var testSuite = _.find(userConf.testSuites, function (suite) { return suite.id == _this.cmdOpts.testSuite; });
+            var parsedTestSuite = this.parseTestSuite(testSuite, testSuite.id, mode);
             parsedTestSuites.set(parsedTestSuite.suiteID, parsedTestSuite);
-            _this.logger.debug(_this.parsedTestSuites, true);
-        });
+            this.logger.debug(this.parsedTestSuites, true);
+        }
+        else {
+            userConf.testSuites.forEach(function (testSuite) {
+                var suiteID = testSuite.id || uuidv1();
+                if (skipTestSuites && skipTestSuites.indexOf(suiteID)) {
+                    return;
+                }
+                // parse this testSuite
+                var parsedTestSuite = _this.parseTestSuite(testSuite, suiteID, mode);
+                parsedTestSuites.set(parsedTestSuite.suiteID, parsedTestSuite);
+                _this.logger.debug(_this.parsedTestSuites, true);
+            });
+        }
         return this.parseTestFiles(parsedTestSuites, mode);
     };
     BusybeeParsedConfig.prototype.parseTestSuite = function (testSuite, suiteID, mode) {
@@ -74,8 +85,11 @@ var BusybeeParsedConfig = /** @class */ (function () {
                 tests = [tests];
             }
             tests.forEach(function (test) {
+                if (test.skip) {
+                    return;
+                }
                 if (mode == 'test') {
-                    if (test.mock || test.skip) {
+                    if (test.mock) {
                         return;
                     }
                 }
