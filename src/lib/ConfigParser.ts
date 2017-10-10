@@ -1,9 +1,9 @@
 import * as fs from 'fs';
 import {Logger} from './Logger';
 import {deserialize} from 'json-typescript-mapper';
-import {BusybeeUserConfig} from "./config/BusybeeUserConfig";
-import {BusybeeParsedConfig} from "./config/BusybeeParsedConfig";
-import {FilePathsConfig} from "./config/parsed/FilePathsConfig";
+import {BusybeeUserConfig} from "../config/BusybeeUserConfig";
+import {BusybeeParsedConfig} from "../config/BusybeeParsedConfig";
+import {FilePathsConfig} from "../config/parsed/FilePathsConfig";
 
 export class ConfigParser {
 

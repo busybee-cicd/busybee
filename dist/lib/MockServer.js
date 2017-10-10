@@ -6,6 +6,7 @@ var bodyParser = require("body-parser");
 var _ = require("lodash");
 var hash = require("object-hash");
 var httpProxy = require("http-proxy");
+var restream = require('./restream');
 var qs = require("querystring");
 var Logger_1 = require("./Logger");
 var MockServer = /** @class */ (function () {
@@ -16,7 +17,8 @@ var MockServer = /** @class */ (function () {
         this.logger.info('Initializing Mock Server');
         this.routeMap = {}; // store the routes and all of the known request combos for each route
         var serverConf = this.testSuiteConf.mockServer;
-        if (serverConf && serverConf.proxy && (conf.cmdOpts && !conf.cmdOpts)) {
+        if (serverConf && serverConf.proxy && (conf.cmdOpts && !conf.cmdOpts.noProxy)) {
+            this.logger.info("Proxy config detected");
             if (!serverConf.proxy.protocol || !serverConf.proxy.host || !serverConf.proxy.port) {
                 this.logger.warn("WARNING: mockServer proxy configuration does not contain required properties 'protocol', 'host' and 'port' \n Requests will not be proxied");
             }
@@ -39,6 +41,7 @@ var MockServer = /** @class */ (function () {
         var _this = this;
         server.set('etag', false);
         server.use(bodyParser.json()); // for parsing application/json
+        server.use(restream());
         server.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
         if (this.corsActive()) {
             server.use(function (req, res, next) {
@@ -55,7 +58,7 @@ var MockServer = /** @class */ (function () {
     };
     MockServer.prototype.getServerPort = function () {
         var conf = this.testSuiteConf;
-        var port = conf.port;
+        var port = conf.ports[0];
         if (conf.mockServer && conf.mockServer.port) {
             port = conf.mockServer.port;
         }
@@ -83,6 +86,8 @@ var MockServer = /** @class */ (function () {
             });
         }
         // build the routeMap
+        this.logger.debug('testSuiteConf');
+        this.logger.debug(this.testSuiteConf.testEnvs, true);
         this.testSuiteConf.testEnvs.forEach(function (testEnv, envId) {
             testEnv.testSets.forEach(function (testSet, testSetName) {
                 testSet.tests.forEach(function (mock) {
@@ -176,6 +181,7 @@ var MockServer = /** @class */ (function () {
         _.forEach(reqMethodMap, function (statusMap, methodName) {
             // 1. build a controller
             var ctrl = function (req, res) {
+                _this.logger.debug(req.path);
                 // First we check to see if the requester wants a mock with a specific status. If not, we default to 200
                 var requestedStatus = 200;
                 if (req.header('busybee-mock-status')) {

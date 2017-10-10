@@ -3,9 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var fs = require("fs");
 var Logger_1 = require("./Logger");
 var json_typescript_mapper_1 = require("json-typescript-mapper");
-var BusybeeUserConfig_1 = require("./config/BusybeeUserConfig");
-var BusybeeParsedConfig_1 = require("./config/BusybeeParsedConfig");
-var FilePathsConfig_1 = require("./config/parsed/FilePathsConfig");
+var BusybeeUserConfig_1 = require("../config/BusybeeUserConfig");
+var BusybeeParsedConfig_1 = require("../config/BusybeeParsedConfig");
+var FilePathsConfig_1 = require("../config/parsed/FilePathsConfig");
 var ConfigParser = /** @class */ (function () {
     function ConfigParser(cmdOpts) {
         this.filePaths = new FilePathsConfig_1.FilePathsConfig(cmdOpts);

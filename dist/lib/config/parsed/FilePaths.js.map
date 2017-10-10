@@ -1,1 +1,0 @@
-{"version":3,"file":"FilePaths.js","sourceRoot":"","sources":["../../../../src/lib/config/parsed/FilePaths.ts"],"names":[],"mappings":";;AAAA;IAAA;IAGA,CAAC;IAAD,sBAAC;AAAD,CAAC,AAHD,IAGC;AAHY,0CAAe","sourcesContent":["export class FilePathsConfig {\r\n  config: string;\r\n  busybeeDir: string;\r\n}\r\n"]}
