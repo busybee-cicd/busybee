@@ -2,6 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var SuiteEnvInfo = /** @class */ (function () {
     function SuiteEnvInfo(suiteConf, suiteID, suiteEnvID, resourceCost, hostName) {
+        this.suiteID = suiteID;
+        this.suiteEnvID = suiteEnvID;
+        this.resourceCost = resourceCost;
+        this.hostName = hostName;
         this.startScript = suiteConf.env.startScript;
         this.stopScript = suiteConf.env.stopScript;
         this.runScript = suiteConf.env.runScript;
@@ -9,10 +13,7 @@ var SuiteEnvInfo = /** @class */ (function () {
         this.protocol = suiteConf.protocol;
         this.defaultRequestOpts = suiteConf.defaultRequestOpts;
         this.root = suiteConf.root;
-        this.suiteID = suiteID;
-        this.suiteEnvID = suiteEnvID;
-        this.resourceCost = resourceCost;
-        this.hostName = hostName;
+        this.testSets = suiteConf.testEnvs.get(suiteEnvID).testSets;
     }
     return SuiteEnvInfo;
 }());

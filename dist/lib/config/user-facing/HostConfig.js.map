@@ -1,1 +1,0 @@
-{"version":3,"file":"HostConfig.js","sourceRoot":"","sources":["../../../../src/lib/config/user-facing/HostConfig.ts"],"names":[],"mappings":";;AAAA;IAAA;IAGA,CAAC;IAAD,iBAAC;AAAD,CAAC,AAHD,IAGC;AAHY,gCAAU","sourcesContent":["export class HostConfig {\r\n  name: string;\r\n  capacity: string;\r\n}\r\n"]}

@@ -1,1 +1,0 @@
-{"version":3,"file":"BusybeeConfig.js","sourceRoot":"","sources":["../../src/lib/BusybeeConfig.ts"],"names":[],"mappings":";;AAMA;IAAA;IAEA,CAAC;IAAD,oBAAC;AAAD,CAAC,AAFD,IAEC;AAFY,sCAAa","sourcesContent":["\r\n\r\n\r\n\r\n\r\n\r\nexport class BusybeeConfig {\r\n\r\n}\r\n"]}
