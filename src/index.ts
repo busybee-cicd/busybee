@@ -92,18 +92,17 @@ function initTests(conf: BusybeeParsedConfig) {
   let envManager = new EnvManager(conf);
   let testManager = new TestManager(conf, envManager);
 
-  function shutdown(err) {
+  async function shutdown(err) {
     if (err)
       console.log(err);
 
-    envManager.stopAll(null)
-      .then(() => {
-        process.exit(0)
-      })
-      .catch((err) => {
+    try {
+      await envManager.stopAll();
+      process.exit(0);
+    } catch (e) {
         console.log(err);
         process.exit(1);
-      });
+    }
   }
 
 

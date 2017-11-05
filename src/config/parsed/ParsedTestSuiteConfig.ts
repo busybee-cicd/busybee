@@ -8,6 +8,7 @@ import {ParsedTestSetConfig} from "./ParsedTestSetConfig";
 import {EnvInstanceConfig} from "../user/EnvInstanceConfig";
 import {TestSetConfig} from "../user/TestSetConfig";
 import {Logger} from "../../lib/Logger";
+import {Test} from "ava";
 
 export class ParsedTestSuite {
   suiteID: string;
@@ -41,23 +42,29 @@ export class ParsedTestSuite {
   }
 
   parseSuite(testSuite: TestSuiteConfig, mode: string, testSet2EnvMap: TypedMap<string>, env2TestSuiteMap: TypedMap<string>) {
-    // assign a default env to this TestSuite incase they add tests that don't specify an Env to run in
-    let defaultParsedTestEnv = new ParsedTestEnvConfig();
-    let defaultParsedTestSet = new ParsedTestSetConfig();
-    defaultParsedTestSet.id = 'default';
-    defaultParsedTestEnv.testSets.set('default', defaultParsedTestSet);
 
-    let defaultEnvInstance = new EnvInstanceConfig();
-    defaultEnvInstance.testSets = [];
-    defaultEnvInstance.id = 'default';
-    let defaultTestSet = new TestSetConfig();
-    defaultTestSet.id = 'default';
-    defaultEnvInstance.testSets.push(defaultTestSet);
-    if (!testSuite.envInstances) {
-      testSuite.envInstances = [];
+    // assign a default env to this TestSuite IF this is a REST TestSuite to cover cases
+    // where the user doesn't specify a testEnv
+    if (testSuite.type && testSuite.type.toUpperCase() == 'REST') {
+      let defaultParsedTestEnv = new ParsedTestEnvConfig();
+      let tsc = new TestSetConfig();
+      tsc.id = 'default';
+      let defaultParsedTestSet = new ParsedTestSetConfig(tsc);
+      defaultParsedTestSet.id = 'default';
+      defaultParsedTestEnv.testSets.set('default', defaultParsedTestSet);
+
+      let defaultEnvInstance = new EnvInstanceConfig();
+      defaultEnvInstance.testSets = [];
+      defaultEnvInstance.id = 'default';
+      let defaultTestSet = new TestSetConfig();
+      defaultTestSet.id = 'default';
+      defaultEnvInstance.testSets.push(defaultTestSet);
+      if (!testSuite.envInstances) {
+        testSuite.envInstances = [];
+      }
+      testSuite.envInstances.push(defaultEnvInstance);
+      this.testEnvs.set('default', defaultParsedTestEnv);
     }
-    testSuite.envInstances.push(defaultEnvInstance);
-    this.testEnvs.set('default', defaultParsedTestEnv);
 
     // iterate each user userConfigFile env defined for this testSuite.
     testSuite.envInstances.forEach((testEnvConf: EnvInstanceConfig) => {

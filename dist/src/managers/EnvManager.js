@@ -163,62 +163,94 @@ var EnvManager = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
             return __generator(this, function (_a) {
-                return [2 /*return*/, new Promise(function (resolve, reject) {
-                        var envInfo = Object.assign({}, _this.currentEnvs.get(generatedEnvID));
-                        // remove the env from currentEnvs
-                        _this.currentEnvs.remove(generatedEnvID);
-                        if (_.isEmpty(envInfo)) {
-                            return Promise.resolve();
-                        }
-                        _this.logger.info("Stopping Environment: " + envInfo.suiteEnvID + " " + generatedEnvID);
-                        _this.logger.debug('envInfo');
-                        _this.logger.debug(envInfo);
-                        var ports = _this.currentHosts[envInfo.hostName].envs[generatedEnvID].ports;
-                        var busybeeDir = _this.conf.filePaths.busybeeDir;
-                        var args = {
-                            generatedEnvID: generatedEnvID,
-                            protocol: envInfo.protocol,
-                            hostName: envInfo.hostName,
-                            ports: ports,
-                            busybeeDir: busybeeDir
-                        };
-                        // 1. stop the env
-                        execFileCmd(path.join(busybeeDir, envInfo.stopScript), [JSON.stringify(args)], null)
-                            .then(function (stdout) {
-                            // 2. remove the load from the host
-                            _this.currentHosts[envInfo.hostName].load -= envInfo.resourceCost;
-                            // remove the env from the currentHosts
-                            delete _this.currentHosts[envInfo.hostName].envs[generatedEnvID];
-                            _this.logger.debug('this.currentHosts');
-                            _this.logger.debug(_this.currentHosts, true);
-                            resolve();
-                        })
-                            .catch(function (err) {
-                            // failed, add it back
-                            _this.currentEnvs.set(generatedEnvID, envInfo);
-                            reject(err);
+                this.logger.debug("stop " + generatedEnvID);
+                return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
+                        var envInfo, ports, busybeeDir, args, filePath, e_1;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    envInfo = Object.assign({}, this.currentEnvs.get(generatedEnvID));
+                                    // remove the env from currentEnvs
+                                    this.currentEnvs.remove(generatedEnvID);
+                                    if (_.isEmpty(envInfo)) {
+                                        return [2 /*return*/, Promise.resolve()];
+                                    }
+                                    this.logger.info("Stopping Environment: " + envInfo.suiteEnvID + " " + generatedEnvID);
+                                    this.logger.debug('envInfo');
+                                    this.logger.debug(envInfo);
+                                    ports = this.currentHosts[envInfo.hostName].envs[generatedEnvID].ports;
+                                    busybeeDir = this.conf.filePaths.busybeeDir;
+                                    args = {
+                                        generatedEnvID: generatedEnvID,
+                                        protocol: envInfo.protocol,
+                                        hostName: envInfo.hostName,
+                                        ports: ports,
+                                        busybeeDir: busybeeDir
+                                    };
+                                    filePath = path.join(busybeeDir, envInfo.stopScript);
+                                    this.logger.debug(filePath);
+                                    this.logger.debug('scriptArgs');
+                                    this.logger.debug(args, true);
+                                    _a.label = 1;
+                                case 1:
+                                    _a.trys.push([1, 3, , 4]);
+                                    return [4 /*yield*/, execFileCmd(filePath, [JSON.stringify(args)], null)];
+                                case 2:
+                                    _a.sent();
+                                    this.currentHosts[envInfo.hostName].load -= envInfo.resourceCost;
+                                    // remove the env from the currentHosts
+                                    delete this.currentHosts[envInfo.hostName].envs[generatedEnvID];
+                                    this.logger.debug('this.currentHosts');
+                                    this.logger.debug(this.currentHosts, true);
+                                    resolve();
+                                    return [3 /*break*/, 4];
+                                case 3:
+                                    e_1 = _a.sent();
+                                    this.logger.info(e_1.message);
+                                    // failed, add it back
+                                    this.currentEnvs.set(generatedEnvID, envInfo);
+                                    reject(e_1);
+                                    return [3 /*break*/, 4];
+                                case 4: return [2 /*return*/];
+                            }
                         });
-                    })];
+                    }); })];
             });
         });
     };
-    EnvManager.prototype.stopAll = function (cb) {
+    EnvManager.prototype.stopAll = function () {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
-            var stopFns;
             return __generator(this, function (_a) {
-                stopFns = this.currentEnvs.forEach(function (envConf, generatedEnvID) {
-                    return function (cb2) {
-                        _this.stop(generatedEnvID)
-                            .then(function () { cb2(null); })
-                            .catch(function (err) { cb2(err); });
-                    };
-                });
-                return [2 /*return*/, new Promise(function (resolve, reject) {
-                        _async.parallel(stopFns, function (err, results) {
-                            resolve();
+                this.logger.debug('stopAll');
+                return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
+                        var _this = this;
+                        var stopFns, e_2;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    this.logger.debug('currentEnvs');
+                                    this.logger.debug(this.currentEnvs, true);
+                                    stopFns = [];
+                                    this.currentEnvs.forEach(function (envConf, generatedEnvID) {
+                                        stopFns.push(_this.stop.call(_this, generatedEnvID));
+                                    });
+                                    _a.label = 1;
+                                case 1:
+                                    _a.trys.push([1, 3, , 4]);
+                                    return [4 /*yield*/, Promise.all(stopFns)];
+                                case 2:
+                                    _a.sent();
+                                    resolve();
+                                    return [3 /*break*/, 4];
+                                case 3:
+                                    e_2 = _a.sent();
+                                    reject(e_2);
+                                    return [3 /*break*/, 4];
+                                case 4: return [2 /*return*/];
+                            }
                         });
-                    })];
+                    }); })];
             });
         });
     };
@@ -436,7 +468,7 @@ var EnvManager = /** @class */ (function () {
     EnvManager.prototype.getAvailablePorts = function (hostName, suiteID, generatedEnvID) {
         var _this = this;
         return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-            var hostConf, suiteConf, ports, portsInUse, parallelMode, _a, ports, portOffset, e_1;
+            var hostConf, suiteConf, ports, portsInUse, parallelMode, _a, ports, portOffset, e_3;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -470,9 +502,9 @@ var EnvManager = /** @class */ (function () {
                         resolve(ports);
                         return [3 /*break*/, 5];
                     case 4:
-                        e_1 = _b.sent();
-                        this.logger.error("Error while getting available ports: " + e_1.message);
-                        reject(e_1);
+                        e_3 = _b.sent();
+                        this.logger.error("Error while getting available ports: " + e_3.message);
+                        reject(e_3);
                         return [3 /*break*/, 5];
                     case 5: return [2 /*return*/];
                 }

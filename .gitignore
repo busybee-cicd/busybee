@@ -4,3 +4,4 @@ itTests/
 busybee/
 .idea/
 busybee.iml
+yarn.lock
