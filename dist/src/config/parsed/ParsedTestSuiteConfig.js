@@ -24,22 +24,27 @@ var ParsedTestSuite = /** @class */ (function () {
     }
     ParsedTestSuite.prototype.parseSuite = function (testSuite, mode, testSet2EnvMap, env2TestSuiteMap) {
         var _this = this;
-        // assign a default env to this TestSuite incase they add tests that don't specify an Env to run in
-        var defaultParsedTestEnv = new ParsedTestEnvConfig_1.ParsedTestEnvConfig();
-        var defaultParsedTestSet = new ParsedTestSetConfig_1.ParsedTestSetConfig();
-        defaultParsedTestSet.id = 'default';
-        defaultParsedTestEnv.testSets.set('default', defaultParsedTestSet);
-        var defaultEnvInstance = new EnvInstanceConfig_1.EnvInstanceConfig();
-        defaultEnvInstance.testSets = [];
-        defaultEnvInstance.id = 'default';
-        var defaultTestSet = new TestSetConfig_1.TestSetConfig();
-        defaultTestSet.id = 'default';
-        defaultEnvInstance.testSets.push(defaultTestSet);
-        if (!testSuite.envInstances) {
-            testSuite.envInstances = [];
+        // assign a default env to this TestSuite IF this is a REST TestSuite to cover cases
+        // where the user doesn't specify a testEnv
+        if (testSuite.type && testSuite.type.toUpperCase() == 'REST') {
+            var defaultParsedTestEnv = new ParsedTestEnvConfig_1.ParsedTestEnvConfig();
+            var tsc = new TestSetConfig_1.TestSetConfig();
+            tsc.id = 'default';
+            var defaultParsedTestSet = new ParsedTestSetConfig_1.ParsedTestSetConfig(tsc);
+            defaultParsedTestSet.id = 'default';
+            defaultParsedTestEnv.testSets.set('default', defaultParsedTestSet);
+            var defaultEnvInstance = new EnvInstanceConfig_1.EnvInstanceConfig();
+            defaultEnvInstance.testSets = [];
+            defaultEnvInstance.id = 'default';
+            var defaultTestSet = new TestSetConfig_1.TestSetConfig();
+            defaultTestSet.id = 'default';
+            defaultEnvInstance.testSets.push(defaultTestSet);
+            if (!testSuite.envInstances) {
+                testSuite.envInstances = [];
+            }
+            testSuite.envInstances.push(defaultEnvInstance);
+            this.testEnvs.set('default', defaultParsedTestEnv);
         }
-        testSuite.envInstances.push(defaultEnvInstance);
-        this.testEnvs.set('default', defaultParsedTestEnv);
         // iterate each user userConfigFile env defined for this testSuite.
         testSuite.envInstances.forEach(function (testEnvConf) {
             // rename the env's id to suiteEnvID for clarity later 'id' gets thrown around a lot.
@@ -53,14 +58,15 @@ var ParsedTestSuite = /** @class */ (function () {
             env2TestSuiteMap.set(parsedTestEnvConfig.suiteEnvID, _this.suiteID);
             if (testEnvConf.testSets) {
                 testEnvConf.testSets.forEach(function (testSetConf) {
-                    var parsedTestSetConfig = new ParsedTestSetConfig_1.ParsedTestSetConfig();
-                    // testSetStubs is a placeholder object to ensure that there is a 'tests'
-                    // array ready to accept tests during the test parsing step
-                    if (parsedTestEnvConfig.testSets.get(testSetConf.id)) {
+                    var parsedTestSetConfig = new ParsedTestSetConfig_1.ParsedTestSetConfig(testSetConf);
+                    _this.logger.debug("testSetConf " + testSetConf.id);
+                    _this.logger.debug("parsedTestSetConfig " + parsedTestSetConfig.id);
+                    // if this testSet already exists skip it
+                    if (parsedTestEnvConfig.testSets.get(parsedTestSetConfig.id)) {
                         _this.logger.info("Test set " + testSetConf.id + " already exists. Skipping");
                         return;
                     }
-                    parsedTestSetConfig.id = testSetConf.id;
+                    // add the set to the parsedTestEnvConfig
                     parsedTestEnvConfig.testSets.set(testSetConf.id, parsedTestSetConfig);
                     // store env lookup for later
                     testSet2EnvMap.set(parsedTestSetConfig.id, parsedTestEnvConfig.suiteEnvID);

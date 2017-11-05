@@ -141,8 +141,9 @@ export class EnvManager {
     return hosts;
   }
 
-  async stop(generatedEnvID) {
-    return new Promise((resolve, reject) => {
+  async stop(generatedEnvID: string) {
+    this.logger.debug(`stop ${generatedEnvID}`);
+    return new Promise(async (resolve, reject) => {
       let envInfo = Object.assign({}, this.currentEnvs.get(generatedEnvID));
       // remove the env from currentEnvs
       this.currentEnvs.remove(generatedEnvID);
@@ -162,41 +163,49 @@ export class EnvManager {
         busybeeDir: busybeeDir
       };
 
-      // 1. stop the env
-      execFileCmd(path.join(busybeeDir, envInfo.stopScript), [JSON.stringify(args)], null)
-        .then((stdout) => {
-          // 2. remove the load from the host
-          this.currentHosts[envInfo.hostName].load -= envInfo.resourceCost;
-          // remove the env from the currentHosts
-          delete this.currentHosts[envInfo.hostName].envs[generatedEnvID];
+      let filePath = path.join(busybeeDir, envInfo.stopScript);
+      this.logger.debug(filePath);
+      this.logger.debug('scriptArgs');
+      this.logger.debug(args, true);
 
-          this.logger.debug('this.currentHosts');
-          this.logger.debug(this.currentHosts, true);
-          resolve();
-        })
-        .catch((err) => {
-          // failed, add it back
-          this.currentEnvs.set(generatedEnvID, envInfo);
-          reject(err);
-        });
+      // 1. stop the env
+      try {
+        await execFileCmd(filePath, [JSON.stringify(args)], null)
+        this.currentHosts[envInfo.hostName].load -= envInfo.resourceCost;
+        // remove the env from the currentHosts
+        delete this.currentHosts[envInfo.hostName].envs[generatedEnvID];
+
+        this.logger.debug('this.currentHosts');
+        this.logger.debug(this.currentHosts, true);
+        resolve();
+      } catch (e) {
+        this.logger.info(e.message);
+        // failed, add it back
+        this.currentEnvs.set(generatedEnvID, envInfo);
+        reject(e);
+      }
     });
 
   }
 
-  async stopAll(cb) {
-    let stopFns = this.currentEnvs.forEach((envConf: SuiteEnvInfo, generatedEnvID: string) => {
-      return (cb2) => {
-        this.stop(generatedEnvID)
-          .then(() => { cb2(null); })
-          .catch((err) => { cb2(err); });
+  async stopAll() {
+    this.logger.debug('stopAll');
+
+    return new Promise(async (resolve, reject) => {
+      this.logger.debug('currentEnvs');
+      this.logger.debug(this.currentEnvs, true);
+      let stopFns = [];
+      this.currentEnvs.forEach((envConf: SuiteEnvInfo, generatedEnvID: string) => {
+        stopFns.push(this.stop.call(this, generatedEnvID));
+      });
+
+      try {
+        await Promise.all(stopFns);
+        resolve();
+      } catch (e) {
+        reject(e);
       }
     });
-
-    return new Promise((resolve, reject) => {
-      _async.parallel(stopFns, (err, results) => {
-        resolve();
-      });
-    })
   }
 
   runScript(path, args) {
@@ -625,7 +634,7 @@ export class EnvManager {
     });
   }
 
-  getCurrentEnv(generatedEnvID) {
+  getCurrentEnv(generatedEnvID): SuiteEnvInfo {
     return this.currentEnvs.get(generatedEnvID);
   }
 
