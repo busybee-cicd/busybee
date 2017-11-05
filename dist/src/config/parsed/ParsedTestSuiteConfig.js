@@ -59,8 +59,10 @@ var ParsedTestSuite = /** @class */ (function () {
             if (testEnvConf.testSets) {
                 testEnvConf.testSets.forEach(function (testSetConf) {
                     var parsedTestSetConfig = new ParsedTestSetConfig_1.ParsedTestSetConfig(testSetConf);
+                    _this.logger.debug("testSetConf " + testSetConf.id);
+                    _this.logger.debug("parsedTestSetConfig " + parsedTestSetConfig.id);
                     // if this testSet already exists skip it
-                    if (parsedTestEnvConfig.testSets.get(testSetConf.id)) {
+                    if (parsedTestEnvConfig.testSets.get(parsedTestSetConfig.id)) {
                         _this.logger.info("Test set " + testSetConf.id + " already exists. Skipping");
                         return;
                     }

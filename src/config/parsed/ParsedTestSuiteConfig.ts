@@ -83,8 +83,10 @@ export class ParsedTestSuite {
         testEnvConf.testSets.forEach((testSetConf: TestSetConfig) => {
           let parsedTestSetConfig = new ParsedTestSetConfig(testSetConf);
 
+          this.logger.debug(`testSetConf ${testSetConf.id}`);
+          this.logger.debug(`parsedTestSetConfig ${parsedTestSetConfig.id}`);
           // if this testSet already exists skip it
-          if (parsedTestEnvConfig.testSets.get(testSetConf.id)) {
+          if (parsedTestEnvConfig.testSets.get(parsedTestSetConfig.id)) {
             this.logger.info(`Test set ${testSetConf.id} already exists. Skipping`);
             return;
           }

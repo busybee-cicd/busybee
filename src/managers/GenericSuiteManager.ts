@@ -3,15 +3,16 @@ import * as path from 'path';
 import {Logger} from '../lib/Logger';
 import {EnvManager} from "./EnvManager";
 import {ParsedTestSetConfig} from "../config/parsed/ParsedTestSetConfig";
+import {SuiteEnvInfo} from "../lib/SuiteEnvInfo";
 
 export class GenericSuiteManager {
 
   private conf: any;
-  private suiteEnvConf: any;
+  private suiteEnvConf: SuiteEnvInfo;
   private envManager: EnvManager;
   private logger: Logger;
 
-  constructor(conf: any, suiteEnvConf: any, envManager: EnvManager) {
+  constructor(conf: any, suiteEnvConf: SuiteEnvInfo, envManager: EnvManager) {
     this.conf = conf;
     this.suiteEnvConf = suiteEnvConf;
     this.envManager = envManager;
@@ -35,7 +36,8 @@ export class GenericSuiteManager {
     // TODO: logic for running TestSets in order
     return new Promise(async (resolve, reject) => {
       this.logger.debug(`runTestSets ${this.suiteEnvConf.suiteID} ${this.suiteEnvConf.suiteEnvID}`);
-      let testSetPromises = _.map(this.suiteEnvConf.testSets, (testSet, id) => {
+      this.logger.debug(this.suiteEnvConf, true);
+      let testSetPromises = this.suiteEnvConf.testSets.values().map((testSet) => {
         return this.runTestSet(testSet, generatedEnvID);
       });
 
@@ -58,7 +60,8 @@ export class GenericSuiteManager {
   }
 
   async runTestSet(testSet: ParsedTestSetConfig, generatedEnvID: string) {
-      this.logger.debug(`runTestSet ${this.suiteEnvConf.suiteID} ${this.suiteEnvConf.suiteEnvID} ${testSet.id}`);
+      this.logger.debug(`runTestSet | ${this.suiteEnvConf.suiteID} | ${this.suiteEnvConf.suiteEnvID} | ${testSet.id}`);
+      this.logger.debug(testSet, true);
       // run the script via envManager
       let busybeeDir = this.conf.filePaths.busybeeDir;
       let scriptPath = path.join(busybeeDir, this.suiteEnvConf.runScript);

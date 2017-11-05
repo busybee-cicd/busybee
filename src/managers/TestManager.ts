@@ -101,7 +101,7 @@ export class TestManager {
     return (cb) => {
       let buildEnvFn = async () => {
         generatedEnvID = await envManager.start(generatedEnvID, suiteID, suiteEnvID);
-        let currentEnv = envManager.getCurrentEnv(generatedEnvID);
+        let currentEnv:SuiteEnvInfo = envManager.getCurrentEnv(generatedEnvID);
         // create a restmanager to handle these tests
         let suiteManager = new GenericSuiteManager(this.conf, currentEnv, envManager);
         let testSetResults = await suiteManager.runTestSets(generatedEnvID);

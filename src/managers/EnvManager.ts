@@ -634,7 +634,7 @@ export class EnvManager {
     });
   }
 
-  getCurrentEnv(generatedEnvID) {
+  getCurrentEnv(generatedEnvID): SuiteEnvInfo {
     return this.currentEnvs.get(generatedEnvID);
   }
 

@@ -35,7 +35,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var _ = require("lodash");
 var path = require("path");
 var Logger_1 = require("../lib/Logger");
 var GenericSuiteManager = /** @class */ (function () {
@@ -65,7 +64,8 @@ var GenericSuiteManager = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         this.logger.debug("runTestSets " + this.suiteEnvConf.suiteID + " " + this.suiteEnvConf.suiteEnvID);
-                        testSetPromises = _.map(this.suiteEnvConf.testSets, function (testSet, id) {
+                        this.logger.debug(this.suiteEnvConf, true);
+                        testSetPromises = this.suiteEnvConf.testSets.values().map(function (testSet) {
                             return _this.runTestSet(testSet, generatedEnvID);
                         });
                         _a.label = 1;
@@ -96,7 +96,8 @@ var GenericSuiteManager = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             var busybeeDir, scriptPath, args;
             return __generator(this, function (_a) {
-                this.logger.debug("runTestSet " + this.suiteEnvConf.suiteID + " " + this.suiteEnvConf.suiteEnvID + " " + testSet.id);
+                this.logger.debug("runTestSet | " + this.suiteEnvConf.suiteID + " | " + this.suiteEnvConf.suiteEnvID + " | " + testSet.id);
+                this.logger.debug(testSet, true);
                 busybeeDir = this.conf.filePaths.busybeeDir;
                 scriptPath = path.join(busybeeDir, this.suiteEnvConf.runScript);
                 args = {
