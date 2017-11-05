@@ -73,16 +73,16 @@ export class ParsedTestSuite {
       env2TestSuiteMap.set(parsedTestEnvConfig.suiteEnvID, this.suiteID);
 
       if (testEnvConf.testSets) {
-        testEnvConf.testSets.forEach((testSetConf) => {
-          let parsedTestSetConfig = new ParsedTestSetConfig();
-          // testSetStubs is a placeholder object to ensure that there is a 'tests'
-          // array ready to accept tests during the test parsing step
+        testEnvConf.testSets.forEach((testSetConf: TestSetConfig) => {
+          let parsedTestSetConfig = new ParsedTestSetConfig(testSetConf);
+
+          // if this testSet already exists skip it
           if (parsedTestEnvConfig.testSets.get(testSetConf.id)) {
             this.logger.info(`Test set ${testSetConf.id} already exists. Skipping`);
             return;
           }
 
-          parsedTestSetConfig.id = testSetConf.id;
+          // add the set to the parsedTestEnvConfig
           parsedTestEnvConfig.testSets.set(testSetConf.id, parsedTestSetConfig);
 
           // store env lookup for later

@@ -44,6 +44,14 @@ export class BusybeeParsedConfig {
     }
   }
 
+  getTestSet2EnvMap(): TypedMap<string> {
+    return this.testSet2EnvMap;
+  }
+
+  getEnv2TestSuiteMap(): TypedMap<string> {
+    return this.env2TestSuiteMap;
+  }
+
   parseTestSuites(userConf: BusybeeUserConfig, mode: string): TypedMap<ParsedTestSuite> {
     let parsedTestSuites = new TypedMap<ParsedTestSuite>();
     // see if the user specified to skip testSuites
@@ -82,6 +90,7 @@ export class BusybeeParsedConfig {
     this.logger.debug(`parseTestSuite userConf testSuite ${suiteID} ${mode}`);
 
     // create an id for this testSuite
+    console.log(JSON.stringify(testSuite, null, '\t'));
     return new ParsedTestSuite(testSuite, mode, this.testSet2EnvMap, this.env2TestSuiteMap);
   }
 

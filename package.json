@@ -24,13 +24,14 @@
   },
   "devDependencies": {
     "@types/node": "^8.0.28",
+    "ava": "^0.23.0",
     "typescript": "^2.5.2"
   },
   "scripts": {
     "build": "tsc",
-    "start": "node main.js",
-    "debug": "NODE_DEBUG=request DEBUG=true node main.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node ./dist/index.js",
+    "debug": "NODE_DEBUG=request DEBUG=true node ./dist/index.js",
+    "test": "tsc && ava dist/test/**/*.js"
   },
   "author": "Simon Townsend",
   "license": "ISC"
