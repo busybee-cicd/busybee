@@ -203,7 +203,7 @@ export class MockServer {
 
     _.forEach(reqMethodMap, (statusMap, methodName) => {
       // 1. build a controller
-      let ctrl = (req, res) => {
+      let ctrl = async (req, res) => {
         this.logger.debug(req.path);
         // First we check to see if the requester wants a mock with a specific status. If not, we default to 200
         let requestedStatus = 200;
@@ -329,6 +329,11 @@ export class MockServer {
         }
 
         this.logger.debug(JSON.stringify(mockToReturn.expect.body));
+
+        // check for a delay
+        if (mockToReturn.delay) {
+          await this.sleep(mockToReturn.delay);
+        }
         return res.status(mockToReturn.expect.status).json(mockToReturn.expect.body);
       } // end ctrl
 
@@ -387,5 +392,9 @@ export class MockServer {
     }
 
     return req;
+  }
+
+  sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }

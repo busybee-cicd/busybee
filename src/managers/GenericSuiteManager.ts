@@ -2,6 +2,7 @@ import * as _ from 'lodash';
 import * as path from 'path';
 import {Logger} from '../lib/Logger';
 import {EnvManager} from "./EnvManager";
+import {ParsedTestSetConfig} from "../config/parsed/ParsedTestSetConfig";
 
 export class GenericSuiteManager {
 
@@ -56,7 +57,7 @@ export class GenericSuiteManager {
 
   }
 
-  async runTestSet(testSet, generatedEnvID) {
+  async runTestSet(testSet: ParsedTestSetConfig, generatedEnvID: string) {
       this.logger.debug(`runTestSet ${this.suiteEnvConf.suiteID} ${this.suiteEnvConf.suiteEnvID} ${testSet.id}`);
       // run the script via envManager
       let busybeeDir = this.conf.filePaths.busybeeDir;

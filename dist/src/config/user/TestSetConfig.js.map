@@ -1,0 +1,1 @@
+{"version":3,"file":"TestSetConfig.js","sourceRoot":"","sources":["../../../../src/config/user/TestSetConfig.ts"],"names":[],"mappings":";;AAAA;IAGE;QACE,IAAI,CAAC,EAAE,GAAG,KAAK,CAAC,CAAC;IACnB,CAAC;IACH,oBAAC;AAAD,CAAC,AAND,IAMC;AANY,sCAAa","sourcesContent":["export class TestSetConfig {\r\n  id: string;\r\n\r\n  constructor() {\r\n    this.id = void 0;\r\n  }\r\n}\r\n"]}
