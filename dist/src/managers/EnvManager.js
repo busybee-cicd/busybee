@@ -267,8 +267,8 @@ var EnvManager = /** @class */ (function () {
                     _this.logger.debug(data.toString());
                 });
                 script.stderr.on('data', function (data) {
-                    if (data.toString().toUpperCase().includes("ERROR")) {
-                        _this.logger.debug('Error in runScript');
+                    if (data.toString().toUpperCase().includes("BUSYBEE_ERROR")) {
+                        _this.logger.debug('BUSYBEE_ERROR in runScript');
                         reject(data.toString());
                     }
                     ;
