@@ -220,8 +220,8 @@ export class EnvManager {
       });
 
       script.stderr.on('data', (data) => {
-        if (data.toString().toUpperCase().includes("ERROR")) {
-          this.logger.debug('Error in runScript');
+        if (data.toString().toUpperCase().includes("BUSYBEE_ERROR")) {
+          this.logger.debug('BUSYBEE_ERROR in runScript');
           reject(data.toString());
         };
       });
