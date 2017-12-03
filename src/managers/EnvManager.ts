@@ -304,13 +304,12 @@ export class EnvManager {
         this.logger.debug(args);
         const { stdout, stderr } = await execFileCmd(path.join(busybeeDir, testSuiteConf.env.startScript), [JSON.stringify(args)], null);
 
-        this.logger.debug(`stdout ${stdout}`);
-        if (stdout.includes("ready")) {
-          this.logger.info(`${generatedEnvID} created.`);
-          resolve(generatedEnvID);
-        } else {
-          reject("script did not contain 'ready'");
+        if (stderr) {
+          return reject();
         }
+
+        this.logger.info(`${generatedEnvID} created.`);
+        resolve(generatedEnvID);
       } catch (err) {
         reject(err);
       }
