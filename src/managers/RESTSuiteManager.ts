@@ -3,6 +3,9 @@ import * as _ from 'lodash';
 import {Logger} from '../lib/Logger';
 import {RESTClient} from '../lib/RESTClient';
 import {SuiteEnvInfo} from "../lib/SuiteEnvInfo";
+import {ParsedTestSetConfig} from "../config/parsed/ParsedTestSetConfig";
+import {RESTTest} from "../config/test/RESTTest";
+import {IncomingMessage} from "http";
 
 export class RESTSuiteManager {
 
@@ -23,7 +26,7 @@ export class RESTSuiteManager {
     // TODO: logic for running TestSets in order
     return new Promise(async (resolve, reject) => {
       this.logger.debug(`runRESTApiTestSets ${currentEnv.suiteID} ${currentEnv.suiteEnvID}`);
-      let testSetPromises = _.map(currentEnv.testSets.values(), (testSet) => {
+      let testSetPromises = _.map(currentEnv.testSets.values(), (testSet: ParsedTestSetConfig) => {
         return this.runRESTApiTestSet(currentEnv, testSet);
       });
 
@@ -45,7 +48,7 @@ export class RESTSuiteManager {
 
   }
 
-  async runRESTApiTestSet(currentEnv, testSet) {
+  async runRESTApiTestSet(currentEnv: SuiteEnvInfo, testSet: ParsedTestSetConfig) {
     this.logger.debug(`runRESTApiTestSet ${currentEnv.ports} ${testSet.id}`);
 
     return new Promise((resolve, reject) => {
@@ -54,7 +57,7 @@ export class RESTSuiteManager {
         reject(`testSet ${testSet.id} has no tests`);
       }
 
-      let testFns = this.buildTestTasks(testSet, currentEnv);
+      let testFns = this.buildTestTasks(currentEnv, testSet);
 
       // run api test functions
       this.logger.info(`Running Test Set: ${testSet.id}`);
@@ -81,10 +84,10 @@ export class RESTSuiteManager {
     });
   }
 
-  buildTestTasks(testSet, currentEnv) {
+  buildTestTasks(currentEnv: SuiteEnvInfo, testSet: ParsedTestSetConfig) {
     this.logger.debug(`RESTSuiteManager:buildTestTasks <testSet> ${currentEnv.ports}`);
     this.logger.debug(testSet);
-    return testSet.tests.map((test, i) => {
+    return testSet.tests.map((test: RESTTest, i) => {
 
       return (cb) => {
         if (!test.request) {
@@ -123,40 +126,63 @@ export class RESTSuiteManager {
         }
         this.logger.info(`${testSet.id}: ${testIndex}: ${test.name}`)
 
-        this.restClient.makeRequest(opts, (err, res, body) => {
+        this.restClient.makeRequest(opts, (err: Error, res: IncomingMessage, body: any) => {
           if (err) { return cb(err); }
 
-          // validate results
-          let testResult = <any>{name: test.name, index: test.testIndex};
-          if (test.expect.headers) {
-            testResult.headers = {};
-          }
-
-          if (test.expect.status) {
-            testResult.status = res.statusCode == test.expect.status
-              ? true
-              : `Expected ${test.expect.status} was ${res.statusCode}`
-          }
-
-          if (test.expect.body) {
-            testResult.body = _.isEqual(body, test.expect.body)
-              ? true
-              : `Expected ${JSON.stringify(test.expect.body)} was ${JSON.stringify(body)}`
-          }
-
-          if (test.expect.headers) {
-            _.forEach(test.expect.headers, (v, headerName) => {
-              if (res.headers[headerName] != v) {
-                testResult.headers[headerName] = `Expected ${v} was ${res.headers[headerName]}`;
-              } else {
-                testResult.headers[headerName] = true;
-              }
-            });
-          }
-
-          cb(null, testResult);
+          this.validateTestResult(test, res, body, cb)
         });
       };
     });
+  }
+
+  validateTestResult(test: RESTTest, res: IncomingMessage, body: any, cb: Function) {
+    // validate results
+    let testResult = <any>{name: test.name, index: test.testIndex};
+    if (test.expect.headers) {
+      testResult.headers = {};
+    }
+
+    if (test.expect.status) {
+      testResult.status = res.statusCode == test.expect.status
+          ? true
+          : `Expected ${test.expect.status} was ${res.statusCode}`
+    }
+
+    if (test.expect.body) {
+
+      if (_.isFunction(test.expect.body)) {
+        // if the test has a custom function for assertion, run it.
+        let result;
+        try {
+          result = test.expect.body(body);
+        } catch (e) {
+          result = false;
+        }
+
+        if (!result) {
+          testResult.body = `Expected ${JSON.stringify(test.expect.body)} was ${JSON.stringify(body)}`
+        } else {
+          testResult.body = true;
+        }
+      } else {
+        // assert the body against the provided pojo body
+        testResult.body = _.isEqual(body, test.expect.body)
+            ? true
+            : `Expected ${JSON.stringify(test.expect.body)} was ${JSON.stringify(body)}`
+      }
+
+    }
+
+    if (test.expect.headers) {
+      _.forEach(test.expect.headers, (v, headerName) => {
+        if (res.headers[headerName] != v) {
+          testResult.headers[headerName] = `Expected ${v} was ${res.headers[headerName]}`;
+        } else {
+          testResult.headers[headerName] = true;
+        }
+      });
+    }
+
+    cb(null, testResult);
   }
 }

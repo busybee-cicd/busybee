@@ -93,7 +93,7 @@ var RESTSuiteManager = /** @class */ (function () {
                         if (!testSet.tests) {
                             reject("testSet " + testSet.id + " has no tests");
                         }
-                        var testFns = _this.buildTestTasks(testSet, currentEnv);
+                        var testFns = _this.buildTestTasks(currentEnv, testSet);
                         // run api test functions
                         _this.logger.info("Running Test Set: " + testSet.id);
                         if (testSet.description) {
@@ -119,7 +119,7 @@ var RESTSuiteManager = /** @class */ (function () {
             });
         });
     };
-    RESTSuiteManager.prototype.buildTestTasks = function (testSet, currentEnv) {
+    RESTSuiteManager.prototype.buildTestTasks = function (currentEnv, testSet) {
         var _this = this;
         this.logger.debug("RESTSuiteManager:buildTestTasks <testSet> " + currentEnv.ports);
         this.logger.debug(testSet);
@@ -163,35 +163,57 @@ var RESTSuiteManager = /** @class */ (function () {
                     if (err) {
                         return cb(err);
                     }
-                    // validate results
-                    var testResult = { name: test.name, index: test.testIndex };
-                    if (test.expect.headers) {
-                        testResult.headers = {};
-                    }
-                    if (test.expect.status) {
-                        testResult.status = res.statusCode == test.expect.status
-                            ? true
-                            : "Expected " + test.expect.status + " was " + res.statusCode;
-                    }
-                    if (test.expect.body) {
-                        testResult.body = _.isEqual(body, test.expect.body)
-                            ? true
-                            : "Expected " + JSON.stringify(test.expect.body) + " was " + JSON.stringify(body);
-                    }
-                    if (test.expect.headers) {
-                        _.forEach(test.expect.headers, function (v, headerName) {
-                            if (res.headers[headerName] != v) {
-                                testResult.headers[headerName] = "Expected " + v + " was " + res.headers[headerName];
-                            }
-                            else {
-                                testResult.headers[headerName] = true;
-                            }
-                        });
-                    }
-                    cb(null, testResult);
+                    _this.validateTestResult(test, res, body, cb);
                 });
             };
         });
+    };
+    RESTSuiteManager.prototype.validateTestResult = function (test, res, body, cb) {
+        // validate results
+        var testResult = { name: test.name, index: test.testIndex };
+        if (test.expect.headers) {
+            testResult.headers = {};
+        }
+        if (test.expect.status) {
+            testResult.status = res.statusCode == test.expect.status
+                ? true
+                : "Expected " + test.expect.status + " was " + res.statusCode;
+        }
+        if (test.expect.body) {
+            if (_.isFunction(test.expect.body)) {
+                // if the test has a custom function for assertion, run it.
+                var result = void 0;
+                try {
+                    result = test.expect.body(body);
+                }
+                catch (e) {
+                    result = false;
+                }
+                if (!result) {
+                    testResult.body = "Expected " + JSON.stringify(test.expect.body) + " was " + JSON.stringify(body);
+                }
+                else {
+                    testResult.body = true;
+                }
+            }
+            else {
+                // assert the body against the provided pojo body
+                testResult.body = _.isEqual(body, test.expect.body)
+                    ? true
+                    : "Expected " + JSON.stringify(test.expect.body) + " was " + JSON.stringify(body);
+            }
+        }
+        if (test.expect.headers) {
+            _.forEach(test.expect.headers, function (v, headerName) {
+                if (res.headers[headerName] != v) {
+                    testResult.headers[headerName] = "Expected " + v + " was " + res.headers[headerName];
+                }
+                else {
+                    testResult.headers[headerName] = true;
+                }
+            });
+        }
+        cb(null, testResult);
     };
     return RESTSuiteManager;
 }());

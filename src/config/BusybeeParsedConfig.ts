@@ -10,6 +10,7 @@ import {EnvResourceConfig} from "./common/EnvResourceConfig";
 import {ParsedTestSuite} from "./parsed/ParsedTestSuiteConfig";
 import {FilePathsConfig} from "./parsed/FilePathsConfig";
 import {TypedMap} from "../lib/TypedMap";
+import {RESTTest} from "./test/RESTTest";
 
 export class BusybeeParsedConfig {
   private logger: Logger;
@@ -133,13 +134,21 @@ export class BusybeeParsedConfig {
           this.logger.info(`parsing ${file}`);
         }
 
-        let data = fs.readFileSync(file, 'utf8');
-        var tests = JSON.parse(data);
+        let tests;
+        if (file.endsWith('.js')) {
+          tests = require(file);
+        } else {
+          let data = fs.readFileSync(file, 'utf8');
+          tests = JSON.parse(data);
+        }
+
         if (!Array.isArray(tests)) {
           tests = [tests];
         }
 
         tests.forEach((test) => {
+          this.logger.debug(test);
+          test = new RESTTest(test);
           if (test.skip) { return; }
           if (mode == 'test') {
             if (test.mock) { return; }
@@ -187,7 +196,7 @@ export class BusybeeParsedConfig {
                   parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i] = test;
                 } else {
                   if (!parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i]) {
-                    parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i] = {};
+                    parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i] = new RESTTest({});
                   }
                 }
               });

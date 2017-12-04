@@ -9,6 +9,7 @@ var path = require("path");
 var ParsedTestSuiteConfig_1 = require("./parsed/ParsedTestSuiteConfig");
 var FilePathsConfig_1 = require("./parsed/FilePathsConfig");
 var TypedMap_1 = require("../lib/TypedMap");
+var RESTTest_1 = require("./test/RESTTest");
 var BusybeeParsedConfig = /** @class */ (function () {
     function BusybeeParsedConfig(userConfig, cmdOpts, mode) {
         this.testSet2EnvMap = new TypedMap_1.TypedMap();
@@ -108,12 +109,20 @@ var BusybeeParsedConfig = /** @class */ (function () {
             else {
                 _this.logger.info("parsing " + file);
             }
-            var data = fs.readFileSync(file, 'utf8');
-            var tests = JSON.parse(data);
+            var tests;
+            if (file.endsWith('.js')) {
+                tests = require(file);
+            }
+            else {
+                var data = fs.readFileSync(file, 'utf8');
+                tests = JSON.parse(data);
+            }
             if (!Array.isArray(tests)) {
                 tests = [tests];
             }
             tests.forEach(function (test) {
+                _this.logger.debug(test);
+                test = new RESTTest_1.RESTTest(test);
                 if (test.skip) {
                     return;
                 }
@@ -160,7 +169,7 @@ var BusybeeParsedConfig = /** @class */ (function () {
                             }
                             else {
                                 if (!parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i]) {
-                                    parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i] = {};
+                                    parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i] = new RESTTest_1.RESTTest({});
                                 }
                             }
                         });
