@@ -5,6 +5,7 @@ import {Logger} from "../lib/Logger";
 import * as glob from 'glob';
 import * as fs from 'fs';
 import * as _ from 'lodash';
+import * as path from 'path';
 import {EnvResourceConfig} from "./common/EnvResourceConfig";
 import {ParsedTestSuite} from "./parsed/ParsedTestSuiteConfig";
 import {FilePathsConfig} from "./parsed/FilePathsConfig";
@@ -97,11 +98,20 @@ export class BusybeeParsedConfig {
   /*
     Discovers any test files, parses them, and inserts them into the testSuites/envs that they belong
    */
-  parseTestFiles(parsedTestSuites, mode) {
+  parseTestFiles(parsedTestSuites: TypedMap<ParsedTestSuite>, mode: string) {
       this.logger.debug(`parseFiles`);
       this.logger.debug(this.env2TestSuiteMap, true);
       this.logger.debug(this.testSet2EnvMap, true);
-      let files = glob.sync(`${this.filePaths.busybeeDir}/**/*.json`, {ignore:`${this.filePaths.userConfigFile}`});
+      // build up a list of testFolders
+      let testFolders = [];
+      parsedTestSuites.values().map(pst => {
+        if (pst.testFolder) {
+          testFolders.push(path.join(this.filePaths.busybeeDir, pst.testFolder, '/**/*.json'));
+          testFolders.push(path.join(this.filePaths.busybeeDir, pst.testFolder, '/**/*.js'));
+        }
+      });
+    console.log(testFolders.join(','));
+      let files = glob.sync(`{${testFolders.join(',')}}`, {ignore:`${this.filePaths.userConfigFile}`});
 
       // parse json files, compile testSets and add them to the conf.
       this.logger.info("parsing files...");

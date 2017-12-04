@@ -5,6 +5,7 @@ var Logger_1 = require("../lib/Logger");
 var glob = require("glob");
 var fs = require("fs");
 var _ = require("lodash");
+var path = require("path");
 var ParsedTestSuiteConfig_1 = require("./parsed/ParsedTestSuiteConfig");
 var FilePathsConfig_1 = require("./parsed/FilePathsConfig");
 var TypedMap_1 = require("../lib/TypedMap");
@@ -81,7 +82,16 @@ var BusybeeParsedConfig = /** @class */ (function () {
         this.logger.debug("parseFiles");
         this.logger.debug(this.env2TestSuiteMap, true);
         this.logger.debug(this.testSet2EnvMap, true);
-        var files = glob.sync(this.filePaths.busybeeDir + "/**/*.json", { ignore: "" + this.filePaths.userConfigFile });
+        // build up a list of testFolders
+        var testFolders = [];
+        parsedTestSuites.values().map(function (pst) {
+            if (pst.testFolder) {
+                testFolders.push(path.join(_this.filePaths.busybeeDir, pst.testFolder, '/**/*.json'));
+                testFolders.push(path.join(_this.filePaths.busybeeDir, pst.testFolder, '/**/*.js'));
+            }
+        });
+        console.log(testFolders.join(','));
+        var files = glob.sync("{" + testFolders.join(',') + "}", { ignore: "" + this.filePaths.userConfigFile });
         // parse json files, compile testSets and add them to the conf.
         this.logger.info("parsing files...");
         files.forEach(function (file) {

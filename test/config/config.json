@@ -1,0 +1,64 @@
+{
+  "envResources": [{
+    "hosts": [
+      {
+        "name": "localhost"
+      }
+    ]
+  }],
+  "testSuites" : [
+    {
+      "id": "CR Server/Internal IT",
+      "skip": false,
+      "type": "REST",
+      "protocol": "http",
+      "ports": [7777],
+      "root": "/v1",
+      "env": {
+        "parallel": true,
+        "resourceCost": 34,
+        "startScript": "api/envStart.sh",
+        "stopScript": "api/envStop.sh",
+        "healthcheck": {
+          "type": "REST",
+          "retries": 30,
+          "request": {
+            "endpoint": "/healthcheck",
+            "port": 7777,
+            "timeout": 5000
+          }
+        }
+      },
+      "envInstances": [
+        {
+          "id": "Plants Env",
+          "testSets": [
+            {
+              "id": "plants"
+            },
+            {
+              "id": "users"
+            },
+            {
+              "id": "privs"
+            }
+          ]
+        }
+      ],
+      "defaultRequestOpts": {
+        "headers": {
+          "user-sso": 212589147
+        },
+        "json": true
+      },
+      "mockServer": {
+        "port": 8000,
+        "injectedRequestOpts": {
+          "headers": {
+            "user-sso": "212589147"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -13,6 +13,7 @@ var TestSuiteConfig = /** @class */ (function () {
         this.envInstances = void 0;
         this.mockServer = void 0;
         this.root = void 0;
+        this.testFolder = void 0;
     }
     return TestSuiteConfig;
 }());

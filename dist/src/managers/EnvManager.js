@@ -377,14 +377,11 @@ var EnvManager = /** @class */ (function () {
                         return [4 /*yield*/, execFileCmd(path.join(busybeeDir, testSuiteConf.env.startScript), [JSON.stringify(args)], null)];
                     case 5:
                         _a = _b.sent(), stdout = _a.stdout, stderr = _a.stderr;
-                        this.logger.debug("stdout " + stdout);
-                        if (stdout.includes("ready")) {
-                            this.logger.info(generatedEnvID + " created.");
-                            resolve(generatedEnvID);
+                        if (stderr) {
+                            return [2 /*return*/, reject()];
                         }
-                        else {
-                            reject("script did not contain 'ready'");
-                        }
+                        this.logger.info(generatedEnvID + " created.");
+                        resolve(generatedEnvID);
                         return [3 /*break*/, 7];
                     case 6:
                         err_1 = _b.sent();
