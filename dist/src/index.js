@@ -62,7 +62,8 @@ Commander
     .option('-L, --logLevel <level>', '[DEBUG, INFO, WARN, ERROR]')
     .option('-o, --onComplete <onComplete>', 'The filename of javascript module placed in your busybee/ directory. Will be called on complete. ex module) module.exports = (err, results) => { console.log(err || JSON.stringify(results)); }')
     .option('-s, --skipEnvProvisioning <ids>', 'list of comma-separated TestSuite ids. Environments will not be provisioned for these TestSuites prior to running tests')
-    .option('-sts, --skipTestSuite <ids>', 'list of comma-separated TestSuite ids to skip')
+    .option('-ss, --skipTestSuite <ids>', 'list of comma-separated TestSuite ids to skip')
+    .option('-t, --testFiles <filenames>', 'list of comma-separated test files to run. ie) test.json,test2.json,users/mytest.json')
     .action(function (options) {
     var configParser = new ConfigParser_1.ConfigParser(options);
     var conf = configParser.parse('test');

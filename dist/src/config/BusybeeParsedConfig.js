@@ -14,6 +14,7 @@ var BusybeeParsedConfig = /** @class */ (function () {
         this.testSet2EnvMap = new TypedMap_1.TypedMap();
         this.env2TestSuiteMap = new TypedMap_1.TypedMap();
         this.cmdOpts = cmdOpts;
+        this.parseCmdOpts();
         this.logLevel = this.getLogLevel(cmdOpts);
         this.logger = new Logger_1.Logger({ logLevel: this.logLevel }, this);
         this.filePaths = new FilePathsConfig_1.FilePathsConfig(cmdOpts);
@@ -24,6 +25,14 @@ var BusybeeParsedConfig = /** @class */ (function () {
             this.logger.info("LocalMode detected. Host Configuration will be ignored in favor of 'localhost'");
         }
     }
+    BusybeeParsedConfig.prototype.parseCmdOpts = function () {
+        if (this.cmdOpts.skipTestSuite) {
+            this.skipTestSuites = this.cmdOpts.skipTestSuite.split(',');
+        }
+        if (this.cmdOpts.testFiles) {
+            this.testFiles = this.cmdOpts.testFiles.split(',');
+        }
+    };
     BusybeeParsedConfig.prototype.toJSON = function () {
         return {
             parsedTestSuites: this.parsedTestSuites,
@@ -41,10 +50,6 @@ var BusybeeParsedConfig = /** @class */ (function () {
         var _this = this;
         var parsedTestSuites = new TypedMap_1.TypedMap();
         // see if the user specified to skip testSuites
-        var skipTestSuites;
-        if (this.cmdOpts.skipTestSuite) {
-            skipTestSuites = this.cmdOpts.skipTestSuite.split(',');
-        }
         // TODO: figure out why we can only pass 1 testSuite when in mock mode. in theory we should be able to parse all
         // test suites regardless of mode. However, if we do...for some reason the test suite to be mocked does not include
         // any tests.
@@ -57,13 +62,14 @@ var BusybeeParsedConfig = /** @class */ (function () {
         else {
             userConf.testSuites.forEach(function (testSuite) {
                 var suiteID = testSuite.id || uuidv1();
-                if (skipTestSuites && skipTestSuites.indexOf(suiteID)) {
+                if (_this.skipTestSuites && _this.skipTestSuites.indexOf(suiteID)) {
+                    _this.logger.debug("Skipping testSuite: " + suiteID);
                     return;
                 }
                 // parse this testSuite
                 var parsedTestSuite = _this.parseTestSuite(testSuite, suiteID, mode);
                 parsedTestSuites.set(parsedTestSuite.suiteID, parsedTestSuite);
-                _this.logger.debug(_this.parsedTestSuites, true);
+                _this.logger.debug(parsedTestSuites, true);
             });
         }
         return this.parseTestFiles(parsedTestSuites, mode);
@@ -90,12 +96,18 @@ var BusybeeParsedConfig = /** @class */ (function () {
                 testFolders.push(path.join(_this.filePaths.busybeeDir, pst.testFolder, '/**/*.js'));
             }
         });
-        console.log(testFolders.join(','));
         var files = glob.sync("{" + testFolders.join(',') + "}", { ignore: "" + this.filePaths.userConfigFile });
         // parse json files, compile testSets and add them to the conf.
         this.logger.info("parsing files...");
         files.forEach(function (file) {
-            _this.logger.info(file);
+            // support for running specific tests files
+            if (_this.testFiles && !_.find(_this.testFiles, function (fileName) { return file.endsWith(fileName); })) {
+                _this.logger.info("skipping " + file);
+                return;
+            }
+            else {
+                _this.logger.info("parsing " + file);
+            }
             var data = fs.readFileSync(file, 'utf8');
             var tests = JSON.parse(data);
             if (!Array.isArray(tests)) {
