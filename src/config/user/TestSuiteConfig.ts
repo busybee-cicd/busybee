@@ -13,6 +13,7 @@ export class TestSuiteConfig {
   host: string;
   ports: number[];
   root: string;
+  testFolder: string;
   defaultRequestOpts: RequestOptsConfig;
   mockServer: MockServerConfig;
 
@@ -28,5 +29,6 @@ export class TestSuiteConfig {
     this.envInstances = void 0;
     this.mockServer = void 0;
     this.root = void 0;
+    this.testFolder = void 0;
   }
 }

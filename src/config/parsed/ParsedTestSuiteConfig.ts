@@ -22,6 +22,7 @@ export class ParsedTestSuite {
   env: EnvConfig;
   testEnvs: TypedMap<ParsedTestEnvConfig>;
   root: string;
+  testFolder: string;
   private logger: Logger;
 
   constructor(suite: TestSuiteConfig, mode: string, testSet2EnvMap: TypedMap<string>, env2TestSuiteMap: TypedMap<string>) {
@@ -36,6 +37,7 @@ export class ParsedTestSuite {
     this.skip = suite.skip;
     this.type = suite.type;
     this.root = suite.root;
+    this.testFolder = suite.testFolder;
 
     this.testEnvs = new TypedMap<ParsedTestEnvConfig>();
     this.parseSuite(suite, mode, testSet2EnvMap, env2TestSuiteMap);

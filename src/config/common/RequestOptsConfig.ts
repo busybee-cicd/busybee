@@ -18,4 +18,5 @@ export class RequestOptsConfig {
     this.timeout = void 0;
     this.port = void 0;
   }
+
 }

@@ -44,10 +44,7 @@ export class ConfigParser {
 
   parse(mode): BusybeeParsedConfig {
     let userConfig = deserialize(BusybeeUserConfig, JSON.parse(fs.readFileSync(this.filePaths.userConfigFile, 'utf8')));
-    this.logger.info(userConfig);
     this.parsedConfig = new BusybeeParsedConfig(userConfig, this.cmdOpts, mode);
-    this.logger.info(this.parsedConfig);
-    this.logger.debug(this.parsedConfig);
     return this.parsedConfig;
   }
 

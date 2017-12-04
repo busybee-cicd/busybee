@@ -2,6 +2,7 @@ import * as request from 'request';
 import * as _ from 'lodash';
 import {Logger} from './Logger';
 import {RequestOptsConfig} from "../config/common/RequestOptsConfig";
+import {IncomingMessage} from "http";
 
 export class RESTClient {
 
@@ -72,7 +73,7 @@ export class RESTClient {
     return req;
   }
 
-  makeRequest(opts, cb) {
+  makeRequest(opts, cb: (err: Error, res: IncomingMessage, body: any) => void ) {
     // run the test
     this.logger.debug('Request opts');
     this.logger.debug(opts);

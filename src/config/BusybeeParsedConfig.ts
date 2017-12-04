@@ -5,15 +5,19 @@ import {Logger} from "../lib/Logger";
 import * as glob from 'glob';
 import * as fs from 'fs';
 import * as _ from 'lodash';
+import * as path from 'path';
 import {EnvResourceConfig} from "./common/EnvResourceConfig";
 import {ParsedTestSuite} from "./parsed/ParsedTestSuiteConfig";
 import {FilePathsConfig} from "./parsed/FilePathsConfig";
 import {TypedMap} from "../lib/TypedMap";
+import {RESTTest} from "./test/RESTTest";
 
 export class BusybeeParsedConfig {
   private logger: Logger;
   private testSet2EnvMap = new TypedMap<string>();
   private env2TestSuiteMap = new TypedMap<string>();
+  private testFiles: string[];
+  private skipTestSuites: string[];
 
   filePaths: FilePathsConfig;
   cmdOpts: any;
@@ -24,6 +28,7 @@ export class BusybeeParsedConfig {
 
   constructor(userConfig: BusybeeUserConfig, cmdOpts: any, mode: string) {
     this.cmdOpts = cmdOpts;
+    this.parseCmdOpts();
     this.logLevel = this.getLogLevel(cmdOpts);
     this.logger = new Logger({logLevel: this.logLevel}, this);
     this.filePaths = new FilePathsConfig(cmdOpts);
@@ -33,6 +38,15 @@ export class BusybeeParsedConfig {
 
     if (cmdOpts.localMode) {
       this.logger.info(`LocalMode detected. Host Configuration will be ignored in favor of 'localhost'`);
+    }
+  }
+
+  parseCmdOpts() {
+    if (this.cmdOpts.skipTestSuite) {
+      this.skipTestSuites = this.cmdOpts.skipTestSuite.split(',');
+    }
+    if (this.cmdOpts.testFiles) {
+      this.testFiles = this.cmdOpts.testFiles.split(',');
     }
   }
 
@@ -55,15 +69,11 @@ export class BusybeeParsedConfig {
   parseTestSuites(userConf: BusybeeUserConfig, mode: string): TypedMap<ParsedTestSuite> {
     let parsedTestSuites = new TypedMap<ParsedTestSuite>();
     // see if the user specified to skip testSuites
-    let skipTestSuites;
-    if (this.cmdOpts.skipTestSuite) {
-      skipTestSuites = this.cmdOpts.skipTestSuite.split(',');
-    }
 
-    // TODO: figure out why we can only pass 1 testSuite when in mock mode. in theory we should be able to parse all
+    // TODO: figure out why we can only pass 1 testSuite when in mockResponse mode. in theory we should be able to parse all
     // test suites regardless of mode. However, if we do...for some reason the test suite to be mocked does not include
     // any tests.
-    if (mode === 'mock') {
+    if (mode === 'mockResponse') {
       let testSuite = _.find(userConf.testSuites, (suite) => { return suite.id == this.cmdOpts.testSuite; });
       let parsedTestSuite = this.parseTestSuite(testSuite, testSuite.id, mode);
       parsedTestSuites.set(parsedTestSuite.suiteID, parsedTestSuite);
@@ -71,14 +81,15 @@ export class BusybeeParsedConfig {
     } else {
       userConf.testSuites.forEach((testSuite) => {
         let suiteID = testSuite.id || uuidv1();
-        if (skipTestSuites && skipTestSuites.indexOf(suiteID)) {
+        if (this.skipTestSuites && this.skipTestSuites.indexOf(suiteID)) {
+          this.logger.debug(`Skipping testSuite: ${suiteID}`);
           return;
         }
 
         // parse this testSuite
         let parsedTestSuite = this.parseTestSuite(testSuite, suiteID, mode);
         parsedTestSuites.set(parsedTestSuite.suiteID, parsedTestSuite);
-        this.logger.debug(this.parsedTestSuites, true);
+        this.logger.debug(parsedTestSuites, true);
       });
     }
 
@@ -90,34 +101,58 @@ export class BusybeeParsedConfig {
     this.logger.debug(`parseTestSuite userConf testSuite ${suiteID} ${mode}`);
 
     // create an id for this testSuite
-    console.log(JSON.stringify(testSuite, null, '\t'));
     return new ParsedTestSuite(testSuite, mode, this.testSet2EnvMap, this.env2TestSuiteMap);
   }
 
   /*
     Discovers any test files, parses them, and inserts them into the testSuites/envs that they belong
    */
-  parseTestFiles(parsedTestSuites, mode) {
+  parseTestFiles(parsedTestSuites: TypedMap<ParsedTestSuite>, mode: string) {
       this.logger.debug(`parseFiles`);
       this.logger.debug(this.env2TestSuiteMap, true);
       this.logger.debug(this.testSet2EnvMap, true);
-      let files = glob.sync(`${this.filePaths.busybeeDir}/**/*.json`, {ignore:`${this.filePaths.userConfigFile}`});
+      // build up a list of testFolders
+      let testFolders = [];
+      parsedTestSuites.values().map(pst => {
+        if (pst.testFolder) {
+          testFolders.push(path.join(this.filePaths.busybeeDir, pst.testFolder, '/**/*.json'));
+          testFolders.push(path.join(this.filePaths.busybeeDir, pst.testFolder, '/**/*.js'));
+        }
+      });
+
+      let files = glob.sync(`{${testFolders.join(',')}}`, {ignore:`${this.filePaths.userConfigFile}`});
 
       // parse json files, compile testSets and add them to the conf.
       this.logger.info("parsing files...");
-      files.forEach((file) => {
-        this.logger.info(file);
+      files.forEach((file: string) => {
+        // support for running specific tests files
+        if (this.testFiles && !_.find(this.testFiles, (fileName) => { return file.endsWith(fileName); })) {
+          this.logger.info(`skipping ${file}`);
+          return;
+        } else {
+          this.logger.info(`parsing ${file}`);
+        }
 
-        let data = fs.readFileSync(file, 'utf8');
-        var tests = JSON.parse(data);
+        let tests;
+        if (file.endsWith('.js')) {
+          tests = require(file);
+        } else {
+          let data = fs.readFileSync(file, 'utf8');
+          tests = JSON.parse(data);
+        }
+
         if (!Array.isArray(tests)) {
           tests = [tests];
         }
 
         tests.forEach((test) => {
+          this.logger.debug(test);
+          test = new RESTTest(test);
           if (test.skip) { return; }
           if (mode == 'test') {
-            if (test.mock) { return; }
+            if (!test.expect || !test.expect.status || !test.expect.body) {
+              return;
+            }
           }
           if (mode == 'mock') {
             test.testSet = { id: 'default' }
@@ -162,7 +197,7 @@ export class BusybeeParsedConfig {
                   parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i] = test;
                 } else {
                   if (!parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i]) {
-                    parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i] = {};
+                    parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i] = new RESTTest({});
                   }
                 }
               });

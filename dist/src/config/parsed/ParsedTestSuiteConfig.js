@@ -19,6 +19,7 @@ var ParsedTestSuite = /** @class */ (function () {
         this.skip = suite.skip;
         this.type = suite.type;
         this.root = suite.root;
+        this.testFolder = suite.testFolder;
         this.testEnvs = new TypedMap_1.TypedMap();
         this.parseSuite(suite, mode, testSet2EnvMap, env2TestSuiteMap);
     }
