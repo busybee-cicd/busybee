@@ -51,10 +51,10 @@ var BusybeeParsedConfig = /** @class */ (function () {
         var _this = this;
         var parsedTestSuites = new TypedMap_1.TypedMap();
         // see if the user specified to skip testSuites
-        // TODO: figure out why we can only pass 1 testSuite when in mock mode. in theory we should be able to parse all
+        // TODO: figure out why we can only pass 1 testSuite when in mockResponse mode. in theory we should be able to parse all
         // test suites regardless of mode. However, if we do...for some reason the test suite to be mocked does not include
         // any tests.
-        if (mode === 'mock') {
+        if (mode === 'mockResponse') {
             var testSuite = _.find(userConf.testSuites, function (suite) { return suite.id == _this.cmdOpts.testSuite; });
             var parsedTestSuite = this.parseTestSuite(testSuite, testSuite.id, mode);
             parsedTestSuites.set(parsedTestSuite.suiteID, parsedTestSuite);
@@ -127,7 +127,7 @@ var BusybeeParsedConfig = /** @class */ (function () {
                     return;
                 }
                 if (mode == 'test') {
-                    if (test.mock) {
+                    if (!test.expect || !test.expect.status || !test.expect.body) {
                         return;
                     }
                 }

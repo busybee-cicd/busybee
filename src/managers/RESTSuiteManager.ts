@@ -94,7 +94,9 @@ export class RESTSuiteManager {
           this.logger.info(`testSet ${testSet.id}:${test.name} contains no request information. Probably a placeholder due to indexing.`);
           return cb(null);
         }
-        if (test.skip || test.mock) {
+
+        // these should already be filtered in the BusybeeParsedConfig
+        if (test.skip || test.mockResponse) {
           return cb(null);
         }
 

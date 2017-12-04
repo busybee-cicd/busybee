@@ -1,14 +1,15 @@
 import {RequestOptsConfig} from "../common/RequestOptsConfig";
 import {deserialize} from 'json-typescript-mapper';
+import {ResponseBody} from "../common/ResponseBody";
 
 export class RESTTest {
     name: string;
-    description;
+    description: string;
     testSet: any;
     request: RequestOptsConfig;
     expect: any;
     skip: boolean;
-    mock: boolean;
+    mockResponse: ResponseBody;
     testIndex: number;
 
     constructor(data: any) {
@@ -18,7 +19,7 @@ export class RESTTest {
         this.request = deserialize(RequestOptsConfig, data.request);
         this.expect = data.expect;
         this.skip = data.skip;
-        this.mock = data.mock;
+        this.mockResponse = deserialize(ResponseBody, data.mockResponse);
         this.testIndex = data.testIndex;
     }
 }

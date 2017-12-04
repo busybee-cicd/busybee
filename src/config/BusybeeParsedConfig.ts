@@ -70,10 +70,10 @@ export class BusybeeParsedConfig {
     let parsedTestSuites = new TypedMap<ParsedTestSuite>();
     // see if the user specified to skip testSuites
 
-    // TODO: figure out why we can only pass 1 testSuite when in mock mode. in theory we should be able to parse all
+    // TODO: figure out why we can only pass 1 testSuite when in mockResponse mode. in theory we should be able to parse all
     // test suites regardless of mode. However, if we do...for some reason the test suite to be mocked does not include
     // any tests.
-    if (mode === 'mock') {
+    if (mode === 'mockResponse') {
       let testSuite = _.find(userConf.testSuites, (suite) => { return suite.id == this.cmdOpts.testSuite; });
       let parsedTestSuite = this.parseTestSuite(testSuite, testSuite.id, mode);
       parsedTestSuites.set(parsedTestSuite.suiteID, parsedTestSuite);
@@ -151,7 +151,7 @@ export class BusybeeParsedConfig {
           test = new RESTTest(test);
           if (test.skip) { return; }
           if (mode == 'test') {
-            if (test.mock) { return; }
+            if (!test.expect || !test.expect.status || !test.expect.body) { return; }
           }
           if (mode == 'mock') {
             test.testSet = { id: 'default' }

@@ -126,7 +126,16 @@ var MockServer = /** @class */ (function () {
         this.testSuiteConf.testEnvs.forEach(function (testEnv, envId) {
             testEnv.testSets.forEach(function (testSet, testSetName) {
                 testSet.tests.forEach(function (mock) {
-                    _this.updateRouteMap(mock);
+                    var pass = false;
+                    if (mock.expect && mock.expect.status && !_.isFunction(mock.expect.body)) {
+                        pass = true;
+                    }
+                    else if (mock.mockResponse && mock.mockResponse.status && mock.mockResponse.body) {
+                        pass = true;
+                    }
+                    if (pass) {
+                        _this.updateRouteMap(mock);
+                    }
                 });
             });
         });
@@ -164,10 +173,10 @@ var MockServer = /** @class */ (function () {
         return endpoint;
     };
     MockServer.prototype.updateRouteMap = function (mock) {
-        // // update the mock with the globally applied headers according to the conf. (if any)
+        // // update the mockResponse with the globally applied headers according to the conf. (if any)
         // if (this.testSuiteConf.mockServer.injectedRequestOpts) {
         //   delete this.testSuiteConf.mockServer.injectedRequestOpts['description'];
-        //   mock.request = Object.assign({}, this.testSuiteConf.mockServer.injectedRequestOpts, mock.request);
+        //   mockResponse.request = Object.assign({}, this.testSuiteConf.mockServer.injectedRequestOpts, mockResponse.request);
         // }
         // build an endpoint that accounts for the root context
         var endpoint = this.getEndpoint(mock);
@@ -184,14 +193,14 @@ var MockServer = /** @class */ (function () {
         // 1. see if this req has already been recorded (could be in multiple sets)
         var request = mock.request;
         var requestOpts = this.buildReqOpts(request);
-        // query params come into the controller as strings ALWAYS. so make sure our mock query params are string
+        // query params come into the controller as strings ALWAYS. so make sure our mockResponse query params are string
         if (requestOpts.query) {
             requestOpts.query = this.convertObjValuesToStrings(requestOpts.query);
         }
         var hashedReq = hash(requestOpts);
         // 1a. search the this.routeMap[test.request.endpoint] for it using the hash
         var method = request.method.toLocaleLowerCase();
-        var resStatus = mock.expect.status;
+        var resStatus = mock.mockResponse ? mock.mockResponse.status : mock.expect.status; // default to mockResponse
         if (this.routeMap[endpoint][method]) {
             if (this.routeMap[endpoint][method][resStatus]) {
                 if (_.find(this.routeMap[endpoint][method], function (reqInfo) { reqInfo.hash === hashedReq; })) {
@@ -217,16 +226,16 @@ var MockServer = /** @class */ (function () {
             // 1. build a controller
             var ctrl = function (req, res) { return __awaiter(_this, void 0, void 0, function () {
                 var _this = this;
-                var requestedStatus, mocks, reqOpts, hashedReq, matchingMocks, mocksWithoutHeaders, mocksWithHeaders, mockToReturn, message, message, resHeaders;
+                var requestedStatus, mocks, reqOpts, hashedReq, matchingMocks, mocksWithoutHeaders, mocksWithHeaders, mockToReturn, message, message, resHeaders, bodyToReturn;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
                             this.logger.debug(req.path);
                             requestedStatus = 200;
-                            if (req.header('busybee-mock-status')) {
-                                requestedStatus = parseInt(req.header('busybee-mock-status'));
+                            if (req.header('busybee-mockResponse-status')) {
+                                requestedStatus = parseInt(req.header('busybee-mockResponse-status'));
                                 if (!_.isInteger(requestedStatus)) {
-                                    return [2 /*return*/, res.status(404).send("busybee-mock-status must be an Integer, was '" + req.header('busybee-mock-status') + "'")];
+                                    return [2 /*return*/, res.status(404).send("busybee-mock-status must be an Integer, was '" + req.header('busybee-mockResponse-status') + "'")];
                                 }
                             }
                             mocks = statusMap[requestedStatus];
@@ -252,11 +261,11 @@ var MockServer = /** @class */ (function () {
                             mocksWithoutHeaders = [];
                             mocksWithHeaders = [];
                             matchingMocks.forEach(function (m) {
-                                _this.logger.debug('checking mock');
+                                _this.logger.debug('checking mockResponse');
                                 // mocks that don't have headers defined don't need to match. IF this array only has 1 item
                                 // and we don't have any addition matchingMocks with header needs, it will get returned as a default.
                                 if (!m.request.headers) {
-                                    // mock doesn't require any headers, it passes
+                                    // mockResponse doesn't require any headers, it passes
                                     _this.logger.debug("mock doesn't require any headers");
                                     return mocksWithoutHeaders.push(m);
                                 }
@@ -295,12 +304,12 @@ var MockServer = /** @class */ (function () {
                                 mockToReturn = mocksWithHeaders[0];
                             }
                             else if (mocksWithoutHeaders.length == 1) {
-                                // see if we have a single mock without headers
+                                // see if we have a single mockResponse without headers
                                 mockToReturn = mocksWithoutHeaders[0];
                             }
                             else {
                                 if (this.proxy) {
-                                    this.logger.info("No mock matches request but proxy available. Proxying request");
+                                    this.logger.info("No mockResponse matches request but proxy available. Proxying request");
                                     return [2 /*return*/, this.proxy.web(req, res)];
                                 }
                                 else {
@@ -330,13 +339,19 @@ var MockServer = /** @class */ (function () {
                                     res.append(k, v);
                                 });
                             }
-                            this.logger.debug(JSON.stringify(mockToReturn.expect.body));
                             if (!mockToReturn.delay) return [3 /*break*/, 2];
                             return [4 /*yield*/, this.sleep(mockToReturn.delay)];
                         case 1:
                             _a.sent();
                             _a.label = 2;
-                        case 2: return [2 /*return*/, res.status(mockToReturn.expect.status).json(mockToReturn.expect.body)];
+                        case 2:
+                            if (mockToReturn.mockResponse) {
+                                bodyToReturn = mockToReturn.mockResponse.body;
+                            }
+                            else {
+                                bodyToReturn = mockToReturn.expect.body;
+                            }
+                            return [2 /*return*/, res.status(mockToReturn.expect.status).json(bodyToReturn)];
                     }
                 });
             }); }; // end ctrl

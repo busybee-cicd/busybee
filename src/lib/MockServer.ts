@@ -109,7 +109,16 @@ export class MockServer {
     this.testSuiteConf.testEnvs.forEach((testEnv, envId) => {
       testEnv.testSets.forEach((testSet, testSetName) => {
         testSet.tests.forEach((mock) => {
-          this.updateRouteMap(mock);
+          let pass = false;
+          if (mock.expect && mock.expect.status && !_.isFunction(mock.expect.body)) {
+            pass = true;
+          } else if (mock.mockResponse && mock.mockResponse.status && mock.mockResponse.body) {
+            pass = true;
+          }
+
+          if (pass) {
+            this.updateRouteMap(mock);
+          }
         });
       });
     })
@@ -150,10 +159,10 @@ export class MockServer {
   }
 
   updateRouteMap(mock) {
-    // // update the mock with the globally applied headers according to the conf. (if any)
+    // // update the mockResponse with the globally applied headers according to the conf. (if any)
     // if (this.testSuiteConf.mockServer.injectedRequestOpts) {
     //   delete this.testSuiteConf.mockServer.injectedRequestOpts['description'];
-    //   mock.request = Object.assign({}, this.testSuiteConf.mockServer.injectedRequestOpts, mock.request);
+    //   mockResponse.request = Object.assign({}, this.testSuiteConf.mockServer.injectedRequestOpts, mockResponse.request);
     // }
 
     // build an endpoint that accounts for the root context
@@ -171,7 +180,7 @@ export class MockServer {
     // 1. see if this req has already been recorded (could be in multiple sets)
     let request = mock.request;
     let requestOpts = this.buildReqOpts(request);
-    // query params come into the controller as strings ALWAYS. so make sure our mock query params are string
+    // query params come into the controller as strings ALWAYS. so make sure our mockResponse query params are string
     if (requestOpts.query) {
       requestOpts.query = this.convertObjValuesToStrings(requestOpts.query);
     }
@@ -179,7 +188,8 @@ export class MockServer {
     let hashedReq = hash(requestOpts);
     // 1a. search the this.routeMap[test.request.endpoint] for it using the hash
     let method = request.method.toLocaleLowerCase();
-    let resStatus = mock.expect.status;
+    let resStatus = mock.mockResponse ? mock.mockResponse.status : mock.expect.status; // default to mockResponse
+
     if (this.routeMap[endpoint][method]) {
       if (this.routeMap[endpoint][method][resStatus]) {
         if (_.find(this.routeMap[endpoint][method], (reqInfo) => { reqInfo.hash === hashedReq})) {
@@ -205,12 +215,12 @@ export class MockServer {
       // 1. build a controller
       let ctrl = async (req, res) => {
         this.logger.debug(req.path);
-        // First we check to see if the requester wants a mock with a specific status. If not, we default to 200
+        // First we check to see if the requester wants a mockResponse with a specific status. If not, we default to 200
         let requestedStatus = 200;
-        if (req.header('busybee-mock-status')) {
-          requestedStatus = parseInt(req.header('busybee-mock-status'));
+        if (req.header('busybee-mockResponse-status')) {
+          requestedStatus = parseInt(req.header('busybee-mockResponse-status'));
           if (!_.isInteger(requestedStatus)) {
-            return res.status(404).send(`busybee-mock-status must be an Integer, was '${req.header('busybee-mock-status')}'`)
+            return res.status(404).send(`busybee-mock-status must be an Integer, was '${req.header('busybee-mockResponse-status')}'`)
           }
         }
 
@@ -239,19 +249,19 @@ export class MockServer {
         }
 
         /*
-         now we need to inspect the headers. our mock may only care about 1 or 2 headers
+         now we need to inspect the headers. our mockResponse may only care about 1 or 2 headers
          but a request can have many more and therfore we can't just hash the whole thing
          and use that to compare on. we need to look for just the ones
-         mentioned in the mock.
+         mentioned in the mockResponse.
         */
         let mocksWithoutHeaders = [];
         let mocksWithHeaders = [];
         matchingMocks.forEach((m) => {
-          this.logger.debug('checking mock');
+          this.logger.debug('checking mockResponse');
           // mocks that don't have headers defined don't need to match. IF this array only has 1 item
           // and we don't have any addition matchingMocks with header needs, it will get returned as a default.
           if (!m.request.headers) {
-            // mock doesn't require any headers, it passes
+            // mockResponse doesn't require any headers, it passes
             this.logger.debug(`mock doesn't require any headers`);
             return mocksWithoutHeaders.push(m);
           }
@@ -295,11 +305,11 @@ export class MockServer {
           mockToReturn = mocksWithHeaders[0];
         }
         else if (mocksWithoutHeaders.length == 1) {
-          // see if we have a single mock without headers
+          // see if we have a single mockResponse without headers
           mockToReturn = mocksWithoutHeaders[0];
         } else {
           if (this.proxy) {
-            this.logger.info("No mock matches request but proxy available. Proxying request");
+            this.logger.info("No mockResponse matches request but proxy available. Proxying request");
             return this.proxy.web(req, res);
           } else {
             if (mocksWithoutHeaders.length == 0 && mocksWithHeaders.length == 0) {
@@ -328,13 +338,19 @@ export class MockServer {
           });
         }
 
-        this.logger.debug(JSON.stringify(mockToReturn.expect.body));
-
         // check for a delay
         if (mockToReturn.delay) {
           await this.sleep(mockToReturn.delay);
         }
-        return res.status(mockToReturn.expect.status).json(mockToReturn.expect.body);
+
+        // return the mockResponse first and fall back to the test.expect.body
+        let bodyToReturn;
+        if (mockToReturn.mockResponse) {
+          bodyToReturn = mockToReturn.mockResponse.body;
+        } else {
+          bodyToReturn = mockToReturn.expect.body;
+        }
+        return res.status(mockToReturn.expect.status).json(bodyToReturn);
       } // end ctrl
 
       // 2. register the route/method and ctrl

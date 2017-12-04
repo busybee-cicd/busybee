@@ -72,7 +72,7 @@ Commander
 });
 Commander
     .command('mock')
-    .description('runs a mock REST API server using your tests as mocks')
+    .description('runs a mockResponse REST API server using your tests as mocks')
     .option('-c, --userConfigFile <userConfigFile>', 'Config File. defaults to userConfigFile.json. parsed as being relative to --directory')
     .option('-d, --directory <directory>', 'Test Directory. defaults to busybee/')
     .option('-D, --debug', 'convenience flag for debug mode')
