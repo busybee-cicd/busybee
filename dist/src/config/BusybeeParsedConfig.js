@@ -78,7 +78,6 @@ var BusybeeParsedConfig = /** @class */ (function () {
     BusybeeParsedConfig.prototype.parseTestSuite = function (testSuite, suiteID, mode) {
         this.logger.debug("parseTestSuite userConf testSuite " + suiteID + " " + mode);
         // create an id for this testSuite
-        console.log(JSON.stringify(testSuite, null, '\t'));
         return new ParsedTestSuiteConfig_1.ParsedTestSuite(testSuite, mode, this.testSet2EnvMap, this.env2TestSuiteMap);
     };
     /*

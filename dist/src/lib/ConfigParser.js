@@ -38,10 +38,7 @@ var ConfigParser = /** @class */ (function () {
     };
     ConfigParser.prototype.parse = function (mode) {
         var userConfig = json_typescript_mapper_1.deserialize(BusybeeUserConfig_1.BusybeeUserConfig, JSON.parse(fs.readFileSync(this.filePaths.userConfigFile, 'utf8')));
-        this.logger.info(userConfig);
         this.parsedConfig = new BusybeeParsedConfig_1.BusybeeParsedConfig(userConfig, this.cmdOpts, mode);
-        this.logger.info(this.parsedConfig);
-        this.logger.debug(this.parsedConfig);
         return this.parsedConfig;
     };
     return ConfigParser;

@@ -127,11 +127,7 @@ var RESTSuiteManager = /** @class */ (function () {
             return function (cb) {
                 if (!test.request) {
                     _this.logger.info("testSet " + testSet.id + ":" + test.name + " contains no request information. Probably a placeholder due to indexing.");
-                    return cb(null);
-                }
-                // these should already be filtered in the BusybeeParsedConfig
-                if (test.skip || test.mockResponse) {
-                    return cb(null);
+                    return cb();
                 }
                 // build request
                 var port = currentEnv.ports[0]; // the REST api port should be passed first in the userConfigFile.
@@ -170,6 +166,7 @@ var RESTSuiteManager = /** @class */ (function () {
         });
     };
     RESTSuiteManager.prototype.validateTestResult = function (test, res, body, cb) {
+        this.logger.debug("validateTestResult");
         // validate results
         var testResult = { name: test.name, index: test.testIndex };
         if (test.expect.headers) {

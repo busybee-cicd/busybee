@@ -101,7 +101,6 @@ export class BusybeeParsedConfig {
     this.logger.debug(`parseTestSuite userConf testSuite ${suiteID} ${mode}`);
 
     // create an id for this testSuite
-    console.log(JSON.stringify(testSuite, null, '\t'));
     return new ParsedTestSuite(testSuite, mode, this.testSet2EnvMap, this.env2TestSuiteMap);
   }
 
@@ -151,7 +150,9 @@ export class BusybeeParsedConfig {
           test = new RESTTest(test);
           if (test.skip) { return; }
           if (mode == 'test') {
-            if (!test.expect || !test.expect.status || !test.expect.body) { return; }
+            if (!test.expect || !test.expect.status || !test.expect.body) {
+              return;
+            }
           }
           if (mode == 'mock') {
             test.testSet = { id: 'default' }

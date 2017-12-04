@@ -92,12 +92,7 @@ export class RESTSuiteManager {
       return (cb) => {
         if (!test.request) {
           this.logger.info(`testSet ${testSet.id}:${test.name} contains no request information. Probably a placeholder due to indexing.`);
-          return cb(null);
-        }
-
-        // these should already be filtered in the BusybeeParsedConfig
-        if (test.skip || test.mockResponse) {
-          return cb(null);
+          return cb();
         }
 
         // build request
@@ -138,6 +133,7 @@ export class RESTSuiteManager {
   }
 
   validateTestResult(test: RESTTest, res: IncomingMessage, body: any, cb: Function) {
+    this.logger.debug(`validateTestResult`)
     // validate results
     let testResult = <any>{name: test.name, index: test.testIndex};
     if (test.expect.headers) {
