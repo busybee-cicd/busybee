@@ -132,53 +132,81 @@ export class RESTSuiteManager {
     });
   }
 
+
   validateTestResult(test: RESTTest, res: IncomingMessage, body: any, cb: Function) {
     this.logger.debug(`validateTestResult`)
     // validate results
-    let testResult = <any>{name: test.name, index: test.testIndex};
+    let testResult = <any>{
+      name: test.name,
+      index: test.testIndex,
+      pass: true
+    };
+
+
     if (test.expect.headers) {
-      testResult.headers = {};
+      testResult.headers = []
+
+      _.forEach(test.expect.headers, (v, headerName) => {
+        if (res.headers[headerName] != v) {
+          testResult.pass = false;
+          testResult.headers.push({
+            pass: false,
+            headerName: headerName,
+            actual: res.headers[headerName],
+            expected: v
+          });
+          testResult.headers[headerName] = `Expected ${v} was ${res.headers[headerName]}`;
+        } else {
+          testResult.headers.push({
+            pass: true,
+            headerName: headerName
+          })
+        }
+      });
     }
 
+
     if (test.expect.status) {
-      testResult.status = res.statusCode == test.expect.status
-          ? true
-          : `Expected ${test.expect.status} was ${res.statusCode}`
+      testResult.status = {
+        pass: true
+      }
+
+      let verdict = res.statusCode == test.expect.status;
+      if (!verdict) {
+        testResult.pass = false;
+        testResult.status.pass = false;
+        testResult.status.actual = res.statusCode;
+        testResult.status.expected = test.expect.status;
+      }
     }
 
     if (test.expect.body) {
+      testResult.body = {
+        pass: true
+      }
 
+      let verdict;
       if (_.isFunction(test.expect.body)) {
         // if the test has a custom function for assertion, run it.
-        let result;
         try {
-          result = test.expect.body(body);
+          verdict = test.expect.body(body);
+          if (!_.isBoolean(verdict)) { // confirm that the assertion returns a bool
+            verdict = false;
+          }
         } catch (e) {
-          result = false;
-        }
-
-        if (!result) {
-          testResult.body = `Expected ${JSON.stringify(test.expect.body)} was ${JSON.stringify(body)}`
-        } else {
-          testResult.body = true;
+          verdict = false;
         }
       } else {
         // assert the body against the provided pojo body
-        testResult.body = _.isEqual(body, test.expect.body)
-            ? true
-            : `Expected ${JSON.stringify(test.expect.body)} was ${JSON.stringify(body)}`
+        verdict = _.isEqual(body, test.expect.body);
       }
 
-    }
-
-    if (test.expect.headers) {
-      _.forEach(test.expect.headers, (v, headerName) => {
-        if (res.headers[headerName] != v) {
-          testResult.headers[headerName] = `Expected ${v} was ${res.headers[headerName]}`;
-        } else {
-          testResult.headers[headerName] = true;
-        }
-      });
+      if (!verdict) {
+        testResult.pass = false;
+        testResult.body.pass = false;
+        testResult.body.actual = body;
+        testResult.body.expected = _.isFunction(body) ? 'custom assertion function' : test.expect.body;
+      }
     }
 
     cb(null, testResult);
