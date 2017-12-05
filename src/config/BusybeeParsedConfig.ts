@@ -67,17 +67,17 @@ export class BusybeeParsedConfig {
   }
 
   parseTestSuites(userConf: BusybeeUserConfig, mode: string): TypedMap<ParsedTestSuite> {
+    this.logger.debug(`parseTestSuites`);
     let parsedTestSuites = new TypedMap<ParsedTestSuite>();
     // see if the user specified to skip testSuites
 
-    // TODO: figure out why we can only pass 1 testSuite when in mockResponse mode. in theory we should be able to parse all
+    // TODO: figure out why we can only pass 1 testSuite when in mock mode. in theory we should be able to parse all
     // test suites regardless of mode. However, if we do...for some reason the test suite to be mocked does not include
     // any tests.
-    if (mode === 'mockResponse') {
+    if (mode === 'mock') {
       let testSuite = _.find(userConf.testSuites, (suite) => { return suite.id == this.cmdOpts.testSuite; });
-      let parsedTestSuite = this.parseTestSuite(testSuite, testSuite.id, mode);
+      let parsedTestSuite = this.parseTestSuite(testSuite, mode);
       parsedTestSuites.set(parsedTestSuite.suiteID, parsedTestSuite);
-      this.logger.debug(this.parsedTestSuites, true);
     } else {
       userConf.testSuites.forEach((testSuite) => {
         let suiteID = testSuite.id || uuidv1();
@@ -87,18 +87,23 @@ export class BusybeeParsedConfig {
         }
 
         // parse this testSuite
-        let parsedTestSuite = this.parseTestSuite(testSuite, suiteID, mode);
+        let parsedTestSuite = this.parseTestSuite(testSuite, mode);
         parsedTestSuites.set(parsedTestSuite.suiteID, parsedTestSuite);
-        this.logger.debug(parsedTestSuites, true);
+        this.logger.debug(parsedTestSuites);
       });
     }
 
-
+    this.logger.debug(`parsedTestSuites:`);
+    this.logger.debug(parsedTestSuites);
+    this.logger.debug('this.testSet2EnvMap')
+    this.logger.debug(this.testSet2EnvMap)
+    this.logger.debug('this.env2TestSuiteMap')
+    this.logger.debug(this.env2TestSuiteMap)
     return this.parseTestFiles(parsedTestSuites, mode);
   }
 
-  parseTestSuite(testSuite: TestSuiteConfig, suiteID: string, mode: string): ParsedTestSuite {
-    this.logger.debug(`parseTestSuite userConf testSuite ${suiteID} ${mode}`);
+  parseTestSuite(testSuite: TestSuiteConfig, mode: string): ParsedTestSuite {
+    this.logger.debug(`parseTestSuite ${testSuite.id} ${mode}`);
 
     // create an id for this testSuite
     return new ParsedTestSuite(testSuite, mode, this.testSet2EnvMap, this.env2TestSuiteMap);
@@ -108,7 +113,7 @@ export class BusybeeParsedConfig {
     Discovers any test files, parses them, and inserts them into the testSuites/envs that they belong
    */
   parseTestFiles(parsedTestSuites: TypedMap<ParsedTestSuite>, mode: string) {
-      this.logger.debug(`parseFiles`);
+      this.logger.debug(`parseTestFiles`);
       this.logger.debug(this.env2TestSuiteMap, true);
       this.logger.debug(this.testSet2EnvMap, true);
       // build up a list of testFolders
@@ -149,12 +154,12 @@ export class BusybeeParsedConfig {
           this.logger.debug(test);
           test = new RESTTest(test);
           if (test.skip) { return; }
-          if (mode == 'test') {
+          if (mode === 'test') {
             if (!test.expect || !test.expect.status || !test.expect.body) {
               return;
             }
           }
-          if (mode == 'mock') {
+          if (mode === 'mock') {
             test.testSet = { id: 'default' }
           }
 
@@ -177,6 +182,8 @@ export class BusybeeParsedConfig {
               return;
             }
 
+            this.logger.debug(`testSetInfo`);
+            this.logger.debug(testSetInfo, true);
             let testEnvId = this.testSet2EnvMap.get(testSetInfo.id);
 
             // lookup the suite that this env is a member of
@@ -185,9 +192,12 @@ export class BusybeeParsedConfig {
               return;
             }
 
+            this.logger.debug(`testEnvId`);
+            this.logger.debug(testEnvId);
             let suiteID = this.env2TestSuiteMap.get(testEnvId);
             if (_.isUndefined(testSetInfo.index)) {
               // push it on the end
+              console.log(suiteID)
               parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests.push(test);
               //conf.restApi.testEnvs[testEnvId].testSets[testSetInfo.id].tests.push(test);
             } else {

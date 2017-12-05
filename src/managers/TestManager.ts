@@ -32,7 +32,10 @@ export class TestManager {
       this.logger.debug(testSuite);
       testSuite.testEnvs.forEach((testEnv, suiteEnvID) => {
         this.logger.debug(testEnv, true);
-        if (testSuite.type === "REST") {
+
+        if (testSuite.type === 'USER_PROVIDED') {
+          this.testSuiteTasks[suiteID].envTasks.push(this.buildTestEnvTask(this.envManager, suiteID, testEnv.suiteEnvID));
+        } else if (testSuite.type === 'REST' || _.isUndefined(testSuite.type)) {
           // 1. make sure testSets exist for this testEnv
           if (_.isEmpty(testEnv.testSets)) {
             this.logger.debug(`testEnv ${testEnv.suiteEnvID} contains 0 testSets. skipping`);
@@ -52,8 +55,6 @@ export class TestManager {
           }
 
           this.testSuiteTasks[suiteID].envTasks.push(this.buildRESTTestEnvTask(this.envManager, suiteID, testEnv.suiteEnvID));
-        } else {
-          this.testSuiteTasks[suiteID].envTasks.push(this.buildTestEnvTask(this.envManager, suiteID, testEnv.suiteEnvID));
         }
       });
     });

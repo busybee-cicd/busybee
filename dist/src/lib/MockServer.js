@@ -232,10 +232,10 @@ var MockServer = /** @class */ (function () {
                         case 0:
                             this.logger.debug(req.path);
                             requestedStatus = 200;
-                            if (req.header('busybee-mockResponse-status')) {
-                                requestedStatus = parseInt(req.header('busybee-mockResponse-status'));
+                            if (req.header('busybee-mock-status')) {
+                                requestedStatus = parseInt(req.header('busybee-mock-status'));
                                 if (!_.isInteger(requestedStatus)) {
-                                    return [2 /*return*/, res.status(404).send("busybee-mock-status must be an Integer, was '" + req.header('busybee-mockResponse-status') + "'")];
+                                    return [2 /*return*/, res.status(404).send("busybee-mock-status must be an Integer, was '" + req.header('busybee-mock-status') + "'")];
                                 }
                             }
                             mocks = statusMap[requestedStatus];
@@ -261,7 +261,7 @@ var MockServer = /** @class */ (function () {
                             mocksWithoutHeaders = [];
                             mocksWithHeaders = [];
                             matchingMocks.forEach(function (m) {
-                                _this.logger.debug('checking mockResponse');
+                                _this.logger.debug('checking mock');
                                 // mocks that don't have headers defined don't need to match. IF this array only has 1 item
                                 // and we don't have any addition matchingMocks with header needs, it will get returned as a default.
                                 if (!m.request.headers) {
@@ -309,7 +309,7 @@ var MockServer = /** @class */ (function () {
                             }
                             else {
                                 if (this.proxy) {
-                                    this.logger.info("No mockResponse matches request but proxy available. Proxying request");
+                                    this.logger.info("No mock matches request but proxy available. Proxying request");
                                     return [2 /*return*/, this.proxy.web(req, res)];
                                 }
                                 else {

@@ -61,7 +61,10 @@ var TestManager = /** @class */ (function () {
             _this.logger.debug(testSuite);
             testSuite.testEnvs.forEach(function (testEnv, suiteEnvID) {
                 _this.logger.debug(testEnv, true);
-                if (testSuite.type === "REST") {
+                if (testSuite.type === 'USER_PROVIDED') {
+                    _this.testSuiteTasks[suiteID].envTasks.push(_this.buildTestEnvTask(_this.envManager, suiteID, testEnv.suiteEnvID));
+                }
+                else if (testSuite.type === 'REST' || _.isUndefined(testSuite.type)) {
                     // 1. make sure testSets exist for this testEnv
                     if (_.isEmpty(testEnv.testSets)) {
                         _this.logger.debug("testEnv " + testEnv.suiteEnvID + " contains 0 testSets. skipping");
@@ -80,9 +83,6 @@ var TestManager = /** @class */ (function () {
                         return;
                     }
                     _this.testSuiteTasks[suiteID].envTasks.push(_this.buildRESTTestEnvTask(_this.envManager, suiteID, testEnv.suiteEnvID));
-                }
-                else {
-                    _this.testSuiteTasks[suiteID].envTasks.push(_this.buildTestEnvTask(_this.envManager, suiteID, testEnv.suiteEnvID));
                 }
             });
         });
