@@ -7,9 +7,9 @@ import * as httpProxy from 'http-proxy';
 let restream = require('./restream');
 import * as qs from 'querystring';
 import {Logger} from './Logger';
-import {ParsedTestSuite} from "../config/parsed/ParsedTestSuiteConfig";
-import {BusybeeParsedConfig} from "../config/BusybeeParsedConfig";
-import {MockServerConfig} from "../config/common/MockServerConfig";
+import {ParsedTestSuite} from "../models/config/parsed/ParsedTestSuiteConfig";
+import {BusybeeParsedConfig} from "../models/config/BusybeeParsedConfig";
+import {MockServerConfig} from "../models/config/common/MockServerConfig";
 
 export class MockServer {
 
@@ -288,7 +288,7 @@ export class MockServer {
             }
           });
           if (headersPass) {
-            this.logger.debug(`Mock Passes - ${m.name}`);
+            this.logger.debug(`Mock Passes - ${m.id}`);
             mocksWithHeaders.push(m);
           }
         });

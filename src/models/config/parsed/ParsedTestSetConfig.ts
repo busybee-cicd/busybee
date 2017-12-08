@@ -1,5 +1,5 @@
 import {TestSetConfig} from "../user/TestSetConfig";
-import {RESTTest} from "../test/RESTTest";
+import {RESTTest} from "../../RESTTest";
 
 export class ParsedTestSetConfig {
   id: string;

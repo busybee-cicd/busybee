@@ -89,7 +89,9 @@ Commander
     var conf = configParser.parse('mock');
     logger = new Logger_1.Logger(conf, _this);
     // identify the TestSuite.
-    var testSuite = _.find(conf.parsedTestSuites.values(), function (suite) { return suite.suiteID == options.testSuite; });
+    var testSuite = _.find(conf.parsedTestSuites.values(), function (suite) {
+        return suite.suiteID == options.testSuite;
+    });
     if (!testSuite) {
         logger.error("No TestSuite with the id " + options.testSuite + " could be identified, exiting");
         return;
@@ -161,21 +163,46 @@ function initTests(conf) {
             envTasks.push(envTask);
         });
     });
-    _async.parallel(envTasks, function (err, results) {
+    _async.parallel(envTasks, function (err, envResults) {
+        // group the result sets by their Suite
+        var suiteResults = {};
+        envResults.forEach(function (envResult) {
+            if (!suiteResults[envResult.suiteID]) {
+                suiteResults[envResult.suiteID] = {
+                    testSets: envResult.testSets,
+                    pass: true,
+                    type: envResult.type
+                };
+            }
+            else {
+                suiteResults[envResult.suiteID].testSets = suiteResults[envResult.suiteID].testSets.concat(envResult.testSets);
+            }
+            // mark the suite as failed if it contains atleast 1 env w/ a failure
+            if (_.find(envResult.results, function (er) { return !er.pass; })) {
+                suiteResults[envResult.suiteID].pass = false;
+            }
+            ;
+        });
+        // for easier parsing lets return each suite as its own object in a list
+        var suiteResultsList = [];
+        _.forEach(suiteResults, function (v, suiteID) {
+            var sr = Object.assign({}, { id: suiteID }, v);
+            suiteResultsList.push(sr);
+        });
         if (conf.onComplete || conf.cmdOpts.onComplete) {
             var scriptPath = conf.onComplete ?
                 path.join(conf.filePaths.busybeeDir, conf.onComplete)
                 : path.join(conf.filePaths.busybeeDir, conf.cmdOpts.onComplete);
             try {
                 logger.debug("Running onComplete: " + scriptPath);
-                require(scriptPath)(err, results);
+                require(scriptPath)(err, suiteResultsList);
             }
             catch (e) {
                 console.log(e);
             }
         }
         else {
-            console.log(err || JSON.stringify(results, null, '\t'));
+            console.log(err || JSON.stringify(suiteResultsList, null, '\t'));
         }
     });
     // run the ui tests

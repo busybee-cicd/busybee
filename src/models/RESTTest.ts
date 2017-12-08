@@ -1,9 +1,9 @@
-import {RequestOptsConfig} from "../common/RequestOptsConfig";
+import {RequestOptsConfig} from "./config/common/RequestOptsConfig";
 import {deserialize} from 'json-typescript-mapper';
-import {ResponseBody} from "../common/ResponseBody";
+import {ResponseBody} from "./ResponseBody";
 
 export class RESTTest {
-    name: string;
+    id: string;
     description: string;
     testSet: any;
     request: RequestOptsConfig;
@@ -13,7 +13,7 @@ export class RESTTest {
     testIndex: number;
 
     constructor(data: any) {
-        this.name = data.name;
+        this.id = data.id;
         this.description = data.description;
         this.testSet = data.testSet;
         this.request = deserialize(RequestOptsConfig, data.request);

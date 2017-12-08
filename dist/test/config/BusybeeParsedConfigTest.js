@@ -38,10 +38,9 @@ var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var ava_1 = require("ava");
 var json_typescript_mapper_1 = require("json-typescript-mapper");
-var fs = require("fs");
 var path = require("path");
-var config_1 = require("../../src/config");
-var userConfig = json_typescript_mapper_1.deserialize(config_1.BusybeeUserConfig, JSON.parse(fs.readFileSync(path.join(process.cwd(), 'test/config/config.json'), 'utf8')));
+var config_1 = require("../../src/models/config");
+var userConfig = json_typescript_mapper_1.deserialize(config_1.BusybeeUserConfig, require(path.join(process.cwd(), 'test/config/config.js')));
 var testFilesDir = path.join(process.cwd(), 'test/config/busybeeTests');
 ava_1.default(function (t) { return __awaiter(_this, void 0, void 0, function () {
     var cmdOpts, parsedConfig;

@@ -1,7 +1,7 @@
 import * as request from 'request';
 import * as _ from 'lodash';
 import {Logger} from './Logger';
-import {RequestOptsConfig} from "../config/common/RequestOptsConfig";
+import {RequestOptsConfig} from "../models/config/common/RequestOptsConfig";
 import {IncomingMessage} from "http";
 
 export class RESTClient {

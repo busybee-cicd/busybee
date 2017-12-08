@@ -2,13 +2,12 @@ import {MockServerConfig} from "../common/MockServerConfig";
 import {RequestOptsConfig} from "../common/RequestOptsConfig";
 import {EnvConfig} from "../common/EnvConfig";
 import {ParsedTestEnvConfig} from "./ParsedTestEnvConfig";
-import {TypedMap} from "../../lib/TypedMap";
+import {TypedMap} from "../../../lib/TypedMap";
 import {TestSuiteConfig} from "../user/TestSuiteConfig";
 import {ParsedTestSetConfig} from "./ParsedTestSetConfig";
 import {EnvInstanceConfig} from "../user/EnvInstanceConfig";
 import {TestSetConfig} from "../user/TestSetConfig";
-import {Logger} from "../../lib/Logger";
-import {Test} from "ava";
+import {Logger} from "../../../lib/Logger";
 
 export class ParsedTestSuite {
   suiteID: string;

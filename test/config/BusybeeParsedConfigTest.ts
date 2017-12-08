@@ -1,10 +1,10 @@
 import test from 'ava';
 import {deserialize} from 'json-typescript-mapper';
-import * as fs from 'fs';
 import * as path from 'path';
-import { BusybeeUserConfig, BusybeeParsedConfig } from '../../src/config';
+import { BusybeeUserConfig, BusybeeParsedConfig } from '../../src/models/config';
 
-let userConfig = deserialize(BusybeeUserConfig, JSON.parse(fs.readFileSync(path.join(process.cwd(), 'test/config/config.json'), 'utf8')));
+
+let userConfig = deserialize(BusybeeUserConfig, require(path.join(process.cwd(), 'test/config/config.js')));
 let testFilesDir = path.join(process.cwd(), 'test/config/busybeeTests');
 
 test(async (t) => {

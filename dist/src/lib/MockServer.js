@@ -290,7 +290,7 @@ var MockServer = /** @class */ (function () {
                                     }
                                 });
                                 if (headersPass) {
-                                    _this.logger.debug("Mock Passes - " + m.name);
+                                    _this.logger.debug("Mock Passes - " + m.id);
                                     mocksWithHeaders.push(m);
                                 }
                             });

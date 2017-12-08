@@ -1,7 +1,7 @@
 import * as uuidv1 from 'uuid/v1';
 import {TestSuiteConfig} from "./user/TestSuiteConfig";
 import {BusybeeUserConfig} from "./BusybeeUserConfig";
-import {Logger} from "../lib/Logger";
+import {Logger} from "../../lib/Logger";
 import * as glob from 'glob';
 import * as fs from 'fs';
 import * as _ from 'lodash';
@@ -9,8 +9,8 @@ import * as path from 'path';
 import {EnvResourceConfig} from "./common/EnvResourceConfig";
 import {ParsedTestSuite} from "./parsed/ParsedTestSuiteConfig";
 import {FilePathsConfig} from "./parsed/FilePathsConfig";
-import {TypedMap} from "../lib/TypedMap";
-import {RESTTest} from "./test/RESTTest";
+import {TypedMap} from "../../lib/TypedMap";
+import {RESTTest} from "../RESTTest";
 
 export class BusybeeParsedConfig {
   private logger: Logger;
@@ -164,7 +164,7 @@ export class BusybeeParsedConfig {
           }
 
           if (_.isUndefined(test.testSet)) {
-            this.logger.info(`test '${test.name}' does not contain required prop 'testSet'. Skipping`);
+            this.logger.info(`test '${test.id}' does not contain required prop 'testSet'. Skipping`);
 
             return;
           }
@@ -197,7 +197,6 @@ export class BusybeeParsedConfig {
             let suiteID = this.env2TestSuiteMap.get(testEnvId);
             if (_.isUndefined(testSetInfo.index)) {
               // push it on the end
-              console.log(suiteID)
               parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests.push(test);
               //conf.restApi.testEnvs[testEnvId].testSets[testSetInfo.id].tests.push(test);
             } else {

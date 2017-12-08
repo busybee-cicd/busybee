@@ -99,12 +99,13 @@ var RESTSuiteManager = /** @class */ (function () {
                         if (testSet.description) {
                             _this.logger.info("" + testSet.description);
                         }
-                        var flow = _this.conf.controlFlow || 'parallel';
-                        _async[flow](testFns, function (err2, testResults) {
-                            // pass test results
+                        _async.series(testFns, function (err2, testResults) {
+                            // see if any tests failed and mark the set according
+                            var pass = _.find(testResults, function (tr) { return tr.pass === false; }) ? false : true;
                             var testSetResults = {
-                                name: testSet.id,
-                                results: testResults
+                                pass: pass,
+                                id: testSet.id,
+                                tests: testResults
                             };
                             if (err2) {
                                 _this.logger.debug('runRESTApiTestSet ERROR while running tests');
@@ -126,7 +127,7 @@ var RESTSuiteManager = /** @class */ (function () {
         return testSet.tests.map(function (test, i) {
             return function (cb) {
                 if (!test.request) {
-                    _this.logger.info("testSet " + testSet.id + ":" + test.name + " contains no request information. Probably a placeholder due to indexing.");
+                    _this.logger.info("testSet " + testSet.id + ":" + test.id + " contains no request information. Probably a placeholder due to indexing.");
                     return cb();
                 }
                 // build request
@@ -155,21 +156,21 @@ var RESTSuiteManager = /** @class */ (function () {
                     }
                     ;
                 }
-                _this.logger.info(testSet.id + ": " + testIndex + ": " + test.name);
+                _this.logger.info(testSet.id + ": " + testIndex + ": " + test.id);
                 _this.restClient.makeRequest(opts, function (err, res, body) {
                     if (err) {
                         return cb(err);
                     }
-                    _this.validateTestResult(test, res, body, cb);
+                    _this.validateTestResult(test, opts, res, body, cb);
                 });
             };
         });
     };
-    RESTSuiteManager.prototype.validateTestResult = function (test, res, body, cb) {
+    RESTSuiteManager.prototype.validateTestResult = function (test, reqOpts, res, body, cb) {
         this.logger.debug("validateTestResult");
         // validate results
         var testResult = {
-            name: test.name,
+            id: test.id,
             index: test.testIndex,
             pass: true
         };
@@ -198,8 +199,8 @@ var RESTSuiteManager = /** @class */ (function () {
             testResult.status = {
                 pass: true
             };
-            var verdict = res.statusCode == test.expect.status;
-            if (!verdict) {
+            var statusPass = res.statusCode == test.expect.status;
+            if (!statusPass) {
                 testResult.pass = false;
                 testResult.status.pass = false;
                 testResult.status.actual = res.statusCode;
@@ -210,29 +211,33 @@ var RESTSuiteManager = /** @class */ (function () {
             testResult.body = {
                 pass: true
             };
-            var verdict = void 0;
+            var bodyPass = true;
             if (_.isFunction(test.expect.body)) {
                 // if the test has a custom function for assertion, run it.
                 try {
-                    verdict = test.expect.body(body);
-                    if (!_.isBoolean(verdict)) {
-                        verdict = false;
+                    bodyPass = test.expect.body(body);
+                    if (!_.isBoolean(bodyPass)) {
+                        bodyPass = false;
                     }
                 }
                 catch (e) {
-                    verdict = false;
+                    bodyPass = false;
                 }
             }
             else {
                 // assert the body against the provided pojo body
-                verdict = _.isEqual(body, test.expect.body);
+                bodyPass = _.isEqual(body, test.expect.body);
             }
-            if (!verdict) {
+            if (!bodyPass) {
                 testResult.pass = false;
                 testResult.body.pass = false;
                 testResult.body.actual = body;
                 testResult.body.expected = _.isFunction(body) ? 'custom assertion function' : test.expect.body;
             }
+        }
+        // attach the request info if the test itself failed
+        if (!testResult.pass) {
+            testResult.request = reqOpts;
         }
         cb(null, testResult);
     };
