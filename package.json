@@ -1,11 +1,11 @@
 {
   "name": "busybee",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "description": "it test coordinator",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "bin": {
-    "busybee": "./dist/index.js"
+    "busybee": "./dist/src/index.js"
   },
   "dependencies": {
     "async": "^2.5.0",
@@ -24,13 +24,15 @@
   },
   "devDependencies": {
     "@types/node": "^8.0.28",
+    "ava": "^0.23.0",
     "typescript": "^2.5.2"
   },
   "scripts": {
     "build": "tsc",
-    "start": "node main.js",
-    "debug": "NODE_DEBUG=request DEBUG=true node main.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node ./dist/src/index.js",
+    "remoteIT": "node --inspect-brk=9222 ./dist/src/index.js test -d itTests",
+    "IT": "node ./dist/src/index.js test -d itTests -D",
+    "test": "tsc && ava dist/test/**/*.js"
   },
   "author": "Simon Townsend",
   "license": "ISC"

@@ -1,9 +1,9 @@
 import * as fs from 'fs';
 import {Logger} from './Logger';
 import {deserialize} from 'json-typescript-mapper';
-import {BusybeeUserConfig} from "../config/BusybeeUserConfig";
-import {BusybeeParsedConfig} from "../config/BusybeeParsedConfig";
-import {FilePathsConfig} from "../config/parsed/FilePathsConfig";
+import {BusybeeUserConfig} from "../models/config/BusybeeUserConfig";
+import {BusybeeParsedConfig} from "../models/config/BusybeeParsedConfig";
+import {FilePathsConfig} from "../models/config/parsed/FilePathsConfig";
 
 export class ConfigParser {
 
@@ -43,11 +43,8 @@ export class ConfigParser {
   }
 
   parse(mode): BusybeeParsedConfig {
-    let userConfig = deserialize(BusybeeUserConfig, JSON.parse(fs.readFileSync(this.filePaths.userConfigFile, 'utf8')));
-    this.logger.info(userConfig);
+    let userConfig = deserialize(BusybeeUserConfig, require(this.filePaths.userConfigFile));
     this.parsedConfig = new BusybeeParsedConfig(userConfig, this.cmdOpts, mode);
-    this.logger.info(this.parsedConfig);
-    this.logger.debug(this.parsedConfig);
     return this.parsedConfig;
   }
 

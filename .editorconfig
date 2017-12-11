@@ -1,10 +1,11 @@
-
 root = true
 
-[{src,scripts}/**.{ts,json,js}]
+[{src,test}/**.{ts,json,js}]
 end_of_line = crlf
 charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
 indent_style = space
+indent_style = space
 indent_size = 2
+tab_width = 2
