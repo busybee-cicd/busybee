@@ -9,7 +9,6 @@
   "testSuites": [
     {
       "id": "My Test Suite",
-      "type": "REST",
       "protocol": "http",
       "ports": [8180],
       "root": "/v1",

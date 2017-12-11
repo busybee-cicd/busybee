@@ -15,7 +15,7 @@ busybee
 
 ## Quickstart
 ```
-npm install -g git+https://502740163@github.build.ge.com/212589146/busybee.git
+npm install -g git+https://github.build.ge.com/Busybee/busybee.git
 busybee init
 busybee --help
 ```
@@ -37,7 +37,7 @@ when it comes to deciding how your environments are started, when they're ready,
 ### What it isn't
 It is not a magic bullet. You still have to write tests. You still have to provide 'start' and 'stop' scripts detailing how start/stop your environments. If your [Test Suite](#TestSuite) is not a REST [Test Suite](#TestSuite) then you will also need to provide a 'run' script that actually runs your tests once the environment as been provisioned.
 
-## Configuration (BusybeeUserConfig)
+## Configuration
 By default, Busybee will look for configuration in busybee/config.json
 
 ### config.json
@@ -47,7 +47,7 @@ By default, Busybee will look for configuration in busybee/config.json
 ---
 #### TestSuite
 - `id`* - String: A unique id for this Test Suite
-- `type`* - String `allowed: [REST, other]`: Dictates how the Test Suite is parsed. Busybee has it's own REST api testing implementation. For all other test suites choose 'other'
+- `type`* - String `defaut: REST, allowed: [REST, USER_PROVIDED]`: Dictates how the Test Suite is parsed. Busybee has it's own REST api testing implementation. For all other test suites choose 'USER_PROVIDED'
 - `skip` - Boolean `default:false`: Whether or not to skip this Test Suite
 - `env`* - [Env](#Env)
 - `envInstances`* - [Array:EnvInstance](#TestEnvInstance)
@@ -62,7 +62,6 @@ By default, Busybee will look for configuration in busybee/config.json
 - `defaultRequestOpts` - [DefaultRequestOpts](#DefaultRequestOpts): an object representing request params to be sent by default on
 each api request. defaultRequestOpts can be overridden with-in individual tests.
 - `mockServer` - [MockServer](#MockServer)
-
 
 ---
 #### DefaultRequestOpts  
@@ -158,6 +157,96 @@ ex)
 }
 ```
 ---
+
+## Test
+Tests can exist in 2 forms, .json and .js. The latter provides a mechanism for creating custom validations via a js method. When using the .js formation it's wise to provide a 'mockResponse' for use by the `busybee mock` command.
+
+```
+test.json
+
+[{
+  "name": "my test",
+  "skip": false,
+  "delay": 0,
+  "testSet": {
+    "id": "My Test Set",
+    "index": 0
+  },
+  "request": {
+    "method": "GET",
+    "endpoint": "/my-endpoint",
+    "query": {
+      "myQueryParam": "myQueryValue"
+    },
+    "body": {
+      "myBodyKey": "myBodyValue"
+    }
+  },
+  "expect": {
+    "status": 200,
+    "headers": {
+      "my-expected-header": "myExpectedHeaderValue"
+    },
+    "body": {
+      "myExpectedKey": "myExpectedValue"
+    }
+  }
+}]
+```
+
+```
+test.js
+
+module.exports = [{
+    "name": "my test",
+    "skip": false,
+    "delay": 0,
+    "testSet": {
+        "id": "My Test Set",
+        "index": 1
+    },
+    "request": {
+        "method": "GET",
+        "endpoint": "/my-endpoint",
+        "query": {
+            "myQueryParam": "myQueryValue"
+        },
+        "body": {
+            "myBodyKey": "myBodyValue"
+        }
+    },
+    "expect": {
+        "status": 200,
+        "headers": {
+            "my-expected-header": "myExpectedHeaderValue"
+        },
+        "body": (body) => {
+            try {
+                return body.content.hello === 'world' ? true : false;
+            } catch (e) {
+                return false;
+            }
+
+        }
+    },
+    "mockResponse": {
+        "status": 200,
+        "headers": {
+          "my-expected-header": "myExpectedHeaderValue"
+        },
+        "body": {
+          "content": {
+            "hello": "world"
+          }
+        }
+    }
+}]
+```
+
+
+
+
+
 ## Todo
 - test adapters
   - support https://github.com/postmanlabs/newman#using-newman-as-a-nodejs-module ?

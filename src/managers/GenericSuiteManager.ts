@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import * as path from 'path';
 import {Logger} from '../lib/Logger';
 import {EnvManager} from "./EnvManager";
-import {ParsedTestSetConfig} from "../config/parsed/ParsedTestSetConfig";
+import {ParsedTestSetConfig} from "../models/config/parsed/ParsedTestSetConfig";
 import {SuiteEnvInfo} from "../lib/SuiteEnvInfo";
 
 export class GenericSuiteManager {

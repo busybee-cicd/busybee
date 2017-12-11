@@ -99,12 +99,13 @@ var RESTSuiteManager = /** @class */ (function () {
                         if (testSet.description) {
                             _this.logger.info("" + testSet.description);
                         }
-                        var flow = _this.conf.controlFlow || 'parallel';
-                        _async[flow](testFns, function (err2, testResults) {
-                            // pass test results
+                        _async.series(testFns, function (err2, testResults) {
+                            // see if any tests failed and mark the set according
+                            var pass = _.find(testResults, function (tr) { return tr.pass === false; }) ? false : true;
                             var testSetResults = {
-                                name: testSet.id,
-                                results: testResults
+                                pass: pass,
+                                id: testSet.id,
+                                tests: testResults
                             };
                             if (err2) {
                                 _this.logger.debug('runRESTApiTestSet ERROR while running tests');
@@ -126,7 +127,7 @@ var RESTSuiteManager = /** @class */ (function () {
         return testSet.tests.map(function (test, i) {
             return function (cb) {
                 if (!test.request) {
-                    _this.logger.info("testSet " + testSet.id + ":" + test.name + " contains no request information. Probably a placeholder due to indexing.");
+                    _this.logger.info("testSet " + testSet.id + ":" + test.id + " contains no request information. Probably a placeholder due to indexing.");
                     return cb();
                 }
                 // build request
@@ -155,61 +156,88 @@ var RESTSuiteManager = /** @class */ (function () {
                     }
                     ;
                 }
-                _this.logger.info(testSet.id + ": " + testIndex + ": " + test.name);
+                _this.logger.info(testSet.id + ": " + testIndex + ": " + test.id);
                 _this.restClient.makeRequest(opts, function (err, res, body) {
                     if (err) {
                         return cb(err);
                     }
-                    _this.validateTestResult(test, res, body, cb);
+                    _this.validateTestResult(test, opts, res, body, cb);
                 });
             };
         });
     };
-    RESTSuiteManager.prototype.validateTestResult = function (test, res, body, cb) {
+    RESTSuiteManager.prototype.validateTestResult = function (test, reqOpts, res, body, cb) {
         this.logger.debug("validateTestResult");
         // validate results
-        var testResult = { name: test.name, index: test.testIndex };
+        var testResult = {
+            id: test.id,
+            index: test.testIndex,
+            pass: true
+        };
         if (test.expect.headers) {
-            testResult.headers = {};
-        }
-        if (test.expect.status) {
-            testResult.status = res.statusCode == test.expect.status
-                ? true
-                : "Expected " + test.expect.status + " was " + res.statusCode;
-        }
-        if (test.expect.body) {
-            if (_.isFunction(test.expect.body)) {
-                // if the test has a custom function for assertion, run it.
-                var result = void 0;
-                try {
-                    result = test.expect.body(body);
-                }
-                catch (e) {
-                    result = false;
-                }
-                if (!result) {
-                    testResult.body = "Expected " + JSON.stringify(test.expect.body) + " was " + JSON.stringify(body);
+            testResult.headers = [];
+            _.forEach(test.expect.headers, function (v, headerName) {
+                if (res.headers[headerName] != v) {
+                    testResult.pass = false;
+                    testResult.headers.push({
+                        pass: false,
+                        headerName: headerName,
+                        actual: res.headers[headerName],
+                        expected: v
+                    });
+                    testResult.headers[headerName] = "Expected " + v + " was " + res.headers[headerName];
                 }
                 else {
-                    testResult.body = true;
+                    testResult.headers.push({
+                        pass: true,
+                        headerName: headerName
+                    });
+                }
+            });
+        }
+        if (test.expect.status) {
+            testResult.status = {
+                pass: true
+            };
+            var statusPass = res.statusCode == test.expect.status;
+            if (!statusPass) {
+                testResult.pass = false;
+                testResult.status.pass = false;
+                testResult.status.actual = res.statusCode;
+                testResult.status.expected = test.expect.status;
+            }
+        }
+        if (test.expect.body) {
+            testResult.body = {
+                pass: true
+            };
+            var bodyPass = true;
+            if (_.isFunction(test.expect.body)) {
+                // if the test has a custom function for assertion, run it.
+                try {
+                    bodyPass = test.expect.body(body);
+                    if (!_.isBoolean(bodyPass)) {
+                        bodyPass = false;
+                    }
+                }
+                catch (e) {
+                    bodyPass = false;
                 }
             }
             else {
                 // assert the body against the provided pojo body
-                testResult.body = _.isEqual(body, test.expect.body)
-                    ? true
-                    : "Expected " + JSON.stringify(test.expect.body) + " was " + JSON.stringify(body);
+                bodyPass = _.isEqual(body, test.expect.body);
+            }
+            if (!bodyPass) {
+                testResult.pass = false;
+                testResult.body.pass = false;
+                testResult.body.actual = body;
+                testResult.body.expected = _.isFunction(body) ? 'custom assertion function' : test.expect.body;
             }
         }
-        if (test.expect.headers) {
-            _.forEach(test.expect.headers, function (v, headerName) {
-                if (res.headers[headerName] != v) {
-                    testResult.headers[headerName] = "Expected " + v + " was " + res.headers[headerName];
-                }
-                else {
-                    testResult.headers[headerName] = true;
-                }
-            });
+        // attach the request info if the test itself failed
+        if (!testResult.pass) {
+            testResult.request = reqOpts;
         }
         cb(null, testResult);
     };

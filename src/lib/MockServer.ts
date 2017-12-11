@@ -7,9 +7,9 @@ import * as httpProxy from 'http-proxy';
 let restream = require('./restream');
 import * as qs from 'querystring';
 import {Logger} from './Logger';
-import {ParsedTestSuite} from "../config/parsed/ParsedTestSuiteConfig";
-import {BusybeeParsedConfig} from "../config/BusybeeParsedConfig";
-import {MockServerConfig} from "../config/common/MockServerConfig";
+import {ParsedTestSuite} from "../models/config/parsed/ParsedTestSuiteConfig";
+import {BusybeeParsedConfig} from "../models/config/BusybeeParsedConfig";
+import {MockServerConfig} from "../models/config/common/MockServerConfig";
 
 export class MockServer {
 
@@ -217,10 +217,10 @@ export class MockServer {
         this.logger.debug(req.path);
         // First we check to see if the requester wants a mockResponse with a specific status. If not, we default to 200
         let requestedStatus = 200;
-        if (req.header('busybee-mockResponse-status')) {
-          requestedStatus = parseInt(req.header('busybee-mockResponse-status'));
+        if (req.header('busybee-mock-status')) {
+          requestedStatus = parseInt(req.header('busybee-mock-status'));
           if (!_.isInteger(requestedStatus)) {
-            return res.status(404).send(`busybee-mock-status must be an Integer, was '${req.header('busybee-mockResponse-status')}'`)
+            return res.status(404).send(`busybee-mock-status must be an Integer, was '${req.header('busybee-mock-status')}'`)
           }
         }
 
@@ -257,7 +257,7 @@ export class MockServer {
         let mocksWithoutHeaders = [];
         let mocksWithHeaders = [];
         matchingMocks.forEach((m) => {
-          this.logger.debug('checking mockResponse');
+          this.logger.debug('checking mock');
           // mocks that don't have headers defined don't need to match. IF this array only has 1 item
           // and we don't have any addition matchingMocks with header needs, it will get returned as a default.
           if (!m.request.headers) {
@@ -288,7 +288,7 @@ export class MockServer {
             }
           });
           if (headersPass) {
-            this.logger.debug(`Mock Passes - ${m.name}`);
+            this.logger.debug(`Mock Passes - ${m.id}`);
             mocksWithHeaders.push(m);
           }
         });
@@ -309,7 +309,7 @@ export class MockServer {
           mockToReturn = mocksWithoutHeaders[0];
         } else {
           if (this.proxy) {
-            this.logger.info("No mockResponse matches request but proxy available. Proxying request");
+            this.logger.info("No mock matches request but proxy available. Proxying request");
             return this.proxy.web(req, res);
           } else {
             if (mocksWithoutHeaders.length == 0 && mocksWithHeaders.length == 0) {

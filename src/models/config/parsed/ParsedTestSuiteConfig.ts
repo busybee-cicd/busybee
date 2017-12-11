@@ -2,13 +2,12 @@ import {MockServerConfig} from "../common/MockServerConfig";
 import {RequestOptsConfig} from "../common/RequestOptsConfig";
 import {EnvConfig} from "../common/EnvConfig";
 import {ParsedTestEnvConfig} from "./ParsedTestEnvConfig";
-import {TypedMap} from "../../lib/TypedMap";
+import {TypedMap} from "../../../lib/TypedMap";
 import {TestSuiteConfig} from "../user/TestSuiteConfig";
 import {ParsedTestSetConfig} from "./ParsedTestSetConfig";
 import {EnvInstanceConfig} from "../user/EnvInstanceConfig";
 import {TestSetConfig} from "../user/TestSetConfig";
-import {Logger} from "../../lib/Logger";
-import {Test} from "ava";
+import {Logger} from "../../../lib/Logger";
 
 export class ParsedTestSuite {
   suiteID: string;
@@ -47,7 +46,7 @@ export class ParsedTestSuite {
 
     // assign a default env to this TestSuite IF this is a REST TestSuite to cover cases
     // where the user doesn't specify a testEnv
-    if (testSuite.type && testSuite.type.toUpperCase() == 'REST') {
+    if (!testSuite.type || (testSuite.type && testSuite.type.toUpperCase() === 'REST')) {
       let defaultParsedTestEnv = new ParsedTestEnvConfig();
       let tsc = new TestSetConfig();
       tsc.id = 'default';

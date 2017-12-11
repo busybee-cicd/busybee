@@ -1,6 +1,5 @@
 import {TestSuiteConfig} from "./user/TestSuiteConfig";
 import {EnvResourceConfig} from "./common/EnvResourceConfig";
-import {JsonProperty} from "json-typescript-mapper";
 
 export class BusybeeUserConfig {
   envResources: EnvResourceConfig[];

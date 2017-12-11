@@ -3,8 +3,8 @@ import * as _ from 'lodash';
 import {Logger} from '../lib/Logger';
 import {RESTClient} from '../lib/RESTClient';
 import {SuiteEnvInfo} from "../lib/SuiteEnvInfo";
-import {ParsedTestSetConfig} from "../config/parsed/ParsedTestSetConfig";
-import {RESTTest} from "../config/test/RESTTest";
+import {ParsedTestSetConfig} from "../models/config/parsed/ParsedTestSetConfig";
+import {RESTTest} from "../models/RESTTest";
 import {IncomingMessage} from "http";
 
 export class RESTSuiteManager {
@@ -65,12 +65,13 @@ export class RESTSuiteManager {
         this.logger.info(`${testSet.description}`);
       }
 
-      let flow = this.conf.controlFlow || 'parallel';
-      _async[flow](testFns, (err2, testResults) => {
-        // pass test results
+      _async.series(testFns, (err2, testResults) => {
+        // see if any tests failed and mark the set according
+        let pass = _.find(testResults, tr => { return tr.pass === false }) ? false : true;
         let testSetResults = {
-          name: testSet.id,
-          results: testResults
+          pass: pass,
+          id: testSet.id,
+          tests: testResults
         };
 
         if (err2) {
@@ -91,7 +92,7 @@ export class RESTSuiteManager {
 
       return (cb) => {
         if (!test.request) {
-          this.logger.info(`testSet ${testSet.id}:${test.name} contains no request information. Probably a placeholder due to indexing.`);
+          this.logger.info(`testSet ${testSet.id}:${test.id} contains no request information. Probably a placeholder due to indexing.`);
           return cb();
         }
 
@@ -121,64 +122,97 @@ export class RESTSuiteManager {
           };
 
         }
-        this.logger.info(`${testSet.id}: ${testIndex}: ${test.name}`)
+        this.logger.info(`${testSet.id}: ${testIndex}: ${test.id}`)
 
         this.restClient.makeRequest(opts, (err: Error, res: IncomingMessage, body: any) => {
           if (err) { return cb(err); }
 
-          this.validateTestResult(test, res, body, cb)
+          this.validateTestResult(test, opts, res, body, cb)
         });
       };
     });
   }
 
-  validateTestResult(test: RESTTest, res: IncomingMessage, body: any, cb: Function) {
+
+  validateTestResult(test: RESTTest, reqOpts: any, res: IncomingMessage, body: any, cb: Function) {
     this.logger.debug(`validateTestResult`)
     // validate results
-    let testResult = <any>{name: test.name, index: test.testIndex};
+    let testResult = <any>{
+      id: test.id,
+      index: test.testIndex,
+      pass: true
+    };
+
+
     if (test.expect.headers) {
-      testResult.headers = {};
+      testResult.headers = []
+
+      _.forEach(test.expect.headers, (v, headerName) => {
+        if (res.headers[headerName] != v) {
+          testResult.pass = false;
+          testResult.headers.push({
+            pass: false,
+            headerName: headerName,
+            actual: res.headers[headerName],
+            expected: v
+          });
+          testResult.headers[headerName] = `Expected ${v} was ${res.headers[headerName]}`;
+        } else {
+          testResult.headers.push({
+            pass: true,
+            headerName: headerName
+          })
+        }
+      });
     }
 
+
     if (test.expect.status) {
-      testResult.status = res.statusCode == test.expect.status
-          ? true
-          : `Expected ${test.expect.status} was ${res.statusCode}`
+      testResult.status = {
+        pass: true
+      }
+
+      let statusPass = res.statusCode == test.expect.status;
+      if (!statusPass) {
+        testResult.pass = false;
+        testResult.status.pass = false;
+        testResult.status.actual = res.statusCode;
+        testResult.status.expected = test.expect.status;
+      }
     }
 
     if (test.expect.body) {
+      testResult.body = {
+        pass: true
+      }
 
+      let bodyPass = true;
       if (_.isFunction(test.expect.body)) {
         // if the test has a custom function for assertion, run it.
-        let result;
         try {
-          result = test.expect.body(body);
+          bodyPass = test.expect.body(body);
+          if (!_.isBoolean(bodyPass)) { // confirm that the assertion returns a bool
+            bodyPass = false;
+          }
         } catch (e) {
-          result = false;
-        }
-
-        if (!result) {
-          testResult.body = `Expected ${JSON.stringify(test.expect.body)} was ${JSON.stringify(body)}`
-        } else {
-          testResult.body = true;
+          bodyPass = false;
         }
       } else {
         // assert the body against the provided pojo body
-        testResult.body = _.isEqual(body, test.expect.body)
-            ? true
-            : `Expected ${JSON.stringify(test.expect.body)} was ${JSON.stringify(body)}`
+        bodyPass = _.isEqual(body, test.expect.body);
       }
 
+      if (!bodyPass) {
+        testResult.pass = false;
+        testResult.body.pass = false;
+        testResult.body.actual = body;
+        testResult.body.expected = _.isFunction(body) ? 'custom assertion function' : test.expect.body;
+      }
     }
 
-    if (test.expect.headers) {
-      _.forEach(test.expect.headers, (v, headerName) => {
-        if (res.headers[headerName] != v) {
-          testResult.headers[headerName] = `Expected ${v} was ${res.headers[headerName]}`;
-        } else {
-          testResult.headers[headerName] = true;
-        }
-      });
+    // attach the request info if the test itself failed
+    if (!testResult.pass) {
+      testResult.request = reqOpts;
     }
 
     cb(null, testResult);

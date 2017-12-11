@@ -49,16 +49,16 @@ var BusybeeParsedConfig = /** @class */ (function () {
     };
     BusybeeParsedConfig.prototype.parseTestSuites = function (userConf, mode) {
         var _this = this;
+        this.logger.debug("parseTestSuites");
         var parsedTestSuites = new TypedMap_1.TypedMap();
         // see if the user specified to skip testSuites
-        // TODO: figure out why we can only pass 1 testSuite when in mockResponse mode. in theory we should be able to parse all
+        // TODO: figure out why we can only pass 1 testSuite when in mock mode. in theory we should be able to parse all
         // test suites regardless of mode. However, if we do...for some reason the test suite to be mocked does not include
         // any tests.
-        if (mode === 'mockResponse') {
+        if (mode === 'mock') {
             var testSuite = _.find(userConf.testSuites, function (suite) { return suite.id == _this.cmdOpts.testSuite; });
-            var parsedTestSuite = this.parseTestSuite(testSuite, testSuite.id, mode);
+            var parsedTestSuite = this.parseTestSuite(testSuite, mode);
             parsedTestSuites.set(parsedTestSuite.suiteID, parsedTestSuite);
-            this.logger.debug(this.parsedTestSuites, true);
         }
         else {
             userConf.testSuites.forEach(function (testSuite) {
@@ -68,15 +68,21 @@ var BusybeeParsedConfig = /** @class */ (function () {
                     return;
                 }
                 // parse this testSuite
-                var parsedTestSuite = _this.parseTestSuite(testSuite, suiteID, mode);
+                var parsedTestSuite = _this.parseTestSuite(testSuite, mode);
                 parsedTestSuites.set(parsedTestSuite.suiteID, parsedTestSuite);
-                _this.logger.debug(parsedTestSuites, true);
+                _this.logger.debug(parsedTestSuites);
             });
         }
+        this.logger.debug("parsedTestSuites:");
+        this.logger.debug(parsedTestSuites);
+        this.logger.debug('this.testSet2EnvMap');
+        this.logger.debug(this.testSet2EnvMap);
+        this.logger.debug('this.env2TestSuiteMap');
+        this.logger.debug(this.env2TestSuiteMap);
         return this.parseTestFiles(parsedTestSuites, mode);
     };
-    BusybeeParsedConfig.prototype.parseTestSuite = function (testSuite, suiteID, mode) {
-        this.logger.debug("parseTestSuite userConf testSuite " + suiteID + " " + mode);
+    BusybeeParsedConfig.prototype.parseTestSuite = function (testSuite, mode) {
+        this.logger.debug("parseTestSuite " + testSuite.id + " " + mode);
         // create an id for this testSuite
         return new ParsedTestSuiteConfig_1.ParsedTestSuite(testSuite, mode, this.testSet2EnvMap, this.env2TestSuiteMap);
     };
@@ -85,7 +91,7 @@ var BusybeeParsedConfig = /** @class */ (function () {
      */
     BusybeeParsedConfig.prototype.parseTestFiles = function (parsedTestSuites, mode) {
         var _this = this;
-        this.logger.debug("parseFiles");
+        this.logger.debug("parseTestFiles");
         this.logger.debug(this.env2TestSuiteMap, true);
         this.logger.debug(this.testSet2EnvMap, true);
         // build up a list of testFolders
@@ -125,12 +131,12 @@ var BusybeeParsedConfig = /** @class */ (function () {
                 if (test.skip) {
                     return;
                 }
-                if (mode == 'test') {
+                if (mode === 'test') {
                     if (!test.expect || !test.expect.status || !test.expect.body) {
                         return;
                     }
                 }
-                if (mode == 'mock') {
+                if (mode === 'mock') {
                     test.testSet = { id: 'default' };
                 }
                 if (_.isUndefined(test.testSet)) {
@@ -148,15 +154,20 @@ var BusybeeParsedConfig = /** @class */ (function () {
                         _this.logger.warn("Unable to identify the Test Environment containing the testSetId '" + testSetInfo.id + "'.");
                         return;
                     }
+                    _this.logger.debug("testSetInfo");
+                    _this.logger.debug(testSetInfo, true);
                     var testEnvId = _this.testSet2EnvMap.get(testSetInfo.id);
                     // lookup the suite that this env is a member of
                     if (_.isUndefined(_this.env2TestSuiteMap.get(testEnvId))) {
                         _this.logger.warn("Unable to identify the Test Suite containing the envId " + testEnvId + ".");
                         return;
                     }
+                    _this.logger.debug("testEnvId");
+                    _this.logger.debug(testEnvId);
                     var suiteID = _this.env2TestSuiteMap.get(testEnvId);
                     if (_.isUndefined(testSetInfo.index)) {
                         // push it on the end
+                        console.log(suiteID);
                         parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests.push(test);
                         //conf.restApi.testEnvs[testEnvId].testSets[testSetInfo.id].tests.push(test);
                     }

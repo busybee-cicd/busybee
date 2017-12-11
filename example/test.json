@@ -1,7 +1,6 @@
 [{
   "name": "my test",
   "skip": false,
-  "mock": false,
   "delay": 0,
   "testSet": {
     "id": "My Test Set",

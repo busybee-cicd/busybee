@@ -8,12 +8,12 @@ import * as _async from 'async';
 import * as portscanner from 'portscanner';
 import {Logger} from '../lib/Logger';
 import {RESTClient} from '../lib/RESTClient';
-import {BusybeeParsedConfig} from "../config/BusybeeParsedConfig";
-import {EnvResourceConfig} from "../config/common/EnvResourceConfig";
-import {HostConfig} from "../config/user/HostConfig";
-import {RequestOptsConfig} from "../config/common/RequestOptsConfig";
+import {BusybeeParsedConfig} from "../models/config/BusybeeParsedConfig";
+import {EnvResourceConfig} from "../models/config/common/EnvResourceConfig";
+import {HostConfig} from "../models/config/user/HostConfig";
+import {RequestOptsConfig} from "../models/config/common/RequestOptsConfig";
 import {TypedMap} from "../lib/TypedMap";
-import {ParsedTestSuite} from "../config/parsed/ParsedTestSuiteConfig";
+import {ParsedTestSuite} from "../models/config/parsed/ParsedTestSuiteConfig";
 import {SuiteEnvInfo} from "../lib/SuiteEnvInfo";
 
 
@@ -111,7 +111,6 @@ export class EnvManager {
   */
   buildHosts(conf: BusybeeParsedConfig) {
     this.logger.debug(`buildHostConfs`);
-    this.logger.debug(conf, true);
     // TODO add back
     // if (!conf.envResources.hosts) {
     //   this.logger.info("No host information provided. Only generatedEnvID info will be passed to scripts");
@@ -170,7 +169,14 @@ export class EnvManager {
 
       // 1. stop the env
       try {
-        await execFileCmd(filePath, [JSON.stringify(args)], null)
+
+        await this.runScript(filePath, [JSON.stringify(args)]);
+        // const { stdout, stderr } = await execFileCmd(filePath, [JSON.stringify(args)], null);
+        // if (stderr) {
+        //   reject(stderr);
+        //   return;
+        // }
+
         this.currentHosts[envInfo.hostName].load -= envInfo.resourceCost;
         // remove the env from the currentHosts
         delete this.currentHosts[envInfo.hostName].envs[generatedEnvID];
@@ -183,6 +189,7 @@ export class EnvManager {
         // failed, add it back
         this.currentEnvs.set(generatedEnvID, envInfo);
         reject(e);
+        return;
       }
     });
 
@@ -193,7 +200,7 @@ export class EnvManager {
 
     return new Promise(async (resolve, reject) => {
       this.logger.debug('currentEnvs');
-      this.logger.debug(this.currentEnvs, true);
+      this.logger.debug(this.currentEnvs);
       let stopFns = [];
       this.currentEnvs.forEach((envConf: SuiteEnvInfo, generatedEnvID: string) => {
         stopFns.push(this.stop.call(this, generatedEnvID));
@@ -212,40 +219,76 @@ export class EnvManager {
     return new Promise(async (resolve, reject) => {
       this.logger.info(`runScript ${path} <args>`);
       this.logger.info(args);
+      const completeMessage = `${path} completed`;
+      let returned = false;
 
-      const script = spawn('sh', [path, args]);
+      const script = spawn('/bin/bash', [path, args]);
 
-      script.stdout.on('data', (data) => {
-        this.logger.debug(data.toString());
+      // listen for errors and reject
+      script.stderr.on('data', (data) => {
+        if (!data) { data = ""; }
+        let output = data.toString();
+        this.logger.debug(output);
+
+        returned = true;
+        this.logger.error(`stderr detected in ${path}`);
+        reject(output);
       });
 
-      script.stderr.on('data', (data) => {
-        if (data.toString().toUpperCase().includes("BUSYBEE_ERROR")) {
-          this.logger.debug('BUSYBEE_ERROR in runScript');
-          reject(data.toString());
+      // listen for data and discern if an error has been thrown.
+      script.stdout.on('data', (data) => {
+        if (!data) { return; }
+        let origOutput = data.toString();
+        let upperOutput = origOutput.toUpperCase();
+        this.logger.debug(origOutput);
+
+        if (upperOutput.includes("BUSYBEE_SH_ERROR")) {
+          returned = true;
+          this.logger.error(`BUSYBEE_SH_ERROR detected in ${path}`);
+          reject(origOutput);
+        } else if (upperOutput.includes("BUSYBEE_SH_FINISHED")) {
+          returned = true;
+          resolve(completeMessage)
         };
       });
 
-      script.on('close', (code) => {
-        resolve(`${path} completed`);
+      script.on('close', () => {
+        if (!returned) {
+          resolve(completeMessage);
+        }
       });
     });
   }
 
   async start(generatedEnvID, suiteID, suiteEnvID) {
     this.envsWaitingForProvision.push(generatedEnvID);
-    await this.waitForTurn(generatedEnvID);
-    await this.provisionEnv(generatedEnvID, suiteID, suiteEnvID);
+    try {
+      await this.waitForTurn(generatedEnvID);
+    } catch (e) {
+      throw new Error(`${generatedEnvID} failed to wait it's turn`);
+    }
+
+    try {
+      await this.provisionEnv(generatedEnvID, suiteID, suiteEnvID);
+    } catch (e) {
+      throw new Error(`${generatedEnvID} failed provision`);
+    }
+
     this.envsWaitingForProvision.shift();
     this.logger.debug(`envsWaitingForProvision updated to ${this.envsWaitingForProvision}`);
     // should have some if logic here for the future when we support more than just api
-    await this.confirmHealthcheck(generatedEnvID);
 
-    return generatedEnvID;
+    try {
+      await this.confirmHealthcheck(generatedEnvID);
+    } catch (e) {
+      throw new Error(`${generatedEnvID} failed to confirm the healthcheck`);
+    }
+
+    return;
   }
 
   async waitForTurn(generatedEnvID) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       let wait = (timeout, cb) => {
         this.logger.debug(`this.envsWaitingForProvision ${this.envsWaitingForProvision}`);
         if (this.envsWaitingForProvision[0] != generatedEnvID) {
@@ -302,11 +345,13 @@ export class EnvManager {
         this.logger.debug('script args');
         this.logger.debug(testSuiteConf.env.startScript);
         this.logger.debug(args);
-        const { stdout, stderr } = await execFileCmd(path.join(busybeeDir, testSuiteConf.env.startScript), [JSON.stringify(args)], null);
-
-        if (stderr) {
-          return reject();
-        }
+        await this.runScript(path.join(busybeeDir, testSuiteConf.env.startScript), [JSON.stringify(args)]);
+        // const { stdout, stderr } = await execFileCmd(, [JSON.stringify(args)], null);
+        //
+        //
+        // if (stderr) {
+        //   return reject(stderr);
+        // }
 
         this.logger.info(`${generatedEnvID} created.`);
         resolve(generatedEnvID);
@@ -330,7 +375,7 @@ export class EnvManager {
   async getAvailableHostName(suiteID, suiteEnvID, generatedEnvID) {
     return new Promise((resolve, reject) => {
       this.logger.debug(`getAvailableHostName ${suiteID} | ${suiteEnvID} | ${generatedEnvID}`);
-      this.logger.debug(this.conf.parsedTestSuites.get(suiteID), true);
+      this.logger.debug(this.conf.parsedTestSuites.get(suiteID));
       let suiteConf: ParsedTestSuite = this.conf.parsedTestSuites.get(suiteID);
       let cost = suiteConf.env.resourceCost || 0;
 
@@ -569,7 +614,7 @@ export class EnvManager {
     return new Promise((resolve, reject) => {
       this.logger.debug(`confirmHealthcheck ${generatedEnvID}`);
       let suiteEnvConf = this.currentEnvs.get(generatedEnvID); // current-env-specific conf
-      this.logger.debug(suiteEnvConf, true);
+      this.logger.debug(suiteEnvConf);
       let healthcheckConf = suiteEnvConf.healthcheck;
 
       if (!healthcheckConf) {
