@@ -19,6 +19,7 @@ var ParsedTestSuite = /** @class */ (function () {
         this.skip = suite.skip;
         this.type = suite.type;
         this.root = suite.root;
+        this.testFolder = suite.testFolder;
         this.testEnvs = new TypedMap_1.TypedMap();
         this.parseSuite(suite, mode, testSet2EnvMap, env2TestSuiteMap);
     }
@@ -26,7 +27,7 @@ var ParsedTestSuite = /** @class */ (function () {
         var _this = this;
         // assign a default env to this TestSuite IF this is a REST TestSuite to cover cases
         // where the user doesn't specify a testEnv
-        if (testSuite.type && testSuite.type.toUpperCase() == 'REST') {
+        if (!testSuite.type || (testSuite.type && testSuite.type.toUpperCase() === 'REST')) {
             var defaultParsedTestEnv = new ParsedTestEnvConfig_1.ParsedTestEnvConfig();
             var tsc = new TestSetConfig_1.TestSetConfig();
             tsc.id = 'default';

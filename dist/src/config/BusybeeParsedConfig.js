@@ -5,14 +5,17 @@ var Logger_1 = require("../lib/Logger");
 var glob = require("glob");
 var fs = require("fs");
 var _ = require("lodash");
+var path = require("path");
 var ParsedTestSuiteConfig_1 = require("./parsed/ParsedTestSuiteConfig");
 var FilePathsConfig_1 = require("./parsed/FilePathsConfig");
 var TypedMap_1 = require("../lib/TypedMap");
+var RESTTest_1 = require("./test/RESTTest");
 var BusybeeParsedConfig = /** @class */ (function () {
     function BusybeeParsedConfig(userConfig, cmdOpts, mode) {
         this.testSet2EnvMap = new TypedMap_1.TypedMap();
         this.env2TestSuiteMap = new TypedMap_1.TypedMap();
         this.cmdOpts = cmdOpts;
+        this.parseCmdOpts();
         this.logLevel = this.getLogLevel(cmdOpts);
         this.logger = new Logger_1.Logger({ logLevel: this.logLevel }, this);
         this.filePaths = new FilePathsConfig_1.FilePathsConfig(cmdOpts);
@@ -23,6 +26,14 @@ var BusybeeParsedConfig = /** @class */ (function () {
             this.logger.info("LocalMode detected. Host Configuration will be ignored in favor of 'localhost'");
         }
     }
+    BusybeeParsedConfig.prototype.parseCmdOpts = function () {
+        if (this.cmdOpts.skipTestSuite) {
+            this.skipTestSuites = this.cmdOpts.skipTestSuite.split(',');
+        }
+        if (this.cmdOpts.testFiles) {
+            this.testFiles = this.cmdOpts.testFiles.split(',');
+        }
+    };
     BusybeeParsedConfig.prototype.toJSON = function () {
         return {
             parsedTestSuites: this.parsedTestSuites,
@@ -38,39 +49,41 @@ var BusybeeParsedConfig = /** @class */ (function () {
     };
     BusybeeParsedConfig.prototype.parseTestSuites = function (userConf, mode) {
         var _this = this;
+        this.logger.debug("parseTestSuites");
         var parsedTestSuites = new TypedMap_1.TypedMap();
         // see if the user specified to skip testSuites
-        var skipTestSuites;
-        if (this.cmdOpts.skipTestSuite) {
-            skipTestSuites = this.cmdOpts.skipTestSuite.split(',');
-        }
         // TODO: figure out why we can only pass 1 testSuite when in mock mode. in theory we should be able to parse all
         // test suites regardless of mode. However, if we do...for some reason the test suite to be mocked does not include
         // any tests.
         if (mode === 'mock') {
             var testSuite = _.find(userConf.testSuites, function (suite) { return suite.id == _this.cmdOpts.testSuite; });
-            var parsedTestSuite = this.parseTestSuite(testSuite, testSuite.id, mode);
+            var parsedTestSuite = this.parseTestSuite(testSuite, mode);
             parsedTestSuites.set(parsedTestSuite.suiteID, parsedTestSuite);
-            this.logger.debug(this.parsedTestSuites, true);
         }
         else {
             userConf.testSuites.forEach(function (testSuite) {
                 var suiteID = testSuite.id || uuidv1();
-                if (skipTestSuites && skipTestSuites.indexOf(suiteID)) {
+                if (_this.skipTestSuites && _this.skipTestSuites.indexOf(suiteID)) {
+                    _this.logger.debug("Skipping testSuite: " + suiteID);
                     return;
                 }
                 // parse this testSuite
-                var parsedTestSuite = _this.parseTestSuite(testSuite, suiteID, mode);
+                var parsedTestSuite = _this.parseTestSuite(testSuite, mode);
                 parsedTestSuites.set(parsedTestSuite.suiteID, parsedTestSuite);
-                _this.logger.debug(_this.parsedTestSuites, true);
+                _this.logger.debug(parsedTestSuites);
             });
         }
+        this.logger.debug("parsedTestSuites:");
+        this.logger.debug(parsedTestSuites);
+        this.logger.debug('this.testSet2EnvMap');
+        this.logger.debug(this.testSet2EnvMap);
+        this.logger.debug('this.env2TestSuiteMap');
+        this.logger.debug(this.env2TestSuiteMap);
         return this.parseTestFiles(parsedTestSuites, mode);
     };
-    BusybeeParsedConfig.prototype.parseTestSuite = function (testSuite, suiteID, mode) {
-        this.logger.debug("parseTestSuite userConf testSuite " + suiteID + " " + mode);
+    BusybeeParsedConfig.prototype.parseTestSuite = function (testSuite, mode) {
+        this.logger.debug("parseTestSuite " + testSuite.id + " " + mode);
         // create an id for this testSuite
-        console.log(JSON.stringify(testSuite, null, '\t'));
         return new ParsedTestSuiteConfig_1.ParsedTestSuite(testSuite, mode, this.testSet2EnvMap, this.env2TestSuiteMap);
     };
     /*
@@ -78,29 +91,52 @@ var BusybeeParsedConfig = /** @class */ (function () {
      */
     BusybeeParsedConfig.prototype.parseTestFiles = function (parsedTestSuites, mode) {
         var _this = this;
-        this.logger.debug("parseFiles");
+        this.logger.debug("parseTestFiles");
         this.logger.debug(this.env2TestSuiteMap, true);
         this.logger.debug(this.testSet2EnvMap, true);
-        var files = glob.sync(this.filePaths.busybeeDir + "/**/*.json", { ignore: "" + this.filePaths.userConfigFile });
+        // build up a list of testFolders
+        var testFolders = [];
+        parsedTestSuites.values().map(function (pst) {
+            if (pst.testFolder) {
+                testFolders.push(path.join(_this.filePaths.busybeeDir, pst.testFolder, '/**/*.json'));
+                testFolders.push(path.join(_this.filePaths.busybeeDir, pst.testFolder, '/**/*.js'));
+            }
+        });
+        var files = glob.sync("{" + testFolders.join(',') + "}", { ignore: "" + this.filePaths.userConfigFile });
         // parse json files, compile testSets and add them to the conf.
         this.logger.info("parsing files...");
         files.forEach(function (file) {
-            _this.logger.info(file);
-            var data = fs.readFileSync(file, 'utf8');
-            var tests = JSON.parse(data);
+            // support for running specific tests files
+            if (_this.testFiles && !_.find(_this.testFiles, function (fileName) { return file.endsWith(fileName); })) {
+                _this.logger.info("skipping " + file);
+                return;
+            }
+            else {
+                _this.logger.info("parsing " + file);
+            }
+            var tests;
+            if (file.endsWith('.js')) {
+                tests = require(file);
+            }
+            else {
+                var data = fs.readFileSync(file, 'utf8');
+                tests = JSON.parse(data);
+            }
             if (!Array.isArray(tests)) {
                 tests = [tests];
             }
             tests.forEach(function (test) {
+                _this.logger.debug(test);
+                test = new RESTTest_1.RESTTest(test);
                 if (test.skip) {
                     return;
                 }
-                if (mode == 'test') {
-                    if (test.mock) {
+                if (mode === 'test') {
+                    if (!test.expect || !test.expect.status || !test.expect.body) {
                         return;
                     }
                 }
-                if (mode == 'mock') {
+                if (mode === 'mock') {
                     test.testSet = { id: 'default' };
                 }
                 if (_.isUndefined(test.testSet)) {
@@ -118,15 +154,20 @@ var BusybeeParsedConfig = /** @class */ (function () {
                         _this.logger.warn("Unable to identify the Test Environment containing the testSetId '" + testSetInfo.id + "'.");
                         return;
                     }
+                    _this.logger.debug("testSetInfo");
+                    _this.logger.debug(testSetInfo, true);
                     var testEnvId = _this.testSet2EnvMap.get(testSetInfo.id);
                     // lookup the suite that this env is a member of
                     if (_.isUndefined(_this.env2TestSuiteMap.get(testEnvId))) {
                         _this.logger.warn("Unable to identify the Test Suite containing the envId " + testEnvId + ".");
                         return;
                     }
+                    _this.logger.debug("testEnvId");
+                    _this.logger.debug(testEnvId);
                     var suiteID = _this.env2TestSuiteMap.get(testEnvId);
                     if (_.isUndefined(testSetInfo.index)) {
                         // push it on the end
+                        console.log(suiteID);
                         parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests.push(test);
                         //conf.restApi.testEnvs[testEnvId].testSets[testSetInfo.id].tests.push(test);
                     }
@@ -138,7 +179,7 @@ var BusybeeParsedConfig = /** @class */ (function () {
                             }
                             else {
                                 if (!parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i]) {
-                                    parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i] = {};
+                                    parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i] = new RESTTest_1.RESTTest({});
                                 }
                             }
                         });

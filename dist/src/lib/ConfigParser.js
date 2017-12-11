@@ -1,11 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var fs = require("fs");
 var Logger_1 = require("./Logger");
 var json_typescript_mapper_1 = require("json-typescript-mapper");
-var BusybeeUserConfig_1 = require("../config/BusybeeUserConfig");
-var BusybeeParsedConfig_1 = require("../config/BusybeeParsedConfig");
-var FilePathsConfig_1 = require("../config/parsed/FilePathsConfig");
+var BusybeeUserConfig_1 = require("../models/config/BusybeeUserConfig");
+var BusybeeParsedConfig_1 = require("../models/config/BusybeeParsedConfig");
+var FilePathsConfig_1 = require("../models/config/parsed/FilePathsConfig");
 var ConfigParser = /** @class */ (function () {
     function ConfigParser(cmdOpts) {
         this.filePaths = new FilePathsConfig_1.FilePathsConfig(cmdOpts);
@@ -37,11 +36,8 @@ var ConfigParser = /** @class */ (function () {
         return logLevel;
     };
     ConfigParser.prototype.parse = function (mode) {
-        var userConfig = json_typescript_mapper_1.deserialize(BusybeeUserConfig_1.BusybeeUserConfig, JSON.parse(fs.readFileSync(this.filePaths.userConfigFile, 'utf8')));
-        this.logger.info(userConfig);
+        var userConfig = json_typescript_mapper_1.deserialize(BusybeeUserConfig_1.BusybeeUserConfig, require(this.filePaths.userConfigFile));
         this.parsedConfig = new BusybeeParsedConfig_1.BusybeeParsedConfig(userConfig, this.cmdOpts, mode);
-        this.logger.info(this.parsedConfig);
-        this.logger.debug(this.parsedConfig);
         return this.parsedConfig;
     };
     return ConfigParser;

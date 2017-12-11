@@ -1,7 +1,5 @@
 [{
   "name": "my test",
-  "skip": false,
-  "mock": false,
   "testSet": {
     "id": "My Test Set",
     "index": 0

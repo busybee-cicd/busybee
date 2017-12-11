@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import {BusybeeParsedConfig} from "../config/BusybeeParsedConfig";
+import {BusybeeParsedConfig} from "../models/config/BusybeeParsedConfig";
 
 export class Logger {
 

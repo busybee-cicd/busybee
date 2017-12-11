@@ -30,7 +30,8 @@
   "scripts": {
     "build": "tsc",
     "start": "node ./dist/src/index.js",
-    "debug": "NODE_DEBUG=request DEBUG=true node ./dist/src/index.js",
+    "remoteIT": "node --inspect-brk=9222 ./dist/src/index.js test -d itTests",
+    "IT": "node ./dist/src/index.js test -d itTests -D",
     "test": "tsc && ava dist/test/**/*.js"
   },
   "author": "Simon Townsend",
