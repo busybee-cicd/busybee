@@ -255,7 +255,5 @@ module.exports = [{
 - transpile to support older versions of node
 - Mock Server
   - support testSets with state
-  - support behavior, delays in mocks (timeout)
   - support a .spec file for documenting endpoints?
-- do a true portscan when searching for open ports
 - remove placeholder 'null' entries after building testSets with skipped indexes
