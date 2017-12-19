@@ -157,8 +157,6 @@ var MockServer = /** @class */ (function () {
     // build an endpoint that accounts for the root context
     MockServer.prototype.getEndpoint = function (mock) {
         var endpoint = mock.request.endpoint;
-        this.logger.info("getEndpoint");
-        this.logger.info(mock);
         if (!_.isUndefined(mock.request.root)) {
             if (mock.request.root) {
                 endpoint = "" + mock.request.root + endpoint;

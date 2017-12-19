@@ -146,8 +146,6 @@ export class MockServer {
   // build an endpoint that accounts for the root context
   getEndpoint(mock: RESTTest) {
     let endpoint = mock.request.endpoint;
-    this.logger.info(`getEndpoint`);
-    this.logger.info(mock);
     if (!_.isUndefined(mock.request.root)) {
       if (mock.request.root) { // allow users to set request.root to override mockServer.root && testSuiteConf.root when mocking
         endpoint = `${mock.request.root}${endpoint}`;
