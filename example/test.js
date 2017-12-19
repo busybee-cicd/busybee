@@ -31,8 +31,12 @@ module.exports = [{
         }
     },
     "mockResponse": {
-        "content": {
-            "hello": "world"
+        "status": 200,
+        "body" : {
+            "content": {
+                "hello": "world"
+            }
         }
+
     }
 }]

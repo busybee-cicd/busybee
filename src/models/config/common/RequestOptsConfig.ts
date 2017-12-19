@@ -7,6 +7,7 @@ export class RequestOptsConfig {
   timeout: number;
   port: number;
   method: string;
+  root: string;
 
   constructor() {
     this.method = void 0;
@@ -17,6 +18,7 @@ export class RequestOptsConfig {
     this.endpoint = void 0;
     this.timeout = void 0;
     this.port = void 0;
+    this.root = void 0;
   }
 
 }

@@ -10,11 +10,14 @@ import {Logger} from './Logger';
 import {ParsedTestSuite} from "../models/config/parsed/ParsedTestSuiteConfig";
 import {BusybeeParsedConfig} from "../models/config/BusybeeParsedConfig";
 import {MockServerConfig} from "../models/config/common/MockServerConfig";
+import {ParsedTestEnvConfig} from "../models/config/parsed/ParsedTestEnvConfig";
+import {ParsedTestSetConfig} from "../models/config/parsed/ParsedTestSetConfig";
+import {RESTTest} from "../models/RESTTest";
 
 export class MockServer {
 
-  private conf: any;
-  private testSuiteConf: any;
+  private conf: BusybeeParsedConfig;
+  private testSuiteConf: ParsedTestSuite;
   private logger: Logger;
   private routeMap: any;
   private proxy: any;
@@ -106,9 +109,9 @@ export class MockServer {
     // build the routeMap
     this.logger.debug('testSuiteConf');
     this.logger.debug(this.testSuiteConf.testEnvs, true);
-    this.testSuiteConf.testEnvs.forEach((testEnv, envId) => {
-      testEnv.testSets.forEach((testSet, testSetName) => {
-        testSet.tests.forEach((mock) => {
+    this.testSuiteConf.testEnvs.forEach((testEnv: ParsedTestEnvConfig, envId: string) => {
+      testEnv.testSets.forEach((testSet: ParsedTestSetConfig, testSetName: string) => {
+        testSet.tests.forEach((mock: RESTTest) => {
           let pass = false;
           if (mock.expect && mock.expect.status && !_.isFunction(mock.expect.body)) {
             pass = true;
@@ -141,12 +144,14 @@ export class MockServer {
   }
 
   // build an endpoint that accounts for the root context
-  getEndpoint(mock) {
+  getEndpoint(mock: RESTTest) {
     let endpoint = mock.request.endpoint;
+    this.logger.info(`getEndpoint`);
+    this.logger.info(mock);
     if (!_.isUndefined(mock.request.root)) {
-      if (mock.request.root != null) { // allow users to set request.root to false to override mockServer.root && testSuiteConf.root when mocking
+      if (mock.request.root) { // allow users to set request.root to override mockServer.root && testSuiteConf.root when mocking
         endpoint = `${mock.request.root}${endpoint}`;
-      }
+      } // else they passed null or false and we should not prepend a root (effectively overwriting mockServer.root or testSuiteConf.root
     } else if (!_.isUndefined(this.testSuiteConf.mockServer.root)) {
       if (this.testSuiteConf.mockServer.root != null) { // allow users to set mockServer.root to false to override testSuiteConf.root when mocking
         endpoint = `${this.testSuiteConf.mockServer.root}${endpoint}`;
@@ -158,7 +163,7 @@ export class MockServer {
     return endpoint;
   }
 
-  updateRouteMap(mock) {
+  updateRouteMap(mock: RESTTest) {
     // // update the mockResponse with the globally applied headers according to the conf. (if any)
     // if (this.testSuiteConf.mockServer.injectedRequestOpts) {
     //   delete this.testSuiteConf.mockServer.injectedRequestOpts['description'];
