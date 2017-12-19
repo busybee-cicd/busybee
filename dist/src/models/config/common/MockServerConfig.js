@@ -5,7 +5,8 @@ var MockServerConfig = /** @class */ (function () {
         this.port = void 0;
         this.root = void 0;
         this.proxy = void 0;
-        this.injectRequestOpts = void 0;
+        this.injectedRequestOpts = void 0;
+        this.cors = void 0;
     }
     return MockServerConfig;
 }());

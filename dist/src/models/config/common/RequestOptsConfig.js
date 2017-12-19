@@ -10,6 +10,7 @@ var RequestOptsConfig = /** @class */ (function () {
         this.endpoint = void 0;
         this.timeout = void 0;
         this.port = void 0;
+        this.root = void 0;
     }
     return RequestOptsConfig;
 }());
