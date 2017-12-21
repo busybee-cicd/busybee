@@ -59,6 +59,7 @@ var TestManager = /** @class */ (function () {
             //conf.parsedTestSuites[suiteID].envTasks = [];
             _this.logger.debug(suiteID);
             _this.logger.debug(testSuite);
+            _this.logger.debug("Processing " + suiteID + " : type = " + testSuite.type);
             testSuite.testEnvs.forEach(function (testEnv, suiteEnvID) {
                 _this.logger.debug(testEnv);
                 if (testSuite.type === 'USER_PROVIDED') {

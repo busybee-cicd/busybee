@@ -30,6 +30,7 @@ export class TestManager {
       //conf.parsedTestSuites[suiteID].envTasks = [];
       this.logger.debug(suiteID);
       this.logger.debug(testSuite);
+      this.logger.debug(`Processing ${suiteID} : type = ${testSuite.type}`);
       testSuite.testEnvs.forEach((testEnv, suiteEnvID) => {
         this.logger.debug(testEnv);
 
