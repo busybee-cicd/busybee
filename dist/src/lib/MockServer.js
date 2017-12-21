@@ -158,9 +158,9 @@ var MockServer = /** @class */ (function () {
     MockServer.prototype.getEndpoint = function (mock) {
         var endpoint = mock.request.endpoint;
         if (!_.isUndefined(mock.request.root)) {
-            if (mock.request.root != null) {
+            if (mock.request.root) {
                 endpoint = "" + mock.request.root + endpoint;
-            }
+            } // else they passed null or false and we should not prepend a root (effectively overwriting mockServer.root or testSuiteConf.root
         }
         else if (!_.isUndefined(this.testSuiteConf.mockServer.root)) {
             if (this.testSuiteConf.mockServer.root != null) {
