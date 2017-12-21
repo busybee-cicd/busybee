@@ -278,7 +278,9 @@ var EnvManager = /** @class */ (function () {
                     _this.logger.debug(output);
                     returned = true;
                     _this.logger.error("stderr detected in " + path);
-                    reject(output);
+                    if (output.toUpperCase().includes("BUSYBEE_SH_ERROR")) {
+                        reject(output);
+                    }
                 });
                 // listen for data and discern if an error has been thrown.
                 script.stdout.on('data', function (data) {
