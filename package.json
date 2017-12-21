@@ -25,10 +25,12 @@
   "devDependencies": {
     "@types/node": "^8.0.28",
     "ava": "^0.23.0",
-    "typescript": "^2.5.2"
+    "typescript": "^2.5.2",
+    "watch": "^1.0.2"
   },
   "scripts": {
     "build": "tsc",
+    "watch": "watch 'npm run build' {src,test}",
     "start": "node ./dist/src/index.js",
     "remoteIT": "node --inspect-brk=9222 ./dist/src/index.js test -d itTests",
     "IT": "node ./dist/src/index.js test -d itTests -D",

@@ -62,7 +62,7 @@ Commander
     .option('-L, --logLevel <level>', '[DEBUG, INFO, WARN, ERROR]')
     .option('-o, --onComplete <onComplete>', 'The filename of javascript module placed in your busybee/ directory. Will be called on complete. ex module) module.exports = (err, results) => { console.log(err || JSON.stringify(results)); }')
     .option('-s, --skipEnvProvisioning <ids>', 'list of comma-separated TestSuite ids. Environments will not be provisioned for these TestSuites prior to running tests')
-    .option('-ss, --skipTestSuite <ids>', 'list of comma-separated TestSuite ids to skip')
+    .option('-k, --skipTestSuite <ids>', 'list of comma-separated TestSuite ids to skip')
     .option('-t, --testFiles <filenames>', 'list of comma-separated test files to run. ie) test.json,test2.json,users/mytest.json')
     .action(function (options) {
     var configParser = new ConfigParser_1.ConfigParser(options);
@@ -77,7 +77,7 @@ Commander
     .option('-d, --directory <directory>', 'Test Directory. defaults to busybee/')
     .option('-D, --debug', 'convenience flag for debug mode')
     .option('-L, --logLevel <level>', '[DEBUG, INFO, WARN, ERROR]')
-    .option('-np, --noProxy, Will ignore any userConfigFile.json proxy configuration and skip proxy attempts')
+    .option('-n, --noProxy, Will ignore any userConfigFile.json proxy configuration and skip proxy attempts')
     .option('-t, --testSuite <id>', 'Required. The ID of the REST Api TestSuite that you would like to run a mock server for')
     .action(function (options) {
     if (!options.testSuite) {

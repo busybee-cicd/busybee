@@ -22,6 +22,7 @@ var BusybeeParsedConfig = /** @class */ (function () {
         this.onComplete = userConfig.onComplete;
         this.parsedTestSuites = this.parseTestSuites(userConfig, mode);
         this.envResources = userConfig.envResources;
+        this.skipTestSuites = [];
         if (cmdOpts.localMode) {
             this.logger.info("LocalMode detected. Host Configuration will be ignored in favor of 'localhost'");
         }
@@ -63,7 +64,9 @@ var BusybeeParsedConfig = /** @class */ (function () {
         else {
             userConf.testSuites.forEach(function (testSuite) {
                 var suiteID = testSuite.id || uuidv1();
-                if (_this.skipTestSuites && _this.skipTestSuites.indexOf(suiteID)) {
+                _this.logger.debug("suiteID: " + suiteID);
+                _this.logger.debug("skipTestSuites: " + JSON.stringify(_this.skipTestSuites));
+                if (_.find(_this.skipTestSuites, function (sID) { return sID === suiteID; })) {
                     _this.logger.debug("Skipping testSuite: " + suiteID);
                     return;
                 }
@@ -73,12 +76,6 @@ var BusybeeParsedConfig = /** @class */ (function () {
                 _this.logger.debug(parsedTestSuites);
             });
         }
-        this.logger.debug("parsedTestSuites:");
-        this.logger.debug(parsedTestSuites);
-        this.logger.debug('this.testSet2EnvMap');
-        this.logger.debug(this.testSet2EnvMap);
-        this.logger.debug('this.env2TestSuiteMap');
-        this.logger.debug(this.env2TestSuiteMap);
         return this.parseTestFiles(parsedTestSuites, mode);
     };
     BusybeeParsedConfig.prototype.parseTestSuite = function (testSuite, mode) {
@@ -119,8 +116,7 @@ var BusybeeParsedConfig = /** @class */ (function () {
                 tests = require(file);
             }
             else {
-                var data = fs.readFileSync(file, 'utf8');
-                tests = JSON.parse(data);
+                tests = JSON.parse(fs.readFileSync(file, 'utf8').toString());
             }
             if (!Array.isArray(tests)) {
                 tests = [tests];

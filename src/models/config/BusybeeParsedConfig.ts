@@ -35,6 +35,7 @@ export class BusybeeParsedConfig {
     this.onComplete = userConfig.onComplete;
     this.parsedTestSuites = this.parseTestSuites(userConfig, mode);
     this.envResources = userConfig.envResources;
+    this.skipTestSuites = [];
 
     if (cmdOpts.localMode) {
       this.logger.info(`LocalMode detected. Host Configuration will be ignored in favor of 'localhost'`);
@@ -81,7 +82,9 @@ export class BusybeeParsedConfig {
     } else {
       userConf.testSuites.forEach((testSuite) => {
         let suiteID = testSuite.id || uuidv1();
-        if (this.skipTestSuites && this.skipTestSuites.indexOf(suiteID)) {
+        this.logger.debug(`suiteID: ${suiteID}`);
+        this.logger.debug(`skipTestSuites: ${JSON.stringify(this.skipTestSuites)}`);
+        if (_.find(this.skipTestSuites, (sID) => { return sID === suiteID; })) {
           this.logger.debug(`Skipping testSuite: ${suiteID}`);
           return;
         }
@@ -93,12 +96,6 @@ export class BusybeeParsedConfig {
       });
     }
 
-    this.logger.debug(`parsedTestSuites:`);
-    this.logger.debug(parsedTestSuites);
-    this.logger.debug('this.testSet2EnvMap')
-    this.logger.debug(this.testSet2EnvMap)
-    this.logger.debug('this.env2TestSuiteMap')
-    this.logger.debug(this.env2TestSuiteMap)
     return this.parseTestFiles(parsedTestSuites, mode);
   }
 
@@ -142,8 +139,7 @@ export class BusybeeParsedConfig {
         if (file.endsWith('.js')) {
           tests = require(file);
         } else {
-          let data = fs.readFileSync(file, 'utf8');
-          tests = JSON.parse(data);
+          tests = JSON.parse(fs.readFileSync(file, 'utf8').toString());
         }
 
         if (!Array.isArray(tests)) {
