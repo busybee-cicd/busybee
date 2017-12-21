@@ -232,7 +232,9 @@ export class EnvManager {
 
         returned = true;
         this.logger.error(`stderr detected in ${path}`);
-        reject(output);
+        if (output.toUpperCase().includes("BUSYBEE_SH_ERROR")) {
+          reject(output);
+        }
       });
 
       // listen for data and discern if an error has been thrown.
