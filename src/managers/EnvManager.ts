@@ -230,9 +230,8 @@ export class EnvManager {
         let output = data.toString();
         this.logger.debug(output);
 
-        returned = true;
-        this.logger.error(`stderr detected in ${path}`);
         if (output.toUpperCase().includes("BUSYBEE_SH_ERROR")) {
+          returned = true;
           reject(output);
         }
       });
