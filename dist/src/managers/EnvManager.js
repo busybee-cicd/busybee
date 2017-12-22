@@ -276,9 +276,8 @@ var EnvManager = /** @class */ (function () {
                     }
                     var output = data.toString();
                     _this.logger.debug(output);
-                    returned = true;
-                    _this.logger.error("stderr detected in " + path);
                     if (output.toUpperCase().includes("BUSYBEE_SH_ERROR")) {
+                        returned = true;
                         reject(output);
                     }
                 });
