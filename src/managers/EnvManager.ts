@@ -326,6 +326,7 @@ export class EnvManager {
         if (output.toUpperCase().includes("BUSYBEE_SH_ERROR")) {
           returned = true;
           reject(output);
+          script.kill('SIGHUP');
         }
       });
 
@@ -340,9 +341,11 @@ export class EnvManager {
           returned = true;
           this.logger.error(`BUSYBEE_SH_ERROR detected in ${path}`);
           reject(origOutput);
-        } else if (upperOutput.includes("BUSYBEE_SH_FINISHED")) {
+          script.kill('SIGHUP');
+        } else if (upperOutput.includes("BUSYBEE_SH_COMPLETE")) {
           returned = true;
-          resolve(completeMessage)
+          resolve(completeMessage);
+          script.kill('SIGHUP');
         };
       });
 

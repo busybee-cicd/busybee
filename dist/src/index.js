@@ -200,7 +200,7 @@ function initTests(conf) {
             }
         }
         else {
-            console.log(err || JSON.stringify(suiteResultsList, null, '\t'));
+            console.log(err || logger.info(suiteResultsList));
         }
     });
     // run the ui tests

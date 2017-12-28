@@ -171,7 +171,7 @@ function initTests(conf: BusybeeParsedConfig) {
                 console.log(e);
             }
         } else {
-            console.log(err || JSON.stringify(suiteResultsList, null, '\t'));
+            console.log(err || logger.info(suiteResultsList));
         }
     });
 

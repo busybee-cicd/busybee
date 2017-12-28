@@ -406,6 +406,7 @@ var EnvManager = /** @class */ (function () {
                     if (output.toUpperCase().includes("BUSYBEE_SH_ERROR")) {
                         returned = true;
                         reject(output);
+                        script.kill('SIGHUP');
                     }
                 });
                 // listen for data and discern if an error has been thrown.
@@ -420,10 +421,12 @@ var EnvManager = /** @class */ (function () {
                         returned = true;
                         _this.logger.error("BUSYBEE_SH_ERROR detected in " + path);
                         reject(origOutput);
+                        script.kill('SIGHUP');
                     }
-                    else if (upperOutput.includes("BUSYBEE_SH_FINISHED")) {
+                    else if (upperOutput.includes("BUSYBEE_SH_COMPLETE")) {
                         returned = true;
                         resolve(completeMessage);
+                        script.kill('SIGHUP');
                     }
                     ;
                 });

@@ -174,7 +174,7 @@ var BusybeeParsedConfig = /** @class */ (function () {
                             }
                             else {
                                 if (!parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i]) {
-                                    parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i] = new RESTTest_1.RESTTest({});
+                                    parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i] = null;
                                 }
                             }
                         });

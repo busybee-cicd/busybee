@@ -55,6 +55,7 @@ export class RESTSuiteManager {
       // build api test functions
       if (!testSet.tests) {
         reject(`testSet ${testSet.id} has no tests`);
+        return;
       }
 
       let testFns = this.buildTestTasks(currentEnv, testSet);
@@ -88,14 +89,12 @@ export class RESTSuiteManager {
   buildTestTasks(currentEnv: SuiteEnvInfo, testSet: ParsedTestSetConfig) {
     this.logger.trace(`RESTSuiteManager:buildTestTasks <testSet> ${currentEnv.ports}`);
     this.logger.trace(testSet);
-    return testSet.tests.map((test: RESTTest, i) => {
+    // filter out any tests that do no contain a request object (usually the case if a
+
+    let testsWithARequest = _.reject(testSet.tests, (test:RESTTest) => { return test === null; });
+    return _.map(testsWithARequest, (test: RESTTest) => {
 
       return (cb) => {
-        if (!test.request) {
-          this.logger.info(`testSet ${testSet.id}:${test.id} contains no request information. Probably a placeholder due to indexing.`);
-          return cb();
-        }
-
         // build request
         let port = currentEnv.ports[0]; // the REST api port should be passed first in the userConfigFile.
         let opts = this.restClient.buildRequest(test.request, port);

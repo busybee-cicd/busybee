@@ -92,6 +92,7 @@ var RESTSuiteManager = /** @class */ (function () {
                         // build api test functions
                         if (!testSet.tests) {
                             reject("testSet " + testSet.id + " has no tests");
+                            return;
                         }
                         var testFns = _this.buildTestTasks(currentEnv, testSet);
                         // run api test functions
@@ -124,12 +125,10 @@ var RESTSuiteManager = /** @class */ (function () {
         var _this = this;
         this.logger.trace("RESTSuiteManager:buildTestTasks <testSet> " + currentEnv.ports);
         this.logger.trace(testSet);
-        return testSet.tests.map(function (test, i) {
+        // filter out any tests that do no contain a request object (usually the case if a
+        var testsWithARequest = _.reject(testSet.tests, function (test) { return test === null; });
+        return _.map(testsWithARequest, function (test) {
             return function (cb) {
-                if (!test.request) {
-                    _this.logger.info("testSet " + testSet.id + ":" + test.id + " contains no request information. Probably a placeholder due to indexing.");
-                    return cb();
-                }
                 // build request
                 var port = currentEnv.ports[0]; // the REST api port should be passed first in the userConfigFile.
                 var opts = _this.restClient.buildRequest(test.request, port);
