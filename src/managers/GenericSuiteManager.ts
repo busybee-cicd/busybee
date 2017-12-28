@@ -20,7 +20,7 @@ export class GenericSuiteManager {
   }
 
   buildUrl(port) {
-    this.logger.debug(`buildUrl ${port}`);
+    this.logger.trace(`buildUrl ${port}`);
     let protocol = this.suiteEnvConf.protocol;
     let hostName = this.suiteEnvConf.hostName;
 
@@ -35,8 +35,8 @@ export class GenericSuiteManager {
   runTestSets(generatedEnvID) {
     // TODO: logic for running TestSets in order
     return new Promise(async (resolve, reject) => {
-      this.logger.debug(`runTestSets ${this.suiteEnvConf.suiteID} ${this.suiteEnvConf.suiteEnvID}`);
-      this.logger.debug(this.suiteEnvConf, true);
+      this.logger.trace(`runTestSets ${this.suiteEnvConf.suiteID} ${this.suiteEnvConf.suiteEnvID}`);
+      this.logger.trace(this.suiteEnvConf, true);
       let testSetPromises = this.suiteEnvConf.testSets.values().map((testSet) => {
         return this.runTestSet(testSet, generatedEnvID);
       });
@@ -50,7 +50,7 @@ export class GenericSuiteManager {
       }
 
       if (testSetErr) {
-        this.logger.debug(`runTestSets ERROR encountered while running testSetPromises`);
+        this.logger.trace(`runTestSets ERROR encountered while running testSetPromises`);
         reject(testSetErr);
       } else {
         resolve(testSetResults);
@@ -60,8 +60,8 @@ export class GenericSuiteManager {
   }
 
   async runTestSet(testSet: ParsedTestSetConfig, generatedEnvID: string) {
-      this.logger.debug(`runTestSet | ${this.suiteEnvConf.suiteID} | ${this.suiteEnvConf.suiteEnvID} | ${testSet.id}`);
-      this.logger.debug(testSet, true);
+      this.logger.trace(`runTestSet | ${this.suiteEnvConf.suiteID} | ${this.suiteEnvConf.suiteEnvID} | ${testSet.id}`);
+      this.logger.trace(testSet, true);
       // run the script via envManager
       let busybeeDir = this.conf.filePaths.busybeeDir;
       let scriptPath = path.join(busybeeDir, this.suiteEnvConf.runScript);

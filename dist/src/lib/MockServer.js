@@ -121,8 +121,8 @@ var MockServer = /** @class */ (function () {
             });
         }
         // build the routeMap
-        this.logger.debug('testSuiteConf');
-        this.logger.debug(this.testSuiteConf.testEnvs, true);
+        this.logger.trace('testSuiteConf');
+        this.logger.trace(this.testSuiteConf.testEnvs, true);
         this.testSuiteConf.testEnvs.forEach(function (testEnv, envId) {
             testEnv.testSets.forEach(function (testSet, testSetName) {
                 testSet.tests.forEach(function (mock) {
@@ -230,7 +230,7 @@ var MockServer = /** @class */ (function () {
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
-                            this.logger.debug(req.path);
+                            this.logger.trace(req.path);
                             requestedStatus = 200;
                             if (req.header('busybee-mock-status')) {
                                 requestedStatus = parseInt(req.header('busybee-mock-status'));
@@ -240,13 +240,13 @@ var MockServer = /** @class */ (function () {
                             }
                             mocks = statusMap[requestedStatus];
                             reqOpts = this.buildReqOpts(req);
-                            this.logger.debug('INCOMING REQ OPTS');
-                            this.logger.debug(reqOpts, true);
+                            this.logger.trace('INCOMING REQ OPTS');
+                            this.logger.trace(reqOpts, true);
                             hashedReq = hash(reqOpts);
                             matchingMocks = _.filter(mocks, function (m) {
-                                _this.logger.debug('TESTING AGAINST');
-                                _this.logger.debug(m.matcherOpts, true);
-                                _this.logger.debug(m.hash + " == " + hashedReq);
+                                _this.logger.trace('TESTING AGAINST');
+                                _this.logger.trace(m.matcherOpts, true);
+                                _this.logger.trace(m.hash + " == " + hashedReq);
                                 return m.hash === hashedReq;
                             });
                             if (!matchingMocks || matchingMocks.length === 0) {
@@ -261,12 +261,12 @@ var MockServer = /** @class */ (function () {
                             mocksWithoutHeaders = [];
                             mocksWithHeaders = [];
                             matchingMocks.forEach(function (m) {
-                                _this.logger.debug('checking mock');
+                                _this.logger.trace('checking mock');
                                 // mocks that don't have headers defined don't need to match. IF this array only has 1 item
                                 // and we don't have any addition matchingMocks with header needs, it will get returned as a default.
                                 if (!m.request.headers) {
                                     // mockResponse doesn't require any headers, it passes
-                                    _this.logger.debug("mock doesn't require any headers");
+                                    _this.logger.trace("mock doesn't require any headers");
                                     return mocksWithoutHeaders.push(m);
                                 }
                                 // inject any request opts
@@ -275,29 +275,29 @@ var MockServer = /** @class */ (function () {
                                 // to remove comparison errors, convert numbers to strings in both header objs
                                 reqHeaders = _this.convertObjValuesToStrings(reqHeaders); // convert any numbers to strings
                                 var mockHeaders = _this.convertObjValuesToStrings(m.request.headers); // convert any numbers to strings
-                                _this.logger.debug('mockHeaders');
-                                _this.logger.debug(mockHeaders, true);
+                                _this.logger.trace('mockHeaders');
+                                _this.logger.trace(mockHeaders, true);
                                 var headersPass = true;
                                 _.forEach(mockHeaders, function (value, headerName) {
                                     if (value == null) {
                                         // if the header is null then that implies that we don't want to check for this header
-                                        _this.logger.debug("mock headerName " + headerName + " set to null, skipping match attempt");
+                                        _this.logger.trace("mock headerName " + headerName + " set to null, skipping match attempt");
                                         return;
                                     }
                                     if (reqHeaders[headerName] !== value) {
-                                        _this.logger.debug(headerName + " - " + reqHeaders[headerName] + " !== " + value);
+                                        _this.logger.trace(headerName + " - " + reqHeaders[headerName] + " !== " + value);
                                         headersPass = false;
                                     }
                                 });
                                 if (headersPass) {
-                                    _this.logger.debug("Mock Passes - " + m.id);
+                                    _this.logger.trace("Mock Passes - " + m.id);
                                     mocksWithHeaders.push(m);
                                 }
                             });
-                            this.logger.debug("mocksWithoutHeaders");
-                            this.logger.debug(mocksWithoutHeaders, true);
-                            this.logger.debug("mocksWithHeaders");
-                            this.logger.debug(mocksWithHeaders, true);
+                            this.logger.trace("mocksWithoutHeaders");
+                            this.logger.trace(mocksWithoutHeaders, true);
+                            this.logger.trace("mocksWithHeaders");
+                            this.logger.trace(mocksWithHeaders, true);
                             if (mocksWithHeaders.length == 1) {
                                 // mocksWithHeaders matched more deeply with the request (query+body+headers)
                                 // we should prioritize these if we have an exact match
@@ -397,10 +397,10 @@ var MockServer = /** @class */ (function () {
         if (mockServerConf.injectedRequestOpts) {
             ['headers', 'query', 'body'].forEach(function (target) {
                 if (mockServerConf.injectedRequestOpts[target]) {
-                    _this.logger.debug("injectedRequestOpts." + target + " detected. Injecting " + target);
+                    _this.logger.trace("injectedRequestOpts." + target + " detected. Injecting " + target);
                     req[target] = Object.assign({}, mockServerConf.injectedRequestOpts[target], req[target]);
-                    _this.logger.debug(target + " injected");
-                    _this.logger.debug(req[target], true);
+                    _this.logger.trace(target + " injected");
+                    _this.logger.trace(req[target], true);
                 }
             });
         }

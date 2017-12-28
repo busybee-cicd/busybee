@@ -25,7 +25,7 @@ export class ParsedTestSuite {
   private logger: Logger;
 
   constructor(suite: TestSuiteConfig, mode: string, testSet2EnvMap: TypedMap<string>, env2TestSuiteMap: TypedMap<string>) {
-    this.logger = new Logger({logLevel: process.env.BUSYBEE_LOG_LEVEL}, this);
+    this.logger = new Logger({logLevel: process.env['BUSYBEE_LOG_LEVEL']}, this);
     this.defaultRequestOpts = suite.defaultRequestOpts;
     this.env = suite.env;
     this.mockServer = suite.mockServer;
@@ -73,8 +73,8 @@ export class ParsedTestSuite {
       // testEnvConf.suiteEnvID = testEnvConf.id;
       // delete testEnvConf.id;
       // add this env to the env2TestSuiteMap
-      this.logger.debug('testEnvConf');
-      this.logger.debug(JSON.stringify(testEnvConf));
+      this.logger.trace('testEnvConf');
+      this.logger.trace(JSON.stringify(testEnvConf));
 
       let parsedTestEnvConfig = new ParsedTestEnvConfig();
       parsedTestEnvConfig.suiteEnvID = testEnvConf.id;
@@ -84,8 +84,8 @@ export class ParsedTestSuite {
         testEnvConf.testSets.forEach((testSetConf: TestSetConfig) => {
           let parsedTestSetConfig = new ParsedTestSetConfig(testSetConf);
 
-          this.logger.debug(`testSetConf ${testSetConf.id}`);
-          this.logger.debug(`parsedTestSetConfig ${parsedTestSetConfig.id}`);
+          this.logger.trace(`testSetConf ${testSetConf.id}`);
+          this.logger.trace(`parsedTestSetConfig ${parsedTestSetConfig.id}`);
           // if this testSet already exists skip it
           if (parsedTestEnvConfig.testSets.get(parsedTestSetConfig.id)) {
             this.logger.info(`Test set ${testSetConf.id} already exists. Skipping`);
@@ -103,7 +103,7 @@ export class ParsedTestSuite {
       this.testEnvs.set(parsedTestEnvConfig.suiteEnvID, parsedTestEnvConfig);
     });
 
-    this.logger.debug(('done parsing suite'));
+    this.logger.trace(('done parsing suite'));
   }
 
 }

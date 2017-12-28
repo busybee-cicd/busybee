@@ -1,9 +1,13 @@
 import * as _ from 'lodash';
-import {BusybeeParsedConfig} from "../models/config/BusybeeParsedConfig";
 
 export class Logger {
 
-  private static readonly validLevels = ['DEBUG', 'INFO', 'WARN', 'ERROR'];
+  public static readonly TRACE = 'TRACE';
+  public static readonly DEBUG = 'DEBUG';
+  public static readonly INFO = 'INFO';
+  public static readonly WARN = 'WARN';
+  public static readonly ERROR = 'ERROR';
+  private static readonly validLevels = [Logger.TRACE, Logger.DEBUG, Logger.INFO, Logger.WARN, Logger.ERROR];
   private conf: any;
   private className: string;
   private logLevel: string;
@@ -12,13 +16,14 @@ export class Logger {
   constructor(conf: any, clazz) {
     this.conf = conf;
     this.className = clazz.constructor.name;
-    this.logLevel = conf.logLevel || 'INFO';
+    this.logLevel = conf.logLevel || Logger.INFO;
     this.logLevel = this.logLevel.toUpperCase();
     this.levelMap = {
-      'DEBUG': 0,
-      'INFO': 1,
-      'WARN': 2,
-      'ERROR': 3
+      'TRACE': 0,
+      'DEBUG': 1,
+      'INFO': 2,
+      'WARN': 3,
+      'ERROR': 4
     }
   }
 
@@ -32,19 +37,23 @@ export class Logger {
 
 
   debug(message, pretty = false) {
-    this.write('DEBUG', message, pretty);
+    this.write(Logger.DEBUG, message, pretty);
   }
 
   info(message, pretty = false) {
-    this.write('INFO', message, pretty);
+    this.write(Logger.INFO, message, pretty);
   }
 
   warn(message, pretty = false) {
-    this.write('WARN', message, pretty);
+    this.write(Logger.WARN, message, pretty);
   }
 
   error(message, pretty = false) {
-    this.write('ERROR', message, pretty);
+    this.write(Logger.ERROR, message, pretty);
+  }
+
+  trace(message, pretty = false) {
+    this.write(Logger.TRACE, message, pretty);
   }
 
   write(level, message, pretty) {
@@ -56,13 +65,13 @@ export class Logger {
       } else {
         message = JSON.stringify(message);
       }
-      if (this.logLevel === 'DEBUG') {
+      if (this.logLevel === Logger.DEBUG || this.logLevel === Logger.TRACE) {
         level = `${level}:${this.className}:`;
       }
       console.log(level);
       console.log(message);
     } else {
-      if (this.logLevel === 'DEBUG') {
+      if (this.logLevel === Logger.DEBUG || this.logLevel === Logger.TRACE) {
         console.log(`${level}:${this.className}: ${message}`);
       } else {
         console.log(`${level}: ${message}`);

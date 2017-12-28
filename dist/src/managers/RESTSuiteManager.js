@@ -55,7 +55,7 @@ var RESTSuiteManager = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        this.logger.debug("runRESTApiTestSets " + currentEnv.suiteID + " " + currentEnv.suiteEnvID);
+                        this.logger.trace("runRESTApiTestSets " + currentEnv.suiteID + " " + currentEnv.suiteEnvID);
                         testSetPromises = _.map(currentEnv.testSets.values(), function (testSet) {
                             return _this.runRESTApiTestSet(currentEnv, testSet);
                         });
@@ -72,7 +72,7 @@ var RESTSuiteManager = /** @class */ (function () {
                         return [3 /*break*/, 4];
                     case 4:
                         if (testSetErr) {
-                            this.logger.debug("runRESTApiTestSets ERROR encountered while running testSetPromises");
+                            this.logger.trace("runRESTApiTestSets ERROR encountered while running testSetPromises");
                             reject(testSetErr);
                         }
                         else {
@@ -87,7 +87,7 @@ var RESTSuiteManager = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
             return __generator(this, function (_a) {
-                this.logger.debug("runRESTApiTestSet " + currentEnv.ports + " " + testSet.id);
+                this.logger.trace("runRESTApiTestSet " + currentEnv.ports + " " + testSet.id);
                 return [2 /*return*/, new Promise(function (resolve, reject) {
                         // build api test functions
                         if (!testSet.tests) {
@@ -108,8 +108,8 @@ var RESTSuiteManager = /** @class */ (function () {
                                 tests: testResults
                             };
                             if (err2) {
-                                _this.logger.debug('runRESTApiTestSet ERROR while running tests');
-                                _this.logger.debug(err2);
+                                _this.logger.trace('runRESTApiTestSet ERROR while running tests');
+                                _this.logger.trace(err2);
                                 reject(err2);
                             }
                             else {
@@ -122,8 +122,8 @@ var RESTSuiteManager = /** @class */ (function () {
     };
     RESTSuiteManager.prototype.buildTestTasks = function (currentEnv, testSet) {
         var _this = this;
-        this.logger.debug("RESTSuiteManager:buildTestTasks <testSet> " + currentEnv.ports);
-        this.logger.debug(testSet);
+        this.logger.trace("RESTSuiteManager:buildTestTasks <testSet> " + currentEnv.ports);
+        this.logger.trace(testSet);
         return testSet.tests.map(function (test, i) {
             return function (cb) {
                 if (!test.request) {
@@ -133,7 +133,7 @@ var RESTSuiteManager = /** @class */ (function () {
                 // build request
                 var port = currentEnv.ports[0]; // the REST api port should be passed first in the userConfigFile.
                 var opts = _this.restClient.buildRequest(test.request, port);
-                _this.logger.debug(opts);
+                _this.logger.trace(opts);
                 // figure out if this test is running at a specific index. (just nice for consoling)
                 var testIndex;
                 if (_.isUndefined(test.testSet)) {
@@ -167,7 +167,7 @@ var RESTSuiteManager = /** @class */ (function () {
         });
     };
     RESTSuiteManager.prototype.validateTestResult = function (test, reqOpts, res, body, cb) {
-        this.logger.debug("validateTestResult");
+        this.logger.trace("validateTestResult");
         // validate results
         var testResult = {
             id: test.id,

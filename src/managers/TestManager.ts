@@ -21,25 +21,25 @@ export class TestManager {
   }
 
   buildTestSuiteTasks() {
-    this.logger.debug('buildTestSuiteTasks');
+    this.logger.trace('buildTestSuiteTasks');
     let conf = this.conf;
     conf.parsedTestSuites.forEach((testSuite, suiteID) => {
       if (testSuite.skip) { return; }
       // parse the envs of this TestSuite
       this.testSuiteTasks[suiteID] = { envTasks: [] };
       //conf.parsedTestSuites[suiteID].envTasks = [];
-      this.logger.debug(suiteID);
-      this.logger.debug(testSuite);
-      this.logger.debug(`Processing ${suiteID} : type = ${testSuite.type}`);
+      this.logger.trace(suiteID);
+      this.logger.trace(testSuite);
+      this.logger.trace(`Processing ${suiteID} : type = ${testSuite.type}`);
       testSuite.testEnvs.forEach((testEnv, suiteEnvID) => {
-        this.logger.debug(testEnv);
+        this.logger.trace(testEnv);
 
         if (testSuite.type === 'USER_PROVIDED') {
           this.testSuiteTasks[suiteID].envTasks.push(this.buildTestEnvTask(suiteID, testEnv.suiteEnvID));
         } else if (testSuite.type === 'REST' || _.isUndefined(testSuite.type)) {
           // 1. make sure testSets exist for this testEnv
           if (_.isEmpty(testEnv.testSets)) {
-            this.logger.debug(`testEnv ${testEnv.suiteEnvID} contains 0 testSets. skipping`);
+            this.logger.trace(`testEnv ${testEnv.suiteEnvID} contains 0 testSets. skipping`);
             return;
           }
           // 2. confirm the testSet contains tests
@@ -51,7 +51,7 @@ export class TestManager {
             }
           });
           if (!hasTests) {
-            this.logger.debug(`testEnv ${testEnv.suiteEnvID} contains 0 tests. skipping`);
+            this.logger.trace(`testEnv ${testEnv.suiteEnvID} contains 0 tests. skipping`);
             return;
           }
 
@@ -62,7 +62,7 @@ export class TestManager {
   }
 
   buildRESTTestEnvTask(suiteID, suiteEnvID) {
-    this.logger.debug(`buildRESTTestEnvTask ${suiteID} ${suiteEnvID}`);
+    this.logger.trace(`buildRESTTestEnvTask ${suiteID} ${suiteEnvID}`);
 
     let generatedEnvID: string;
     return (cb) => {
@@ -98,7 +98,6 @@ export class TestManager {
             });
         })
         .catch((err) => {
-          console.trace();
           this.logger.error("buildRESTTestEnvTask: Error Encountered While Running Tests");
           this.logger.error(err);
           this.envManager.stop(generatedEnvID)
@@ -116,7 +115,7 @@ export class TestManager {
     TODO: use the GenericSuiteManager to kick off tests
   */
   buildTestEnvTask(suiteID, suiteEnvID) {
-    this.logger.debug(`buildTestEnvTask ${suiteID} ${suiteEnvID}`);
+    this.logger.trace(`buildTestEnvTask ${suiteID} ${suiteEnvID}`);
 
     let generatedEnvID = this.envManager.generateId();
     return (cb) => {
@@ -132,14 +131,14 @@ export class TestManager {
 
       buildEnvFn()
         .then((testSetResults) => {
-          this.logger.debug("TEST SET SUCCESS");
+          this.logger.trace("TEST SET SUCCESS");
           this.envManager.stop(generatedEnvID)
             .then(() => { cb(null, testSetResults); })
             .catch((err) => { cb(err); });
         })
         .catch((err) => {
-          this.logger.debug("buildTestEnvTask: ERROR CAUGHT WHILE RUNNING TEST SETS");
-          this.logger.debug(err);
+          this.logger.error("buildTestEnvTask: ERROR CAUGHT WHILE RUNNING TEST SETS");
+          this.logger.error(err);
           this.envManager.stop(generatedEnvID)
             .then(() => { cb(err); })
             .catch((err2) => cb(err2));
