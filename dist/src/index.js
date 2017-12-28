@@ -95,7 +95,6 @@ Commander
         logger.error("No TestSuite with the id " + options.testSuite + " could be identified, exiting");
         return;
     }
-    testSuite.cmdOpts = options;
     new MockServer_1.MockServer(testSuite, conf);
 });
 Commander

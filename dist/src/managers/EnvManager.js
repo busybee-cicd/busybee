@@ -35,10 +35,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var util = require("util");
 var child_process_1 = require("child_process");
-var execFileCmd = util.promisify(child_process_1.execFile);
-var uuidv1 = require("uuid/v1");
+var uuid = require("uuid");
 var path = require("path");
 var _ = require("lodash");
 var _async = require("async");
@@ -130,7 +128,7 @@ var EnvManager = /** @class */ (function () {
     }
     */
     EnvManager.prototype.buildHosts = function (conf) {
-        this.logger.debug("buildHostConfs");
+        this.logger.trace("buildHostConfs");
         // TODO add back
         // if (!conf.envResources.hosts) {
         //   this.logger.info("No host information provided. Only generatedEnvID info will be passed to scripts");
@@ -155,14 +153,14 @@ var EnvManager = /** @class */ (function () {
                 });
             });
         }
-        this.logger.debug(hosts, true);
+        this.logger.trace(hosts, true);
         return hosts;
     };
     EnvManager.prototype.stop = function (generatedEnvID) {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
             return __generator(this, function (_a) {
-                this.logger.debug("stop " + generatedEnvID);
+                this.logger.trace("stop " + generatedEnvID);
                 return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
                         var envInfo, ports, busybeeDir, args, filePath, e_1;
                         return __generator(this, function (_a) {
@@ -175,8 +173,8 @@ var EnvManager = /** @class */ (function () {
                                         return [2 /*return*/, Promise.resolve()];
                                     }
                                     this.logger.info("Stopping Environment: " + envInfo.suiteEnvID + " " + generatedEnvID);
-                                    this.logger.debug('envInfo');
-                                    this.logger.debug(envInfo);
+                                    this.logger.trace('envInfo');
+                                    this.logger.trace(envInfo);
                                     ports = this.currentHosts[envInfo.hostName].envs[generatedEnvID].ports;
                                     busybeeDir = this.conf.filePaths.busybeeDir;
                                     args = {
@@ -187,9 +185,9 @@ var EnvManager = /** @class */ (function () {
                                         busybeeDir: busybeeDir
                                     };
                                     filePath = path.join(busybeeDir, envInfo.stopScript);
-                                    this.logger.debug(filePath);
-                                    this.logger.debug('scriptArgs');
-                                    this.logger.debug(args, true);
+                                    this.logger.trace(filePath);
+                                    this.logger.trace('scriptArgs');
+                                    this.logger.trace(args, true);
                                     _a.label = 1;
                                 case 1:
                                     _a.trys.push([1, 3, , 4]);
@@ -204,8 +202,8 @@ var EnvManager = /** @class */ (function () {
                                     this.currentHosts[envInfo.hostName].load -= envInfo.resourceCost;
                                     // remove the env from the currentHosts
                                     delete this.currentHosts[envInfo.hostName].envs[generatedEnvID];
-                                    this.logger.debug('this.currentHosts');
-                                    this.logger.debug(this.currentHosts, true);
+                                    this.logger.trace('this.currentHosts');
+                                    this.logger.trace(this.currentHosts, true);
                                     resolve();
                                     return [3 /*break*/, 4];
                                 case 3:
@@ -226,15 +224,15 @@ var EnvManager = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
             return __generator(this, function (_a) {
-                this.logger.debug('stopAll');
+                this.logger.trace('stopAll');
                 return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
                         var _this = this;
                         var stopFns, e_2;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
-                                    this.logger.debug('currentEnvs');
-                                    this.logger.debug(this.currentEnvs);
+                                    this.logger.trace('currentEnvs');
+                                    this.logger.trace(this.currentEnvs);
                                     stopFns = [];
                                     this.currentEnvs.forEach(function (envConf, generatedEnvID) {
                                         stopFns.push(_this.stop.call(_this, generatedEnvID));
@@ -257,6 +255,135 @@ var EnvManager = /** @class */ (function () {
                     }); })];
             });
         });
+    };
+    EnvManager.prototype.start = function (generatedEnvID, suiteID, suiteEnvID) {
+        return __awaiter(this, void 0, void 0, function () {
+            var e_3, e_4, e_5;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        this.envsWaitingForProvision.push(generatedEnvID);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, this.waitForTurn(generatedEnvID)];
+                    case 2:
+                        _a.sent();
+                        return [3 /*break*/, 4];
+                    case 3:
+                        e_3 = _a.sent();
+                        throw new Error(generatedEnvID + " failed to wait it's turn");
+                    case 4:
+                        _a.trys.push([4, 6, , 7]);
+                        return [4 /*yield*/, this.provisionEnv(generatedEnvID, suiteID, suiteEnvID)];
+                    case 5:
+                        _a.sent();
+                        return [3 /*break*/, 7];
+                    case 6:
+                        e_4 = _a.sent();
+                        throw new Error(generatedEnvID + " failed provision");
+                    case 7:
+                        this.envsWaitingForProvision.shift();
+                        this.logger.trace("envsWaitingForProvision updated to " + this.envsWaitingForProvision);
+                        _a.label = 8;
+                    case 8:
+                        _a.trys.push([8, 10, , 11]);
+                        return [4 /*yield*/, this.confirmHealthcheck(generatedEnvID)];
+                    case 9:
+                        _a.sent();
+                        return [3 /*break*/, 11];
+                    case 10:
+                        e_5 = _a.sent();
+                        throw new Error(generatedEnvID + " failed to confirm the healthcheck");
+                    case 11: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    EnvManager.prototype.waitForTurn = function (generatedEnvID) {
+        return __awaiter(this, void 0, void 0, function () {
+            var _this = this;
+            return __generator(this, function (_a) {
+                return [2 /*return*/, new Promise(function (resolve) {
+                        var wait = function (timeout, cb) {
+                            _this.logger.trace("this.envsWaitingForProvision " + _this.envsWaitingForProvision);
+                            if (_this.envsWaitingForProvision[0] != generatedEnvID) {
+                                _this.logger.trace(generatedEnvID + " waiting its turn");
+                                setTimeout(function () { wait(timeout, cb); }, timeout);
+                            }
+                            else {
+                                cb();
+                            }
+                        };
+                        wait(3000, function () {
+                            resolve();
+                        });
+                    })];
+            });
+        });
+    };
+    EnvManager.prototype.provisionEnv = function (generatedEnvID, suiteID, suiteEnvID) {
+        var _this = this;
+        return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
+            var skipEnvProvisioning, testSuiteConf, hostName, ports, busybeeDir, args, err_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        this.logger.trace("provisionEnv " + generatedEnvID + " " + suiteID + " " + suiteEnvID);
+                        this.logger.trace('currentHosts');
+                        this.logger.trace(this.currentHosts, true);
+                        skipEnvProvisioning = false;
+                        if (this.skipEnvProvisioningList && (this.skipEnvProvisioningList.indexOf(suiteID) !== -1)) {
+                            skipEnvProvisioning = true;
+                            this.logger.info("Skipping Environment provisioning for Test Suite '" + suiteID + "'");
+                        }
+                        else {
+                            this.logger.info("Starting Environment: " + suiteEnvID + " - " + generatedEnvID);
+                        }
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 6, , 7]);
+                        testSuiteConf = this.conf.parsedTestSuites.get(suiteID);
+                        return [4 /*yield*/, this.getAvailableHostName(suiteID, suiteEnvID, generatedEnvID)];
+                    case 2:
+                        hostName = _a.sent();
+                        ports = void 0;
+                        if (!testSuiteConf.ports) return [3 /*break*/, 4];
+                        return [4 /*yield*/, this.getAvailablePorts(hostName, suiteID, generatedEnvID)];
+                    case 3:
+                        // 2. identify the ports that this env should use on this host
+                        ports = _a.sent();
+                        _a.label = 4;
+                    case 4:
+                        if (skipEnvProvisioning) {
+                            resolve(generatedEnvID);
+                            return [2 /*return*/];
+                        }
+                        busybeeDir = this.conf.filePaths.busybeeDir;
+                        args = {
+                            generatedEnvID: generatedEnvID,
+                            protocol: testSuiteConf.protocol,
+                            hostName: hostName,
+                            ports: ports,
+                            busybeeDir: busybeeDir
+                        };
+                        this.logger.trace('script args');
+                        this.logger.trace(testSuiteConf.env.startScript);
+                        this.logger.trace(args);
+                        return [4 /*yield*/, this.runScript(path.join(busybeeDir, testSuiteConf.env.startScript), [JSON.stringify(args)])];
+                    case 5:
+                        _a.sent();
+                        this.logger.info(generatedEnvID + " created.");
+                        resolve(generatedEnvID);
+                        return [3 /*break*/, 7];
+                    case 6:
+                        err_1 = _a.sent();
+                        reject(err_1);
+                        return [3 /*break*/, 7];
+                    case 7: return [2 /*return*/];
+                }
+            });
+        }); });
     };
     EnvManager.prototype.runScript = function (path, args) {
         var _this = this;
@@ -309,143 +436,8 @@ var EnvManager = /** @class */ (function () {
             });
         }); });
     };
-    EnvManager.prototype.start = function (generatedEnvID, suiteID, suiteEnvID) {
-        return __awaiter(this, void 0, void 0, function () {
-            var e_3, e_4, e_5;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        this.envsWaitingForProvision.push(generatedEnvID);
-                        _a.label = 1;
-                    case 1:
-                        _a.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, this.waitForTurn(generatedEnvID)];
-                    case 2:
-                        _a.sent();
-                        return [3 /*break*/, 4];
-                    case 3:
-                        e_3 = _a.sent();
-                        throw new Error(generatedEnvID + " failed to wait it's turn");
-                    case 4:
-                        _a.trys.push([4, 6, , 7]);
-                        return [4 /*yield*/, this.provisionEnv(generatedEnvID, suiteID, suiteEnvID)];
-                    case 5:
-                        _a.sent();
-                        return [3 /*break*/, 7];
-                    case 6:
-                        e_4 = _a.sent();
-                        throw new Error(generatedEnvID + " failed provision");
-                    case 7:
-                        this.envsWaitingForProvision.shift();
-                        this.logger.debug("envsWaitingForProvision updated to " + this.envsWaitingForProvision);
-                        _a.label = 8;
-                    case 8:
-                        _a.trys.push([8, 10, , 11]);
-                        return [4 /*yield*/, this.confirmHealthcheck(generatedEnvID)];
-                    case 9:
-                        _a.sent();
-                        return [3 /*break*/, 11];
-                    case 10:
-                        e_5 = _a.sent();
-                        throw new Error(generatedEnvID + " failed to confirm the healthcheck");
-                    case 11: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    EnvManager.prototype.waitForTurn = function (generatedEnvID) {
-        return __awaiter(this, void 0, void 0, function () {
-            var _this = this;
-            return __generator(this, function (_a) {
-                return [2 /*return*/, new Promise(function (resolve) {
-                        var wait = function (timeout, cb) {
-                            _this.logger.debug("this.envsWaitingForProvision " + _this.envsWaitingForProvision);
-                            if (_this.envsWaitingForProvision[0] != generatedEnvID) {
-                                _this.logger.debug(generatedEnvID + " waiting its turn");
-                                setTimeout(function () { wait(timeout, cb); }, timeout);
-                            }
-                            else {
-                                cb();
-                            }
-                        };
-                        wait(3000, function () {
-                            resolve();
-                        });
-                    })];
-            });
-        });
-    };
-    EnvManager.prototype.provisionEnv = function (generatedEnvID, suiteID, suiteEnvID) {
-        var _this = this;
-        return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-            var skipEnvProvisioning, testSuiteConf, hostName, ports, busybeeDir, args, err_1;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        this.logger.debug("provisionEnv " + generatedEnvID + " " + suiteID + " " + suiteEnvID);
-                        this.logger.debug('currentHosts');
-                        this.logger.debug(this.currentHosts, true);
-                        skipEnvProvisioning = false;
-                        if (this.skipEnvProvisioningList && (this.skipEnvProvisioningList.indexOf(suiteID) !== -1)) {
-                            skipEnvProvisioning = true;
-                            this.logger.info("Skipping Environment provisioning for Test Suite '" + suiteID + "'");
-                        }
-                        else {
-                            this.logger.info("Starting Environment: " + suiteEnvID + " - " + generatedEnvID);
-                        }
-                        _a.label = 1;
-                    case 1:
-                        _a.trys.push([1, 6, , 7]);
-                        testSuiteConf = this.conf.parsedTestSuites.get(suiteID);
-                        return [4 /*yield*/, this.getAvailableHostName(suiteID, suiteEnvID, generatedEnvID)];
-                    case 2:
-                        hostName = _a.sent();
-                        ports = void 0;
-                        if (!testSuiteConf.ports) return [3 /*break*/, 4];
-                        return [4 /*yield*/, this.getAvailablePorts(hostName, suiteID, generatedEnvID)];
-                    case 3:
-                        // 2. identify the ports that this env should use on this host
-                        ports = _a.sent();
-                        _a.label = 4;
-                    case 4:
-                        if (skipEnvProvisioning) {
-                            resolve(generatedEnvID);
-                            return [2 /*return*/];
-                        }
-                        busybeeDir = this.conf.filePaths.busybeeDir;
-                        args = {
-                            generatedEnvID: generatedEnvID,
-                            protocol: testSuiteConf.protocol,
-                            hostName: hostName,
-                            ports: ports,
-                            busybeeDir: busybeeDir
-                        };
-                        this.logger.debug('script args');
-                        this.logger.debug(testSuiteConf.env.startScript);
-                        this.logger.debug(args);
-                        return [4 /*yield*/, this.runScript(path.join(busybeeDir, testSuiteConf.env.startScript), [JSON.stringify(args)])];
-                    case 5:
-                        _a.sent();
-                        // const { stdout, stderr } = await execFileCmd(, [JSON.stringify(args)], null);
-                        //
-                        //
-                        // if (stderr) {
-                        //   return reject(stderr);
-                        // }
-                        this.logger.info(generatedEnvID + " created.");
-                        resolve(generatedEnvID);
-                        return [3 /*break*/, 7];
-                    case 6:
-                        err_1 = _a.sent();
-                        reject(err_1);
-                        return [3 /*break*/, 7];
-                    case 7: return [2 /*return*/];
-                }
-            });
-        }); });
-    };
     EnvManager.prototype.generateId = function () {
-        return uuidv1();
+        return uuid.v1();
     };
     EnvManager.prototype.shouldSkipProvisioning = function (suiteID) {
         return this.skipEnvProvisioningList && (this.skipEnvProvisioningList.indexOf(suiteID) !== -1);
@@ -458,12 +450,12 @@ var EnvManager = /** @class */ (function () {
             var _this = this;
             return __generator(this, function (_a) {
                 return [2 /*return*/, new Promise(function (resolve, reject) {
-                        _this.logger.debug("getAvailableHostName " + suiteID + " | " + suiteEnvID + " | " + generatedEnvID);
-                        _this.logger.debug(_this.conf.parsedTestSuites.get(suiteID));
+                        _this.logger.trace("getAvailableHostName " + suiteID + " | " + suiteEnvID + " | " + generatedEnvID);
+                        _this.logger.trace(_this.conf.parsedTestSuites.get(suiteID));
                         var suiteConf = _this.conf.parsedTestSuites.get(suiteID);
                         var cost = suiteConf.env.resourceCost || 0;
                         var identifyHost = function (cb) {
-                            _this.logger.debug("identifyHost");
+                            _this.logger.trace("identifyHost");
                             if (_this.shouldSkipProvisioning(suiteID)) {
                                 if (suiteConf.host) {
                                     return cb(suiteConf.host);
@@ -479,8 +471,8 @@ var EnvManager = /** @class */ (function () {
                                     remainingCapacity: hostInfo.capacity - hostInfo.load
                                 };
                             });
-                            _this.logger.debug('Hosts with capacity');
-                            _this.logger.debug(capacityHosts, true);
+                            _this.logger.trace('Hosts with capacity');
+                            _this.logger.trace(capacityHosts, true);
                             // 2. order hosts by remainingCapacity
                             var freestHost = _.orderBy(capacityHosts, ['remainingCapacity'], 'desc')[0];
                             _this.logger.info(generatedEnvID + " Host with most capacity is " + freestHost.name);
@@ -494,8 +486,8 @@ var EnvManager = /** @class */ (function () {
                             }
                         };
                         identifyHost(function (hostName) {
-                            _this.logger.debug('currentHosts');
-                            _this.logger.debug(_this.currentHosts, true);
+                            _this.logger.trace('currentHosts');
+                            _this.logger.trace(_this.currentHosts, true);
                             // 1. add the load to the host to reserve it;
                             _this.currentHosts[hostName].load += cost;
                             // 2. add an entry for this env on this host (may get ports added in the next step)
@@ -503,8 +495,8 @@ var EnvManager = /** @class */ (function () {
                             // 3. add this env to the currentEnvs object
                             var envInfo = new SuiteEnvInfo_1.SuiteEnvInfo(suiteConf, suiteID, suiteEnvID, cost, hostName);
                             _this.currentEnvs.set(generatedEnvID, envInfo);
-                            _this.logger.debug('currentHosts updated');
-                            _this.logger.debug(_this.currentHosts, true);
+                            _this.logger.trace('currentHosts updated');
+                            _this.logger.trace(_this.currentHosts, true);
                             resolve(hostName);
                         });
                     })];
@@ -521,7 +513,7 @@ var EnvManager = /** @class */ (function () {
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        this.logger.debug("getAvailablePorts " + hostName + " | " + suiteID + " | " + generatedEnvID);
+                        this.logger.trace("getAvailablePorts " + hostName + " | " + suiteID + " | " + generatedEnvID);
                         hostConf = Object.assign({}, this.currentHosts[hostName]);
                         suiteConf = this.conf.parsedTestSuites.get(suiteID);
                         if (this.shouldSkipProvisioning(suiteID)) {
@@ -536,8 +528,8 @@ var EnvManager = /** @class */ (function () {
                         return [4 /*yield*/, this.getReservedBusybeePorts(hostConf)];
                     case 2:
                         portsInUse = _b.sent();
-                        this.logger.debug('portsInUse');
-                        this.logger.debug(portsInUse);
+                        this.logger.trace('portsInUse');
+                        this.logger.trace(portsInUse);
                         parallelMode = false;
                         if (suiteConf.env && suiteConf.env.parallel) {
                             parallelMode = suiteConf.env.parallel;
@@ -568,15 +560,15 @@ var EnvManager = /** @class */ (function () {
     EnvManager.prototype.getReservedBusybeePorts = function (hostConf) {
         var _this = this;
         return new Promise(function (resolve, reject) {
-            _this.logger.debug("getReservedBusybeePorts");
-            _this.logger.debug(hostConf);
+            _this.logger.trace("getReservedBusybeePorts");
+            _this.logger.trace(hostConf);
             var portsInUse = [];
             _.forEach(hostConf.envs, function (envInfo, generatedEnvID) {
-                _this.logger.debug("envInfo");
-                _this.logger.debug(envInfo);
+                _this.logger.trace("envInfo");
+                _this.logger.trace(envInfo);
                 if (envInfo.ports) {
                     envInfo.ports.forEach(function (port) {
-                        _this.logger.debug("port in use " + port);
+                        _this.logger.trace("port in use " + port);
                         portsInUse.push(port);
                     });
                 }
@@ -602,12 +594,12 @@ var EnvManager = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        this.logger.debug("identifyPorts: " + generatedEnvID + " " + hostName + ", " + portsInUse + ", " + nextPorts + ", " + portOffset + ", " + parallelMode);
+                        this.logger.trace("identifyPorts: " + generatedEnvID + " " + hostName + ", " + portsInUse + ", " + nextPorts + ", " + portOffset + ", " + parallelMode);
                         return [4 /*yield*/, this.arePortsInUseByBusybee(portsInUse, nextPorts)];
                     case 1:
                         portsInUseByBusybee = _a.sent();
-                        this.logger.debug("portsInUseByBusybee: " + portsInUseByBusybee);
-                        this.logger.debug("parallelMode: " + parallelMode);
+                        this.logger.trace("portsInUseByBusybee: " + portsInUseByBusybee);
+                        this.logger.trace("parallelMode: " + parallelMode);
                         if (!parallelMode) return [3 /*break*/, 8];
                         if (!portsInUseByBusybee) return [3 /*break*/, 3];
                         oldPorts = nextPorts;
@@ -629,12 +621,12 @@ var EnvManager = /** @class */ (function () {
                             ports: nextPorts,
                             portOffset: portOffset
                         };
-                        this.logger.debug("ports identified: " + JSON.stringify(ret));
+                        this.logger.trace("ports identified: " + JSON.stringify(ret));
                         return [2 /*return*/, ret];
                     case 7: return [3 /*break*/, 14];
                     case 8:
                         if (!portsInUseByBusybee) return [3 /*break*/, 10];
-                        this.logger.debug("parallelMode:false. Ports in use by Busybee, retrying...");
+                        this.logger.trace("parallelMode:false. Ports in use by Busybee, retrying...");
                         this.logger.info(generatedEnvID + " Ports in use by Busybee, retrying " + nextPorts);
                         return [4 /*yield*/, this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset, parallelMode)];
                     case 9: return [2 /*return*/, _a.sent()];
@@ -651,7 +643,7 @@ var EnvManager = /** @class */ (function () {
                             ports: nextPorts,
                             portOffset: portOffset
                         };
-                        this.logger.debug("ports identified: " + JSON.stringify(ret));
+                        this.logger.trace("ports identified: " + JSON.stringify(ret));
                         return [2 /*return*/, ret];
                     case 14: return [2 /*return*/];
                 }
@@ -665,7 +657,7 @@ var EnvManager = /** @class */ (function () {
     EnvManager.prototype.arePortsInUseByBusybee = function (portsInUse, ports) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                this.logger.debug("arePortsInUseByBusybee " + portsInUse + " | " + ports);
+                this.logger.trace("arePortsInUseByBusybee " + portsInUse + " | " + ports);
                 return [2 /*return*/, _.difference(ports, portsInUse).length < ports.length];
             });
         });
@@ -680,7 +672,7 @@ var EnvManager = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        this.logger.debug("arePortsTaken " + hostName + " " + ports);
+                        this.logger.trace("arePortsTaken " + hostName + " " + ports);
                         takenPorts = [];
                         portCheckPromises = ports.map(function (p) {
                             return _this.isPortTaken(hostName, p);
@@ -699,17 +691,17 @@ var EnvManager = /** @class */ (function () {
     EnvManager.prototype.isPortTaken = function (hostName, port) {
         var _this = this;
         return new Promise(function (resolve, reject) {
-            _this.logger.debug("isPortTaken " + hostName + " " + port);
+            _this.logger.trace("isPortTaken " + hostName + " " + port);
             portscanner.checkPortStatus(port, hostName, function (err, status) {
                 // Status is 'open' if currently in use or 'closed' if available
                 if (err)
                     return reject(err);
                 if (status === 'open') {
-                    _this.logger.debug(port + " is in use");
+                    _this.logger.trace(port + " is in use");
                     resolve(true);
                 }
                 else {
-                    _this.logger.debug(port + " is available");
+                    _this.logger.trace(port + " is available");
                     resolve(false);
                 }
             });
@@ -721,9 +713,9 @@ var EnvManager = /** @class */ (function () {
     EnvManager.prototype.confirmHealthcheck = function (generatedEnvID) {
         var _this = this;
         return new Promise(function (resolve, reject) {
-            _this.logger.debug("confirmHealthcheck " + generatedEnvID);
+            _this.logger.trace("confirmHealthcheck " + generatedEnvID);
             var suiteEnvConf = _this.currentEnvs.get(generatedEnvID); // current-env-specific conf
-            _this.logger.debug(suiteEnvConf);
+            _this.logger.trace(suiteEnvConf);
             var healthcheckConf = suiteEnvConf.healthcheck;
             if (!healthcheckConf) {
                 _this.logger.info("No Healthcheck provided. Moving on.");
@@ -762,7 +754,7 @@ var EnvManager = /** @class */ (function () {
                             asyncCb(null, true);
                         }
                         else {
-                            _this.logger.debug("Healthcheck returned: " + res.statusCode);
+                            _this.logger.trace("Healthcheck returned: " + res.statusCode);
                             asyncCb("Healthcheck failed for " + generatedEnvID);
                         }
                     });

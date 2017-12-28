@@ -25,7 +25,7 @@ export class RESTClient {
   }
 
   buildBaseUrl(requestConf, port) {
-    this.logger.debug('buildBaseUrl');
+    this.logger.trace('buildBaseUrl');
     let protocol = this.suiteEnvConf.protocol;
     let hostName = this.suiteEnvConf.hostName;
 
@@ -49,8 +49,8 @@ export class RESTClient {
   }
 
   buildRequest(requestConf: RequestOptsConfig, port: number) {
-    this.logger.debug(`buildRequestUrl <requestConf> ${port}`);
-    this.logger.debug(requestConf);
+    this.logger.trace(`buildRequestUrl <requestConf> ${port}`);
+    this.logger.trace(requestConf);
 
     let url = this.buildBaseUrl(requestConf, port);
     if (requestConf.endpoint) {
@@ -75,8 +75,8 @@ export class RESTClient {
 
   makeRequest(opts, cb: (err: Error, res: IncomingMessage, body: any) => void ) {
     // run the test
-    this.logger.debug('Request opts');
-    this.logger.debug(opts);
+    this.logger.trace('Request opts');
+    this.logger.trace(opts);
     this.apiRequest(opts, cb);
   }
 }

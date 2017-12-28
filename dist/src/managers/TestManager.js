@@ -48,7 +48,7 @@ var TestManager = /** @class */ (function () {
     }
     TestManager.prototype.buildTestSuiteTasks = function () {
         var _this = this;
-        this.logger.debug('buildTestSuiteTasks');
+        this.logger.trace('buildTestSuiteTasks');
         var conf = this.conf;
         conf.parsedTestSuites.forEach(function (testSuite, suiteID) {
             if (testSuite.skip) {
@@ -57,18 +57,18 @@ var TestManager = /** @class */ (function () {
             // parse the envs of this TestSuite
             _this.testSuiteTasks[suiteID] = { envTasks: [] };
             //conf.parsedTestSuites[suiteID].envTasks = [];
-            _this.logger.debug(suiteID);
-            _this.logger.debug(testSuite);
-            _this.logger.debug("Processing " + suiteID + " : type = " + testSuite.type);
+            _this.logger.trace(suiteID);
+            _this.logger.trace(testSuite);
+            _this.logger.trace("Processing " + suiteID + " : type = " + testSuite.type);
             testSuite.testEnvs.forEach(function (testEnv, suiteEnvID) {
-                _this.logger.debug(testEnv);
+                _this.logger.trace(testEnv);
                 if (testSuite.type === 'USER_PROVIDED') {
                     _this.testSuiteTasks[suiteID].envTasks.push(_this.buildTestEnvTask(suiteID, testEnv.suiteEnvID));
                 }
                 else if (testSuite.type === 'REST' || _.isUndefined(testSuite.type)) {
                     // 1. make sure testSets exist for this testEnv
                     if (_.isEmpty(testEnv.testSets)) {
-                        _this.logger.debug("testEnv " + testEnv.suiteEnvID + " contains 0 testSets. skipping");
+                        _this.logger.trace("testEnv " + testEnv.suiteEnvID + " contains 0 testSets. skipping");
                         return;
                     }
                     // 2. confirm the testSet contains tests
@@ -80,7 +80,7 @@ var TestManager = /** @class */ (function () {
                         }
                     });
                     if (!hasTests_1) {
-                        _this.logger.debug("testEnv " + testEnv.suiteEnvID + " contains 0 tests. skipping");
+                        _this.logger.trace("testEnv " + testEnv.suiteEnvID + " contains 0 tests. skipping");
                         return;
                     }
                     _this.testSuiteTasks[suiteID].envTasks.push(_this.buildRESTTestEnvTask(suiteID, testEnv.suiteEnvID));
@@ -90,7 +90,7 @@ var TestManager = /** @class */ (function () {
     };
     TestManager.prototype.buildRESTTestEnvTask = function (suiteID, suiteEnvID) {
         var _this = this;
-        this.logger.debug("buildRESTTestEnvTask " + suiteID + " " + suiteEnvID);
+        this.logger.trace("buildRESTTestEnvTask " + suiteID + " " + suiteEnvID);
         var generatedEnvID;
         return function (cb) {
             var currentEnv;
@@ -131,7 +131,6 @@ var TestManager = /** @class */ (function () {
                 });
             })
                 .catch(function (err) {
-                console.trace();
                 _this.logger.error("buildRESTTestEnvTask: Error Encountered While Running Tests");
                 _this.logger.error(err);
                 _this.envManager.stop(generatedEnvID)
@@ -149,7 +148,7 @@ var TestManager = /** @class */ (function () {
     */
     TestManager.prototype.buildTestEnvTask = function (suiteID, suiteEnvID) {
         var _this = this;
-        this.logger.debug("buildTestEnvTask " + suiteID + " " + suiteEnvID);
+        this.logger.trace("buildTestEnvTask " + suiteID + " " + suiteEnvID);
         var generatedEnvID = this.envManager.generateId();
         return function (cb) {
             var buildEnvFn = function () { return __awaiter(_this, void 0, void 0, function () {
@@ -170,14 +169,14 @@ var TestManager = /** @class */ (function () {
             }); };
             buildEnvFn()
                 .then(function (testSetResults) {
-                _this.logger.debug("TEST SET SUCCESS");
+                _this.logger.trace("TEST SET SUCCESS");
                 _this.envManager.stop(generatedEnvID)
                     .then(function () { cb(null, testSetResults); })
                     .catch(function (err) { cb(err); });
             })
                 .catch(function (err) {
-                _this.logger.debug("buildTestEnvTask: ERROR CAUGHT WHILE RUNNING TEST SETS");
-                _this.logger.debug(err);
+                _this.logger.error("buildTestEnvTask: ERROR CAUGHT WHILE RUNNING TEST SETS");
+                _this.logger.error(err);
                 _this.envManager.stop(generatedEnvID)
                     .then(function () { cb(err); })
                     .catch(function (err2) { return cb(err2); });

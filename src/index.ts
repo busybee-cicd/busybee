@@ -65,7 +65,6 @@ Commander
             return
         }
 
-        testSuite.cmdOpts = options;
         new MockServer(testSuite, conf);
     });
 
@@ -124,14 +123,14 @@ function initTests(conf: BusybeeParsedConfig) {
 
     // run the api tests
     // TODO: allow ordering of TestSuites and TestEnvs
-    let envTasks = [];
+    let envTasks:any[] = [];
     _.forEach(testManager.testSuiteTasks, (suiteTask) => {
         suiteTask.envTasks.forEach((envTask) => {
             envTasks.push(envTask);
         });
     });
 
-    _async.parallel(envTasks, (err, envResults) => {
+    _async.parallel(envTasks, (err, envResults:any[]) => {
         // group the result sets by their Suite
         let suiteResults = {};
 

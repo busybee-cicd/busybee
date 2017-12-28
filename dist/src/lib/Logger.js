@@ -5,13 +5,14 @@ var Logger = /** @class */ (function () {
     function Logger(conf, clazz) {
         this.conf = conf;
         this.className = clazz.constructor.name;
-        this.logLevel = conf.logLevel || 'INFO';
+        this.logLevel = conf.logLevel || Logger.INFO;
         this.logLevel = this.logLevel.toUpperCase();
         this.levelMap = {
-            'DEBUG': 0,
-            'INFO': 1,
-            'WARN': 2,
-            'ERROR': 3
+            'TRACE': 0,
+            'DEBUG': 1,
+            'INFO': 2,
+            'WARN': 3,
+            'ERROR': 4
         };
     }
     Logger.isLogLevel = function (val) {
@@ -22,19 +23,23 @@ var Logger = /** @class */ (function () {
     };
     Logger.prototype.debug = function (message, pretty) {
         if (pretty === void 0) { pretty = false; }
-        this.write('DEBUG', message, pretty);
+        this.write(Logger.DEBUG, message, pretty);
     };
     Logger.prototype.info = function (message, pretty) {
         if (pretty === void 0) { pretty = false; }
-        this.write('INFO', message, pretty);
+        this.write(Logger.INFO, message, pretty);
     };
     Logger.prototype.warn = function (message, pretty) {
         if (pretty === void 0) { pretty = false; }
-        this.write('WARN', message, pretty);
+        this.write(Logger.WARN, message, pretty);
     };
     Logger.prototype.error = function (message, pretty) {
         if (pretty === void 0) { pretty = false; }
-        this.write('ERROR', message, pretty);
+        this.write(Logger.ERROR, message, pretty);
+    };
+    Logger.prototype.trace = function (message, pretty) {
+        if (pretty === void 0) { pretty = false; }
+        this.write(Logger.TRACE, message, pretty);
     };
     Logger.prototype.write = function (level, message, pretty) {
         if (!this.passesLevel(level)) {
@@ -47,14 +52,14 @@ var Logger = /** @class */ (function () {
             else {
                 message = JSON.stringify(message);
             }
-            if (this.logLevel === 'DEBUG') {
+            if (this.logLevel === Logger.DEBUG || this.logLevel === Logger.TRACE) {
                 level = level + ":" + this.className + ":";
             }
             console.log(level);
             console.log(message);
         }
         else {
-            if (this.logLevel === 'DEBUG') {
+            if (this.logLevel === Logger.DEBUG || this.logLevel === Logger.TRACE) {
                 console.log(level + ":" + this.className + ": " + message);
             }
             else {
@@ -62,7 +67,12 @@ var Logger = /** @class */ (function () {
             }
         }
     };
-    Logger.validLevels = ['DEBUG', 'INFO', 'WARN', 'ERROR'];
+    Logger.TRACE = 'TRACE';
+    Logger.DEBUG = 'DEBUG';
+    Logger.INFO = 'INFO';
+    Logger.WARN = 'WARN';
+    Logger.ERROR = 'ERROR';
+    Logger.validLevels = [Logger.TRACE, Logger.DEBUG, Logger.INFO, Logger.WARN, Logger.ERROR];
     return Logger;
 }());
 exports.Logger = Logger;

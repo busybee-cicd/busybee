@@ -68,7 +68,7 @@ export class BusybeeParsedConfig {
   }
 
   parseTestSuites(userConf: BusybeeUserConfig, mode: string): TypedMap<ParsedTestSuite> {
-    this.logger.debug(`parseTestSuites`);
+    this.logger.trace(`parseTestSuites`);
     let parsedTestSuites = new TypedMap<ParsedTestSuite>();
     // see if the user specified to skip testSuites
 
@@ -82,17 +82,17 @@ export class BusybeeParsedConfig {
     } else {
       userConf.testSuites.forEach((testSuite) => {
         let suiteID = testSuite.id || uuidv1();
-        this.logger.debug(`suiteID: ${suiteID}`);
-        this.logger.debug(`skipTestSuites: ${JSON.stringify(this.skipTestSuites)}`);
+        this.logger.trace(`suiteID: ${suiteID}`);
+        this.logger.trace(`skipTestSuites: ${JSON.stringify(this.skipTestSuites)}`);
         if (_.find(this.skipTestSuites, (sID) => { return sID === suiteID; })) {
-          this.logger.debug(`Skipping testSuite: ${suiteID}`);
+          this.logger.trace(`Skipping testSuite: ${suiteID}`);
           return;
         }
 
         // parse this testSuite
         let parsedTestSuite = this.parseTestSuite(testSuite, mode);
         parsedTestSuites.set(parsedTestSuite.suiteID, parsedTestSuite);
-        this.logger.debug(parsedTestSuites);
+        this.logger.trace(parsedTestSuites);
       });
     }
 
@@ -100,7 +100,7 @@ export class BusybeeParsedConfig {
   }
 
   parseTestSuite(testSuite: TestSuiteConfig, mode: string): ParsedTestSuite {
-    this.logger.debug(`parseTestSuite ${testSuite.id} ${mode}`);
+    this.logger.trace(`parseTestSuite ${testSuite.id} ${mode}`);
 
     // create an id for this testSuite
     return new ParsedTestSuite(testSuite, mode, this.testSet2EnvMap, this.env2TestSuiteMap);
@@ -110,9 +110,9 @@ export class BusybeeParsedConfig {
     Discovers any test files, parses them, and inserts them into the testSuites/envs that they belong
    */
   parseTestFiles(parsedTestSuites: TypedMap<ParsedTestSuite>, mode: string) {
-      this.logger.debug(`parseTestFiles`);
-      this.logger.debug(this.env2TestSuiteMap, true);
-      this.logger.debug(this.testSet2EnvMap, true);
+      this.logger.trace(`parseTestFiles`);
+      this.logger.trace(this.env2TestSuiteMap, true);
+      this.logger.trace(this.testSet2EnvMap, true);
       // build up a list of testFolders
       let testFolders = [];
       parsedTestSuites.values().map(pst => {
@@ -147,7 +147,7 @@ export class BusybeeParsedConfig {
         }
 
         tests.forEach((test) => {
-          this.logger.debug(test);
+          this.logger.trace(test);
           test = new RESTTest(test);
           if (test.skip) { return; }
           if (mode === 'test') {
@@ -178,8 +178,8 @@ export class BusybeeParsedConfig {
               return;
             }
 
-            this.logger.debug(`testSetInfo`);
-            this.logger.debug(testSetInfo, true);
+            this.logger.trace(`testSetInfo`);
+            this.logger.trace(testSetInfo, true);
             let testEnvId = this.testSet2EnvMap.get(testSetInfo.id);
 
             // lookup the suite that this env is a member of
@@ -188,8 +188,8 @@ export class BusybeeParsedConfig {
               return;
             }
 
-            this.logger.debug(`testEnvId`);
-            this.logger.debug(testEnvId);
+            this.logger.trace(`testEnvId`);
+            this.logger.trace(testEnvId);
             let suiteID = this.env2TestSuiteMap.get(testEnvId);
             if (_.isUndefined(testSetInfo.index)) {
               // push it on the end
@@ -216,15 +216,16 @@ export class BusybeeParsedConfig {
 
   getLogLevel(cmdOpts: any) {
     let logLevel;
-    if (process.env.BUSYBEE_DEBUG) {
-      logLevel = 'DEBUG';
-    } else if (process.env.BUSYBEE_LOG_LEVEL) {
-      if (Logger.isLogLevel(process.env.BUSYBEE_LOG_LEVEL)) {
-        logLevel = process.env.BUSYBEE_LOG_LEVEL;
+
+    if (process.env['BUSYBEE_DEBUG']) {
+      logLevel = Logger.DEBUG;
+    } else if (process.env['BUSYBEE_LOG_LEVEL']) {
+      if (Logger.isLogLevel(process.env['BUSYBEE_LOG_LEVEL'])) {
+        logLevel = process.env['BUSYBEE_LOG_LEVEL'];
       }
     } else if (cmdOpts) {
       if (this.cmdOpts.debug) {
-        logLevel = 'DEBUG';
+        logLevel = Logger.DEBUG;
       } else if (cmdOpts.logLevel) {
         if (Logger.isLogLevel(cmdOpts.logLevel)) {
           logLevel = cmdOpts.logLevel;

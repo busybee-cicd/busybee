@@ -16,7 +16,7 @@ var RESTClient = /** @class */ (function () {
         }
     }
     RESTClient.prototype.buildBaseUrl = function (requestConf, port) {
-        this.logger.debug('buildBaseUrl');
+        this.logger.trace('buildBaseUrl');
         var protocol = this.suiteEnvConf.protocol;
         var hostName = this.suiteEnvConf.hostName;
         var url = protocol + "://" + hostName;
@@ -36,8 +36,8 @@ var RESTClient = /** @class */ (function () {
         return url;
     };
     RESTClient.prototype.buildRequest = function (requestConf, port) {
-        this.logger.debug("buildRequestUrl <requestConf> " + port);
-        this.logger.debug(requestConf);
+        this.logger.trace("buildRequestUrl <requestConf> " + port);
+        this.logger.trace(requestConf);
         var url = this.buildBaseUrl(requestConf, port);
         if (requestConf.endpoint) {
             if (requestConf.endpoint.startsWith("/")) {
@@ -59,8 +59,8 @@ var RESTClient = /** @class */ (function () {
     };
     RESTClient.prototype.makeRequest = function (opts, cb) {
         // run the test
-        this.logger.debug('Request opts');
-        this.logger.debug(opts);
+        this.logger.trace('Request opts');
+        this.logger.trace(opts);
         this.apiRequest(opts, cb);
     };
     return RESTClient;

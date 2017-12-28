@@ -45,7 +45,7 @@ var GenericSuiteManager = /** @class */ (function () {
         this.logger = new Logger_1.Logger(conf, this);
     }
     GenericSuiteManager.prototype.buildUrl = function (port) {
-        this.logger.debug("buildUrl " + port);
+        this.logger.trace("buildUrl " + port);
         var protocol = this.suiteEnvConf.protocol;
         var hostName = this.suiteEnvConf.hostName;
         var url = protocol + "://" + hostName;
@@ -63,8 +63,8 @@ var GenericSuiteManager = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        this.logger.debug("runTestSets " + this.suiteEnvConf.suiteID + " " + this.suiteEnvConf.suiteEnvID);
-                        this.logger.debug(this.suiteEnvConf, true);
+                        this.logger.trace("runTestSets " + this.suiteEnvConf.suiteID + " " + this.suiteEnvConf.suiteEnvID);
+                        this.logger.trace(this.suiteEnvConf, true);
                         testSetPromises = this.suiteEnvConf.testSets.values().map(function (testSet) {
                             return _this.runTestSet(testSet, generatedEnvID);
                         });
@@ -81,7 +81,7 @@ var GenericSuiteManager = /** @class */ (function () {
                         return [3 /*break*/, 4];
                     case 4:
                         if (testSetErr) {
-                            this.logger.debug("runTestSets ERROR encountered while running testSetPromises");
+                            this.logger.trace("runTestSets ERROR encountered while running testSetPromises");
                             reject(testSetErr);
                         }
                         else {
@@ -96,8 +96,8 @@ var GenericSuiteManager = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             var busybeeDir, scriptPath, args;
             return __generator(this, function (_a) {
-                this.logger.debug("runTestSet | " + this.suiteEnvConf.suiteID + " | " + this.suiteEnvConf.suiteEnvID + " | " + testSet.id);
-                this.logger.debug(testSet, true);
+                this.logger.trace("runTestSet | " + this.suiteEnvConf.suiteID + " | " + this.suiteEnvConf.suiteEnvID + " | " + testSet.id);
+                this.logger.trace(testSet, true);
                 busybeeDir = this.conf.filePaths.busybeeDir;
                 scriptPath = path.join(busybeeDir, this.suiteEnvConf.runScript);
                 args = {
