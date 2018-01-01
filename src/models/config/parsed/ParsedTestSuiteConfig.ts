@@ -34,7 +34,7 @@ export class ParsedTestSuite {
     this.host = suite.host;
     this.suiteID = suite.id;
     this.skip = suite.skip;
-    this.type = suite.type;
+    this.type = suite.type || 'REST';
     this.root = suite.root;
     this.testFolder = suite.testFolder;
 
