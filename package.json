@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "@types/async": "^2.0.46",
+    "@types/body-parser": "^1.16.8",
     "@types/commander": "^2.12.2",
     "@types/glob": "^5.0.34",
     "@types/lodash": "^4.14.91",
@@ -31,6 +32,7 @@
     "@types/portscanner": "^2.1.0",
     "@types/uuid": "^3.4.3",
     "ava": "^0.23.0",
+    "busybee-html-reporter": "git://github.build.ge.com/Busybee/busybee-html-reporter.git",
     "typescript": "^2.5.2",
     "watch": "^1.0.2"
   },
@@ -38,8 +40,8 @@
     "build": "tsc",
     "watch": "watch 'npm run build' {src,test}",
     "start": "node ./dist/src/index.js",
-    "remoteIT": "node --inspect-brk=9222 ./dist/src/index.js test -d itTests",
-    "IT": "node ./dist/src/index.js test -d itTests -D",
+    "remoteIT": "node --inspect-brk=9222 ./dist/src/index.js test -d itTests/default",
+    "IT": "node ./dist/src/index.js test -d itTests/default -D",
     "test": "tsc && ava dist/test/**/*.js"
   },
   "author": "Simon Townsend",

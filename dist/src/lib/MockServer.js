@@ -76,12 +76,12 @@ var MockServer = /** @class */ (function () {
         var _this = this;
         server.set('etag', false);
         server.use(bodyParser.json()); // for parsing application/json
-        server.use(restream());
+        server.use(restream(null));
         server.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
         if (this.corsActive()) {
             server.use(function (req, res, next) {
                 res.append('Access-Control-Allow-Origin', req.header('origin'));
-                res.append('Access-Control-Allow-Credentials', true);
+                res.append('Access-Control-Allow-Credentials', 'true');
                 next();
             });
         }

@@ -54,12 +54,12 @@ export class MockServer {
   init() {
     server.set('etag', false);
     server.use(bodyParser.json()); // for parsing application/json
-    server.use(restream());
+    server.use(restream(null));
     server.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
     if (this.corsActive()) {
       server.use((req, res, next) => {
         res.append('Access-Control-Allow-Origin', req.header('origin'));
-        res.append('Access-Control-Allow-Credentials', true);
+        res.append('Access-Control-Allow-Credentials', 'true');
         next();
       });
     }
@@ -98,7 +98,7 @@ export class MockServer {
           'Access-Control-Max-Age': 86400
         }
 
-        _.forEach(headers, (v, k) => {
+        _.forEach(headers, (v:string, k) => {
           res.append(k, v);
         });
 

@@ -5,6 +5,7 @@ var BusybeeUserConfig = /** @class */ (function () {
         this.envResources = void 0;
         this.onComplete = void 0;
         this.testSuites = void 0;
+        this.reporters = void 0;
     }
     return BusybeeUserConfig;
 }());
