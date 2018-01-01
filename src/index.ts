@@ -159,7 +159,14 @@ function initTests(conf: BusybeeParsedConfig) {
         });
 
         if (conf.reporters && !_.isEmpty(conf.reporters)) {
-            conf.reporters.forEach(r => r.run(suiteResultsList));
+            conf.reporters.forEach(r => {
+                try {
+                    r.run(suiteResultsList)
+                } catch (e) {
+                    logger.error('Error encountered while running reporter');
+                    logger.error(e);
+                }
+            });
         }
 
         if (conf.onComplete || conf.cmdOpts.onComplete) {

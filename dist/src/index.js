@@ -188,7 +188,15 @@ function initTests(conf) {
             suiteResultsList.push(sr);
         });
         if (conf.reporters && !_.isEmpty(conf.reporters)) {
-            conf.reporters.forEach(function (r) { return r.run(suiteResultsList); });
+            conf.reporters.forEach(function (r) {
+                try {
+                    r.run(suiteResultsList);
+                }
+                catch (e) {
+                    logger.error('Error encountered while running reporter');
+                    logger.error(e);
+                }
+            });
         }
         if (conf.onComplete || conf.cmdOpts.onComplete) {
             var scriptPath = conf.onComplete ?
