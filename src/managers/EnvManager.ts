@@ -169,11 +169,6 @@ export class EnvManager {
       try {
 
         await this.runScript(filePath, [JSON.stringify(args)]);
-        // const { stdout, stderr } = await execFileCmd(filePath, [JSON.stringify(args)], null);
-        // if (stderr) {
-        //   reject(stderr);
-        //   return;
-        // }
 
         this.currentHosts[envInfo.hostName].load -= envInfo.resourceCost;
         // remove the env from the currentHosts
@@ -319,6 +314,7 @@ export class EnvManager {
 
       // listen for errors and reject
       script.stderr.on('data', (data) => {
+        if (returned) { return; }
         if (!data) { data = ""; }
         let output = data.toString();
         this.logger.debug(output);
@@ -332,6 +328,7 @@ export class EnvManager {
 
       // listen for data and discern if an error has been thrown.
       script.stdout.on('data', (data) => {
+        if (returned) { return; }
         if (!data) { return; }
         let origOutput = data.toString();
         let upperOutput = origOutput.toUpperCase();

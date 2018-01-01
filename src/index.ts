@@ -158,8 +158,18 @@ function initTests(conf: BusybeeParsedConfig) {
             suiteResultsList.push(sr);
         });
 
+        if (conf.reporters && !_.isEmpty(conf.reporters)) {
+            conf.reporters.forEach(r => {
+                try {
+                    r.run(suiteResultsList)
+                } catch (e) {
+                    logger.error('Error encountered while running reporter');
+                    logger.error(e);
+                }
+            });
+        }
 
-        if(conf.onComplete || conf.cmdOpts.onComplete) {
+        if (conf.onComplete || conf.cmdOpts.onComplete) {
             let scriptPath = conf.onComplete ?
                 path.join(conf.filePaths.busybeeDir, conf.onComplete)
                 : path.join(conf.filePaths.busybeeDir, conf.cmdOpts.onComplete);

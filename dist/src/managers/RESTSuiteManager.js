@@ -231,7 +231,7 @@ var RESTSuiteManager = /** @class */ (function () {
                 testResult.pass = false;
                 testResult.body.pass = false;
                 testResult.body.actual = body;
-                testResult.body.expected = _.isFunction(body) ? 'custom assertion function' : test.expect.body;
+                testResult.body.expected = _.isFunction(test.expect.body) ? 'custom assertion function' : test.expect.body;
             }
         }
         // attach the request info if the test itself failed

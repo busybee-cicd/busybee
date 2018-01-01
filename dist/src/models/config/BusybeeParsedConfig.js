@@ -23,6 +23,7 @@ var BusybeeParsedConfig = /** @class */ (function () {
         this.parsedTestSuites = this.parseTestSuites(userConfig, mode);
         this.envResources = userConfig.envResources;
         this.skipTestSuites = [];
+        this.reporters = userConfig.reporters;
         if (cmdOpts.localMode) {
             this.logger.info("LocalMode detected. Host Configuration will be ignored in favor of 'localhost'");
         }

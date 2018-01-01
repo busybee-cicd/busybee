@@ -187,6 +187,17 @@ function initTests(conf) {
             var sr = Object.assign({}, { id: suiteID }, v);
             suiteResultsList.push(sr);
         });
+        if (conf.reporters && !_.isEmpty(conf.reporters)) {
+            conf.reporters.forEach(function (r) {
+                try {
+                    r.run(suiteResultsList);
+                }
+                catch (e) {
+                    logger.error('Error encountered while running reporter');
+                    logger.error(e);
+                }
+            });
+        }
         if (conf.onComplete || conf.cmdOpts.onComplete) {
             var scriptPath = conf.onComplete ?
                 path.join(conf.filePaths.busybeeDir, conf.onComplete)

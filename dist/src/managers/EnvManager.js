@@ -194,11 +194,6 @@ var EnvManager = /** @class */ (function () {
                                     return [4 /*yield*/, this.runScript(filePath, [JSON.stringify(args)])];
                                 case 2:
                                     _a.sent();
-                                    // const { stdout, stderr } = await execFileCmd(filePath, [JSON.stringify(args)], null);
-                                    // if (stderr) {
-                                    //   reject(stderr);
-                                    //   return;
-                                    // }
                                     this.currentHosts[envInfo.hostName].load -= envInfo.resourceCost;
                                     // remove the env from the currentHosts
                                     delete this.currentHosts[envInfo.hostName].envs[generatedEnvID];
@@ -398,6 +393,9 @@ var EnvManager = /** @class */ (function () {
                 script = child_process_1.spawn('/bin/bash', [path, args]);
                 // listen for errors and reject
                 script.stderr.on('data', function (data) {
+                    if (returned) {
+                        return;
+                    }
                     if (!data) {
                         data = "";
                     }
@@ -411,6 +409,9 @@ var EnvManager = /** @class */ (function () {
                 });
                 // listen for data and discern if an error has been thrown.
                 script.stdout.on('data', function (data) {
+                    if (returned) {
+                        return;
+                    }
                     if (!data) {
                         return;
                     }

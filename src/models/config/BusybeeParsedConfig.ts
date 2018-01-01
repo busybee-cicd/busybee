@@ -25,6 +25,7 @@ export class BusybeeParsedConfig {
   parsedTestSuites: TypedMap<ParsedTestSuite>;
   envResources: EnvResourceConfig[];
   onComplete: string;
+  reporters: Array<any>
 
   constructor(userConfig: BusybeeUserConfig, cmdOpts: any, mode: string) {
     this.cmdOpts = cmdOpts;
@@ -36,6 +37,7 @@ export class BusybeeParsedConfig {
     this.parsedTestSuites = this.parseTestSuites(userConfig, mode);
     this.envResources = userConfig.envResources;
     this.skipTestSuites = [];
+    this.reporters = userConfig.reporters;
 
     if (cmdOpts.localMode) {
       this.logger.info(`LocalMode detected. Host Configuration will be ignored in favor of 'localhost'`);
