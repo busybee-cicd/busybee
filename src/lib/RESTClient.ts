@@ -10,18 +10,23 @@ export class RESTClient {
   suiteEnvConf: any;
   apiRequest: any;
   private logger: any;
+  private defaultRequestOpts: any;
 
   constructor(conf: any, suiteEnvConf: any) {
     this.conf = conf;
-    this.suiteEnvConf = suiteEnvConf;
+    this.suiteEnvConf = Object.assign({}, suiteEnvConf);
     this.logger = new Logger(conf, this);
-    this.apiRequest = request;
-    if (suiteEnvConf.defaultRequestOpts)
-      this.apiRequest = request.defaults(suiteEnvConf.defaultRequestOpts);
+    const standardRequestOpts = {"json": true};
+    this.defaultRequestOpts = Object.assign({}, standardRequestOpts, this.suiteEnvConf.defaultRequestOpts);
+    this.apiRequest = request.defaults(this.defaultRequestOpts);
 
     if (conf.debug) {
       this.apiRequest.debug = true;
     }
+  }
+
+  getDefaultRequestOpts() {
+    return Object.assign({}, this.defaultRequestOpts);
   }
 
   buildBaseUrl(requestConf, port) {
@@ -64,11 +69,13 @@ export class RESTClient {
     let req = {
       method: requestConf.method || 'GET',
       url: url,
-      qs: requestConf.query,
-      headers: requestConf.headers,
-      body: requestConf.body,
       timeout: requestConf.timeout || 30000 // default 30 seconds
     };
+
+    if (requestConf.query) { req['qs'] = requestConf.query; }
+    if (requestConf.headers) { req['headers'] = requestConf.headers; }
+    if (requestConf.body) { req['body'] = requestConf.body; }
+
 
     return req;
   }

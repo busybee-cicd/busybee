@@ -120,12 +120,12 @@ export class RESTSuiteManager {
           };
 
         }
-        this.logger.info(`${testSet.id}: ${testIndex}: ${test.id}`)
 
+        this.logger.info(`${testSet.id}: ${testIndex}: ${test.id}`)
         this.restClient.makeRequest(opts, (err: Error, res: IncomingMessage, body: any) => {
           if (err) { return cb(err); }
 
-          this.validateTestResult(test, opts, res, body, cb)
+          this.validateTestResult(test, Object.assign({}, this.restClient.getDefaultRequestOpts(), opts), res, body, cb)
         });
       };
     });

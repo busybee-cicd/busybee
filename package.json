@@ -11,6 +11,7 @@
     "async": "^2.5.0",
     "body-parser": "^1.17.2",
     "commander": "^2.11.0",
+    "deepmerge": "^2.0.1",
     "express": "^4.15.3",
     "glob": "^7.1.2",
     "http-proxy": "^1.16.2",

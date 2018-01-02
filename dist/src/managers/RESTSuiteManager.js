@@ -158,7 +158,7 @@ var RESTSuiteManager = /** @class */ (function () {
                     if (err) {
                         return cb(err);
                     }
-                    _this.validateTestResult(test, opts, res, body, cb);
+                    _this.validateTestResult(test, Object.assign({}, _this.restClient.getDefaultRequestOpts(), opts), res, body, cb);
                 });
             };
         });
