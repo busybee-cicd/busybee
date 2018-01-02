@@ -5,6 +5,7 @@ import {GenericSuiteManager} from './GenericSuiteManager';
 import {EnvManager} from "./EnvManager";
 import {BusybeeParsedConfig} from "../models/config/BusybeeParsedConfig";
 import {SuiteEnvInfo} from "../lib/SuiteEnvInfo";
+import {EnvResult} from "../models/results/EnvResult";
 
 export class TestManager {
 
@@ -65,7 +66,7 @@ export class TestManager {
     this.logger.trace(`buildRESTTestEnvTask ${suiteID} ${suiteEnvID}`);
 
     let generatedEnvID: string;
-    return (cb) => {
+    return (cb: (err:any, envResult:EnvResult) => void) => {
       let currentEnv: SuiteEnvInfo;
       let restManager: RESTSuiteManager;
       let testSetResults;
@@ -78,23 +79,30 @@ export class TestManager {
         restManager = new RESTSuiteManager(this.conf, currentEnv);
         testSetResults = await restManager.runRESTApiTestSets(currentEnv); // returns an array of testSets
 
+        let envResult = new EnvResult();
+        envResult.type = 'REST';
+        envResult.suiteID = suiteID;
+        envResult.env = suiteEnvID;
+        envResult.testSets = testSetResults;
+
+        return envResult;
         // decorate the results to build a better result object need to decorate this w/ testSuiteID
-        return {
-          suiteID: suiteID,
-          type: "REST",
-          env: suiteEnvID,
-          testSets: testSetResults
-        }
+        // return {
+        //   suiteID: suiteID,
+        //   type: "REST",
+        //   env: suiteEnvID,
+        //   testSets: testSetResults
+        // }
       }
 
       buildEnvFn()
-        .then((testSetResults) => {
+        .then((envResult: EnvResult) => {
           this.envManager.stop(generatedEnvID)
             .then(() => {
-              cb(null, testSetResults);
+              cb(null, envResult);
             })
             .catch((err) => {
-              cb(err);
+              cb(err, null);
             });
         })
         .catch((err) => {
@@ -102,10 +110,10 @@ export class TestManager {
           this.logger.error(err);
           this.envManager.stop(generatedEnvID)
             .then(() => {
-              cb(err);
+              cb(err, null);
             })
             .catch((err2) => {
-              cb(err2)
+              cb(err2, null)
             });
         });
     };

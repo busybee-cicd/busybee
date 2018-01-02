@@ -1,0 +1,1 @@
+{"version":3,"file":"TestSetResult.js","sourceRoot":"","sources":["../../../../src/models/results/TestSetResult.ts"],"names":[],"mappings":";;AAAA;IAMI;IACA,CAAC;IAEL,oBAAC;AAAD,CAAC,AATD,IASC;AATY,sCAAa","sourcesContent":["export class TestSetResult {\n\n    id: string;\n    pass: boolean;\n    tests: Array<any>;\n\n    constructor() {\n    }\n\n}\n"]}

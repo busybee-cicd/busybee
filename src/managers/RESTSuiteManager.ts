@@ -6,6 +6,7 @@ import {SuiteEnvInfo} from "../lib/SuiteEnvInfo";
 import {ParsedTestSetConfig} from "../models/config/parsed/ParsedTestSetConfig";
 import {RESTTest} from "../models/RESTTest";
 import {IncomingMessage} from "http";
+import {TestSetResult} from "../models/results/TestSetResult";
 
 export class RESTSuiteManager {
 
@@ -22,36 +23,29 @@ export class RESTSuiteManager {
   ///////// TestRunning
 
 
-  runRESTApiTestSets(currentEnv: SuiteEnvInfo) {
+  runRESTApiTestSets(currentEnv: SuiteEnvInfo): Promise<Array<TestSetResult>> {
     // TODO: logic for running TestSets in order
-    return new Promise(async (resolve, reject) => {
+    return new Promise<Array<TestSetResult>>(async (resolve, reject) => {
       this.logger.trace(`runRESTApiTestSets ${currentEnv.suiteID} ${currentEnv.suiteEnvID}`);
       let testSetPromises = _.map(currentEnv.testSets.values(), (testSet: ParsedTestSetConfig) => {
         return this.runRESTApiTestSet(currentEnv, testSet);
       });
 
-      let testSetResults;
-      let testSetErr;
       try {
-        testSetResults = await Promise.all(testSetPromises);
-      } catch (e) {
-        testSetErr = e;
-      }
-
-      if (testSetErr) {
-        this.logger.trace(`runRESTApiTestSets ERROR encountered while running testSetPromises`);
-        reject(testSetErr);
-      } else {
+        let testSetResults:Array<TestSetResult> = await Promise.all(testSetPromises);
         resolve(testSetResults);
+      } catch (e) {
+        this.logger.trace(`runRESTApiTestSets ERROR encountered while running testSetPromises`);
+        return reject(e);
       }
     });
 
   }
 
-  async runRESTApiTestSet(currentEnv: SuiteEnvInfo, testSet: ParsedTestSetConfig) {
+  async runRESTApiTestSet(currentEnv: SuiteEnvInfo, testSet: ParsedTestSetConfig): Promise<TestSetResult> {
     this.logger.trace(`runRESTApiTestSet ${currentEnv.ports} ${testSet.id}`);
 
-    return new Promise((resolve, reject) => {
+    return new Promise<TestSetResult>((resolve, reject) => {
       // build api test functions
       if (!testSet.tests) {
         reject(`testSet ${testSet.id} has no tests`);
@@ -69,18 +63,23 @@ export class RESTSuiteManager {
       _async.series(testFns, (err2, testResults) => {
         // see if any tests failed and mark the set according
         let pass = _.find(testResults, (tr: any) => { return tr.pass === false }) ? false : true;
-        let testSetResults = {
-          pass: pass,
-          id: testSet.id,
-          tests: testResults
-        };
+        let testSetResult = new TestSetResult();
+        testSetResult.pass = pass;
+        testSetResult.id = testSet.id;
+        testSetResult.tests = testResults;
+
+        // let testSetResults = {
+        //   pass: pass,
+        //   id: testSet.id,
+        //   tests: testResults
+        // };
 
         if (err2) {
           this.logger.trace('runRESTApiTestSet ERROR while running tests');
           this.logger.trace(err2);
           reject(err2);
         } else {
-          resolve(testSetResults);
+          resolve(testSetResult);
         }
       });
     });

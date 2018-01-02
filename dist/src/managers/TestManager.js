@@ -39,6 +39,7 @@ var _ = require("lodash");
 var Logger_1 = require("../lib/Logger");
 var RESTSuiteManager_1 = require("./RESTSuiteManager");
 var GenericSuiteManager_1 = require("./GenericSuiteManager");
+var EnvResult_1 = require("../models/results/EnvResult");
 var TestManager = /** @class */ (function () {
     function TestManager(conf, envManager) {
         this.conf = conf;
@@ -97,6 +98,7 @@ var TestManager = /** @class */ (function () {
             var restManager;
             var testSetResults;
             var buildEnvFn = function () { return __awaiter(_this, void 0, void 0, function () {
+                var envResult;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
@@ -110,24 +112,23 @@ var TestManager = /** @class */ (function () {
                             return [4 /*yield*/, restManager.runRESTApiTestSets(currentEnv)];
                         case 2:
                             testSetResults = _a.sent(); // returns an array of testSets
-                            // decorate the results to build a better result object need to decorate this w/ testSuiteID
-                            return [2 /*return*/, {
-                                    suiteID: suiteID,
-                                    type: "REST",
-                                    env: suiteEnvID,
-                                    testSets: testSetResults
-                                }];
+                            envResult = new EnvResult_1.EnvResult();
+                            envResult.type = 'REST';
+                            envResult.suiteID = suiteID;
+                            envResult.env = suiteEnvID;
+                            envResult.testSets = testSetResults;
+                            return [2 /*return*/, envResult];
                     }
                 });
             }); };
             buildEnvFn()
-                .then(function (testSetResults) {
+                .then(function (envResult) {
                 _this.envManager.stop(generatedEnvID)
                     .then(function () {
-                    cb(null, testSetResults);
+                    cb(null, envResult);
                 })
                     .catch(function (err) {
-                    cb(err);
+                    cb(err, null);
                 });
             })
                 .catch(function (err) {
@@ -135,10 +136,10 @@ var TestManager = /** @class */ (function () {
                 _this.logger.error(err);
                 _this.envManager.stop(generatedEnvID)
                     .then(function () {
-                    cb(err);
+                    cb(err, null);
                 })
                     .catch(function (err2) {
-                    cb(err2);
+                    cb(err2, null);
                 });
             });
         };

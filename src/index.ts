@@ -11,6 +11,7 @@ import {EnvManager} from './managers/EnvManager';
 import {TestManager} from './managers/TestManager';
 import {MockServer} from './lib/MockServer';
 import {Logger} from './lib/Logger';
+import {EnvResult} from "./models/results/EnvResult";
 let logger;
 
 
@@ -130,11 +131,11 @@ function initTests(conf: BusybeeParsedConfig) {
         });
     });
 
-    _async.parallel(envTasks, (err, envResults:any[]) => {
+    _async.parallel(envTasks, (err, envResults:Array<EnvResult>) => {
         // group the result sets by their Suite
         let suiteResults = {};
 
-        envResults.forEach(envResult => {
+        envResults.forEach((envResult: EnvResult) => {
             if (!suiteResults[envResult.suiteID]) {
                 suiteResults[envResult.suiteID] = {
                     testSets: envResult.testSets,
@@ -146,7 +147,7 @@ function initTests(conf: BusybeeParsedConfig) {
             }
 
             // mark the suite as failed if it contains atleast 1 env w/ a failure
-            if (_.find(envResult.results, er => { return !er.pass; })) {
+            if (_.find(envResult.testSets, ts => { return !ts.pass; })) {
                 suiteResults[envResult.suiteID].pass = false;
             };
         });

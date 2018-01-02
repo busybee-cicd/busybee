@@ -39,6 +39,7 @@ var _async = require("async");
 var _ = require("lodash");
 var Logger_1 = require("../lib/Logger");
 var RESTClient_1 = require("../lib/RESTClient");
+var TestSetResult_1 = require("../models/results/TestSetResult");
 var RESTSuiteManager = /** @class */ (function () {
     function RESTSuiteManager(conf, suiteEnvConf) {
         this.conf = conf;
@@ -51,7 +52,7 @@ var RESTSuiteManager = /** @class */ (function () {
         // TODO: logic for running TestSets in order
         return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
             var _this = this;
-            var testSetPromises, testSetResults, testSetErr, e_1;
+            var testSetPromises, testSetResults, e_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -65,20 +66,13 @@ var RESTSuiteManager = /** @class */ (function () {
                         return [4 /*yield*/, Promise.all(testSetPromises)];
                     case 2:
                         testSetResults = _a.sent();
+                        resolve(testSetResults);
                         return [3 /*break*/, 4];
                     case 3:
                         e_1 = _a.sent();
-                        testSetErr = e_1;
-                        return [3 /*break*/, 4];
-                    case 4:
-                        if (testSetErr) {
-                            this.logger.trace("runRESTApiTestSets ERROR encountered while running testSetPromises");
-                            reject(testSetErr);
-                        }
-                        else {
-                            resolve(testSetResults);
-                        }
-                        return [2 /*return*/];
+                        this.logger.trace("runRESTApiTestSets ERROR encountered while running testSetPromises");
+                        return [2 /*return*/, reject(e_1)];
+                    case 4: return [2 /*return*/];
                 }
             });
         }); });
@@ -103,18 +97,22 @@ var RESTSuiteManager = /** @class */ (function () {
                         _async.series(testFns, function (err2, testResults) {
                             // see if any tests failed and mark the set according
                             var pass = _.find(testResults, function (tr) { return tr.pass === false; }) ? false : true;
-                            var testSetResults = {
-                                pass: pass,
-                                id: testSet.id,
-                                tests: testResults
-                            };
+                            var testSetResult = new TestSetResult_1.TestSetResult();
+                            testSetResult.pass = pass;
+                            testSetResult.id = testSet.id;
+                            testSetResult.tests = testResults;
+                            // let testSetResults = {
+                            //   pass: pass,
+                            //   id: testSet.id,
+                            //   tests: testResults
+                            // };
                             if (err2) {
                                 _this.logger.trace('runRESTApiTestSet ERROR while running tests');
                                 _this.logger.trace(err2);
                                 reject(err2);
                             }
                             else {
-                                resolve(testSetResults);
+                                resolve(testSetResult);
                             }
                         });
                     })];
