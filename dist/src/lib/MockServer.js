@@ -226,7 +226,7 @@ var MockServer = /** @class */ (function () {
             // 1. build a controller
             var ctrl = function (req, res) { return __awaiter(_this, void 0, void 0, function () {
                 var _this = this;
-                var requestedStatus, mocks, reqOpts, hashedReq, matchingMocks, mocksWithoutHeaders, mocksWithHeaders, mockToReturn, message, message, resHeaders, bodyToReturn;
+                var requestedStatus, mocks, reqOpts, hashedReq, matchingMocks, mocksWithoutHeaders, mocksWithHeaders, mockToReturn, message, message, resHeaders, mockResponse, bodyToReturn;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
@@ -328,10 +328,11 @@ var MockServer = /** @class */ (function () {
                             }
                             // set headers
                             res.append('busybee-mock', true);
-                            if (mockToReturn.expect.headers) {
-                                resHeaders = Object.assign({}, resHeaders, mockToReturn.expect.headers);
+                            mockResponse = mockToReturn.mockResponse || mockToReturn.expect;
+                            if (mockResponse) {
+                                resHeaders = Object.assign({}, resHeaders, mockResponse);
                             }
-                            if (mockToReturn.expect.headers) {
+                            if (mockResponse) {
                                 _.forEach(resHeaders, function (v, k) {
                                     if (v == null) {
                                         return;
@@ -345,13 +346,8 @@ var MockServer = /** @class */ (function () {
                             _a.sent();
                             _a.label = 2;
                         case 2:
-                            if (mockToReturn.mockResponse) {
-                                bodyToReturn = mockToReturn.mockResponse.body;
-                            }
-                            else {
-                                bodyToReturn = mockToReturn.expect.body;
-                            }
-                            return [2 /*return*/, res.status(mockToReturn.expect.status).json(bodyToReturn)];
+                            bodyToReturn = mockResponse.body;
+                            return [2 /*return*/, res.status(mockResponse.status).json(bodyToReturn)];
                     }
                 });
             }); }; // end ctrl

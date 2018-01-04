@@ -331,10 +331,11 @@ export class MockServer {
         // set headers
         res.append('busybee-mock', true);
         let resHeaders;
-        if (mockToReturn.expect.headers) {
-          resHeaders = Object.assign({}, resHeaders, mockToReturn.expect.headers);
+        let mockResponse = mockToReturn.mockResponse || mockToReturn.expect; // default to mockResponse and then attempt 'expect'
+        if (mockResponse) {
+          resHeaders = Object.assign({}, resHeaders, mockResponse);
         }
-        if (mockToReturn.expect.headers) {
+        if (mockResponse) {
           _.forEach(resHeaders, (v,k) => {
             if (v == null) { return; }
             res.append(k,v);
@@ -346,14 +347,8 @@ export class MockServer {
           await this.sleep(mockToReturn.delay);
         }
 
-        // return the mockResponse first and fall back to the test.expect.body
-        let bodyToReturn;
-        if (mockToReturn.mockResponse) {
-          bodyToReturn = mockToReturn.mockResponse.body;
-        } else {
-          bodyToReturn = mockToReturn.expect.body;
-        }
-        return res.status(mockToReturn.expect.status).json(bodyToReturn);
+        let bodyToReturn = mockResponse.body;
+        return res.status(mockResponse.status).json(bodyToReturn);
       } // end ctrl
 
       // 2. register the route/method and ctrl

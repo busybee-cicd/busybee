@@ -41,7 +41,7 @@
     "build": "tsc",
     "watch": "watch 'npm run build' {src,test}",
     "start": "node ./dist/src/index.js",
-    "remoteIT": "node --inspect-brk=9222 ./dist/src/index.js test -d itTests/default",
+    "remoteIT": "node --inspect-brk=9222 ./dist/src/index.js mock -t 'CR Services IT' -d itTests/default",
     "IT": "node ./dist/src/index.js test -d itTests/default -D",
     "test": "tsc && ava dist/test/**/*.js"
   },
