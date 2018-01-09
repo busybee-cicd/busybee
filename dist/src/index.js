@@ -211,7 +211,8 @@ function initTests(conf) {
             }
         }
         else {
-            console.log(err || logger.info(suiteResultsList));
+            logger.debug(err || suiteResultsList);
+            logger.info('Complete');
         }
     });
     // run the ui tests

@@ -182,7 +182,8 @@ function initTests(conf: BusybeeParsedConfig) {
                 console.log(e);
             }
         } else {
-            console.log(err || logger.info(suiteResultsList));
+            logger.debug(err || suiteResultsList);
+            logger.info('Complete');
         }
     });
 

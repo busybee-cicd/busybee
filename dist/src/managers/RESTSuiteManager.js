@@ -237,6 +237,7 @@ var RESTSuiteManager = /** @class */ (function () {
                         type: 'customer validation function',
                         error: e
                     };
+                    this.logger.error(customFnErr);
                 }
             }
             else {

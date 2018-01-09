@@ -215,6 +215,8 @@ export class RESTSuiteManager {
             type: 'customer validation function',
             error: e
           }
+
+          this.logger.error(customFnErr);
         }
       } else {
         // assert the body against the provided pojo body
