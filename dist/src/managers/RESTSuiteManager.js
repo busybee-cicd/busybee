@@ -40,6 +40,19 @@ var _ = require("lodash");
 var Logger_1 = require("../lib/Logger");
 var RESTClient_1 = require("../lib/RESTClient");
 var TestSetResult_1 = require("../models/results/TestSetResult");
+// support JSON.stringify on Error objects
+if (!('toJSON' in Error.prototype))
+    Object.defineProperty(Error.prototype, 'toJSON', {
+        value: function () {
+            var alt = {};
+            Object.getOwnPropertyNames(this).forEach(function (key) {
+                alt[key] = this[key];
+            }, this);
+            return alt;
+        },
+        configurable: true,
+        writable: true
+    });
 var RESTSuiteManager = /** @class */ (function () {
     function RESTSuiteManager(conf, suiteEnvConf) {
         this.conf = conf;
@@ -209,6 +222,7 @@ var RESTSuiteManager = /** @class */ (function () {
                 pass: true
             };
             var bodyPass = true;
+            var customFnErr = null;
             if (_.isFunction(test.expect.body)) {
                 // if the test has a custom function for assertion, run it.
                 try {
@@ -219,6 +233,10 @@ var RESTSuiteManager = /** @class */ (function () {
                 }
                 catch (e) {
                     bodyPass = false;
+                    customFnErr = {
+                        type: 'customer validation function',
+                        error: e
+                    };
                 }
             }
             else {
@@ -229,7 +247,7 @@ var RESTSuiteManager = /** @class */ (function () {
                 testResult.pass = false;
                 testResult.body.pass = false;
                 testResult.body.actual = body;
-                testResult.body.expected = _.isFunction(test.expect.body) ? 'custom assertion function' : test.expect.body;
+                testResult.body.expected = _.isFunction(test.expect.body) ? customFnErr : test.expect.body;
             }
         }
         // attach the request info if the test itself failed

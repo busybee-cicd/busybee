@@ -8,6 +8,22 @@ import {RESTTest} from "../models/RESTTest";
 import {IncomingMessage} from "http";
 import {TestSetResult} from "../models/results/TestSetResult";
 
+// support JSON.stringify on Error objects
+if (!('toJSON' in Error.prototype))
+Object.defineProperty(Error.prototype, 'toJSON', {
+  value: function () {
+    var alt = {};
+
+    Object.getOwnPropertyNames(this).forEach(function (key) {
+      alt[key] = this[key];
+    }, this);
+
+    return alt;
+  },
+  configurable: true,
+  writable: true
+});
+
 export class RESTSuiteManager {
 
   private conf: any;
@@ -185,6 +201,7 @@ export class RESTSuiteManager {
       }
 
       let bodyPass = true;
+      let customFnErr = null;
       if (_.isFunction(test.expect.body)) {
         // if the test has a custom function for assertion, run it.
         try {
@@ -194,6 +211,10 @@ export class RESTSuiteManager {
           }
         } catch (e) {
           bodyPass = false;
+          customFnErr = {
+            type: 'customer validation function',
+            error: e
+          }
         }
       } else {
         // assert the body against the provided pojo body
@@ -204,7 +225,7 @@ export class RESTSuiteManager {
         testResult.pass = false;
         testResult.body.pass = false;
         testResult.body.actual = body;
-        testResult.body.expected = _.isFunction(test.expect.body) ? 'custom assertion function' : test.expect.body;
+        testResult.body.expected = _.isFunction(test.expect.body) ? customFnErr : test.expect.body;
       }
     }
 
