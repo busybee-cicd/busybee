@@ -234,7 +234,7 @@ var RESTSuiteManager = /** @class */ (function () {
                 catch (e) {
                     bodyPass = false;
                     customFnErr = {
-                        type: 'customer validation function',
+                        type: 'custom validation function',
                         error: e
                     };
                     this.logger.error(customFnErr);
