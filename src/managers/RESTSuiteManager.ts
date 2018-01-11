@@ -205,10 +205,10 @@ export class RESTSuiteManager {
       if (_.isFunction(test.expect.body)) {
         // if the test has a custom function for assertion, run it.
         try {
-          bodyPass = test.expect.body(body);
-          if (!_.isBoolean(bodyPass)) { // confirm that the assertion returns a bool
-            bodyPass = false;
-          }
+          let bodyResult = test.expect.body(body);
+          if (bodyResult === false) {
+              bodyPass = false;
+          } // else we pass it. ie) it doesn't return anything we assume it passed.
         } catch (e) {
           bodyPass = false;
           customFnErr = {

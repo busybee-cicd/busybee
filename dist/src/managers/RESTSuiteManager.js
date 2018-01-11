@@ -226,10 +226,10 @@ var RESTSuiteManager = /** @class */ (function () {
             if (_.isFunction(test.expect.body)) {
                 // if the test has a custom function for assertion, run it.
                 try {
-                    bodyPass = test.expect.body(body);
-                    if (!_.isBoolean(bodyPass)) {
+                    var bodyResult = test.expect.body(body);
+                    if (bodyResult === false) {
                         bodyPass = false;
-                    }
+                    } // else we pass it. ie) it doesn't return anything we assume it passed.
                 }
                 catch (e) {
                     bodyPass = false;
