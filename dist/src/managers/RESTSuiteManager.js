@@ -40,6 +40,7 @@ var _ = require("lodash");
 var Logger_1 = require("../lib/Logger");
 var RESTClient_1 = require("../lib/RESTClient");
 var TestSetResult_1 = require("../models/results/TestSetResult");
+var IgnoreKeys_1 = require("../lib/IgnoreKeys");
 // support JSON.stringify on Error objects
 if (!('toJSON' in Error.prototype))
     Object.defineProperty(Error.prototype, 'toJSON', {
@@ -109,7 +110,9 @@ var RESTSuiteManager = /** @class */ (function () {
                         }
                         _async.series(testFns, function (err2, testResults) {
                             // see if any tests failed and mark the set according
-                            var pass = _.find(testResults, function (tr) { return tr.pass === false; }) ? false : true;
+                            var pass = _.find(testResults, function (tr) {
+                                return tr.pass === false;
+                            }) ? false : true;
                             var testSetResult = new TestSetResult_1.TestSetResult();
                             testSetResult.pass = pass;
                             testSetResult.id = testSet.id;
@@ -137,7 +140,9 @@ var RESTSuiteManager = /** @class */ (function () {
         this.logger.trace("RESTSuiteManager:buildTestTasks <testSet> " + currentEnv.ports);
         this.logger.trace(testSet);
         // filter out any tests that do no contain a request object (usually the case if a
-        var testsWithARequest = _.reject(testSet.tests, function (test) { return test === null; });
+        var testsWithARequest = _.reject(testSet.tests, function (test) {
+            return test === null;
+        });
         return _.map(testsWithARequest, function (test) {
             return function (cb) {
                 // build request
@@ -241,8 +246,22 @@ var RESTSuiteManager = /** @class */ (function () {
                 }
             }
             else {
+                // First check to see if we have any assertionModifications that may alter our expect/actual
+                var expected = Object.assign({}, test.expect.body);
+                var actual = Object.assign({}, body);
+                if (test.expect.assertionModifications) {
+                    testResult.assertionModifications = test.expect.assertionModifications;
+                    if (test.expect.assertionModifications.ignoreKeys) {
+                        try {
+                            IgnoreKeys_1.IgnoreKeys.process(test.expect.assertionModifications.ignoreKeys, expected, actual);
+                        }
+                        catch (e) {
+                            this.logger.error("Error encountered while applying 'ignoreKeys'. Please confirm 'ignoreKeys' is formatted correctly");
+                        }
+                    }
+                }
                 // assert the body against the provided pojo body
-                bodyPass = _.isEqual(body, test.expect.body);
+                bodyPass = _.isEqual(expected, actual);
             }
             if (!bodyPass) {
                 testResult.pass = false;

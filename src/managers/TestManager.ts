@@ -86,13 +86,6 @@ export class TestManager {
         envResult.testSets = testSetResults;
 
         return envResult;
-        // decorate the results to build a better result object need to decorate this w/ testSuiteID
-        // return {
-        //   suiteID: suiteID,
-        //   type: "REST",
-        //   env: suiteEnvID,
-        //   testSets: testSetResults
-        // }
       }
 
       buildEnvFn()
