@@ -101,7 +101,7 @@ let ignore = [
             "createdDatetime",
             "lastUpdateDatetime",
             {
-                "someKey": "keyToIgnoreInsideObject"
+                "someKey": "keyToIgnoreInsideObject" // Only this not working in this example.
             }
         ]
     },
@@ -126,11 +126,10 @@ function entry(ignore, expected, actual) {
 
 function parseIgnoreObject(ignoreObj, expected, actual) {
     _.forEach(ignoreObj, (v, k) => {
-        // first split the k string to see if we need to traverse further before deleting anything
+        // first split the key to see if we need to traverse further before deleting anything
         let keyArray = k.split(".");
         if (keyArray.length > 1) {
             // we need to dive deeper..this key describes further nesting ie) key.childKey.grandChild.key
-            let advanceKey = keyArray[0];
             parseIgnoreObjectPathString(k, v, expected, actual);
             return;
         }
@@ -138,11 +137,11 @@ function parseIgnoreObject(ignoreObj, expected, actual) {
         if (_.isArray(v)) {
             v.forEach((keyToRemove) => {
                 // keyToRemove could be a string or an object
-                if (_.isObject(keyToRemove) && !_.isArray(keyToRemove)) {
+                if (_.isObject(keyToRemove) && !_.isArray(keyToRemove)) { // an object describing further recursion
                     // advance the expected/actual and pass in the keyToRemove (ignoreObj)
                     let nextExpected = expected[k];
                     let nextActual = actual[k];
-                    if (_.isArray(nextExpected) && _.isArray(nextActual)) {
+                    if (valueIsArray(nextExpected, nextActual)) { // if this next key is a collection in our actual/expected
                         nextExpected.forEach((_nextExpected, i) => {
                             parseIgnoreObject(keyToRemove, _nextExpected, nextActual[i]);
                         })
@@ -150,30 +149,36 @@ function parseIgnoreObject(ignoreObj, expected, actual) {
                         parseIgnoreObject(keyToRemove, nextExpected, nextActual);
                     }
 
-                } else {
-                    let nextExpected = expected[k];
-                    let nextActual = actual[k];
-                    if (_.isArray(nextExpected) && _.isArray(nextActual)) {
-                        nextExpected.forEach((_nextExpected, i) => {
-                            removeKey(keyToRemove, _nextExpected, nextActual[i]);
-                        });
-                    } else {
-                        removeKey(keyToRemove, nextExpected, nextActual);
-                    }
+                } else { // simply a string representing a key to remove at this iteration
+                    advanceAndRemoveKey(k, keyToRemove, expected, actual);
                 }
             });
         } else if (_.isObject(v)) {
             let nextExpected = expected[k];
             let nextActual = actual[k];
-            if (_.isArray(nextExpected) && _.isArray(nextActual)) {
+            if (valueIsArray(nextExpected, nextActual)) {
                 nextExpected.forEach((_nextExpected, i) => {
                     parseIgnoreObject(v, _nextExpected, actual[i]);
                 });
             } else {
                 parseIgnoreObject(v, nextExpected, nextActual);
             }
+        } else if (_.isString(v)) {
+            advanceAndRemoveKey(k, v, expected, actual);
         }
     });
+}
+
+function advanceAndRemoveKey(advanceKey, keyToRemove, actual, expected) {
+    let nextExpected = expected[advanceKey];
+    let nextActual = actual[advanceKey];
+    if (valueIsArray(nextExpected, nextActual)) {
+        nextExpected.forEach((_nextExpected, i) => {
+            deleteKey(keyToRemove, _nextExpected, nextActual[i]);
+        });
+    } else {
+        deleteKey(keyToRemove, nextExpected, nextActual);
+    }
 }
 
 
@@ -186,7 +191,7 @@ function parseIgnoreObjectPathString(ignoreStringKey, ignoreValue, expected, act
         let nextIgnoreStringKey = ignoreArr.join(".");
         let nextExpected = expected[advanceKey];
         let nextActual = actual[advanceKey];
-        if (_.isArray(nextExpected) && _.isArray(nextActual)) {
+        if (valueIsArray(nextExpected, nextActual)) {
             nextExpected.forEach((_nextExpected, i) => {
                 parseIgnoreObjectPathString(nextIgnoreStringKey, ignoreValue, _nextExpected, nextActual[i]);
             });
@@ -202,18 +207,17 @@ function parseIgnoreObjectPathString(ignoreStringKey, ignoreValue, expected, act
         if (_.isArray(ignoreValue)) { // always a have to check _.isArray first because _.isObject([]) == true
             // remove all these dang keys
             ignoreValue.forEach((keyToRemove) => {
-                if (_.isArray(nextExpected) && _.isArray(nextActual)) {
+                if (valueIsArray(nextExpected, nextActual)) {
                     nextExpected.forEach((_nextExpected, i) => {
-                        removeKey(keyToRemove, _expected, nextActual[i]);
+                        deleteKey(keyToRemove, _expected, nextActual[i]);
                     })
                 } else {
-                    removeKey(keyToRemove, nextExpected, nextActual);
+                    deleteKey(keyToRemove, nextExpected, nextActual);
                 }
             });
         } else if (_.isObject(ignoreValue)) {
             // advance in expected/actual and then parse the obj
-
-            if (_.isArray(nextExpected) && _.isArray(nextActual)) {
+            if (valueIsArray(nextExpected, nextActual)) {
                 nextExpected.forEach((_nextExpected, i) => {
                     parseIgnoreObject(ignoreValue,  _nextExpected, nextActual[i]);
                 })
@@ -227,7 +231,7 @@ function parseIgnoreObjectPathString(ignoreStringKey, ignoreValue, expected, act
 function parseIgnoreString(ignoreString, expected, actual) {
     let ignoreArr = ignoreString.split('.');
     if (ignoreArr.length === 1) {
-        removeKey(ignoreArr[0], expected, actual);
+        deleteKey(ignoreArr[0], expected, actual);
         return;
     }
 
@@ -235,7 +239,7 @@ function parseIgnoreString(ignoreString, expected, actual) {
     let nextIgnoreString = ignoreArr.join('.');
     let nextExpected = expected[advanceKey];
     let nextActual = actual[advanceKey];
-    if (_.isArray(nextExpected) && _.isArray(nextActual)) {
+    if (valueIsArray(nextExpected, nextActual)) {
         nextExpected.forEach((_nextExpected, i) => {
             parseIgnoreString(nextIgnoreString, _nextExpected, nextActual[i]);
         });
@@ -245,12 +249,18 @@ function parseIgnoreString(ignoreString, expected, actual) {
 
 };
 
-function removeKey(key, expected, actual) {
+
+
+function deleteKey(key, expected, actual) {
     console.log(`removeKey: ${key}`);
     delete expected[key];
     delete actual[key];
     console.log(JSON.stringify(expected, null, '\t'));
     console.log(JSON.stringify(actual, null, '\t'));
+}
+
+function valueIsArray(expected, actual) {
+    return _.isArray(expected) && _.isArray(actual);
 }
 
 entry(ignore, exampleExpected, exampleActual);
