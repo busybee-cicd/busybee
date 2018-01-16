@@ -223,12 +223,27 @@ var RESTSuiteManager = /** @class */ (function () {
             };
             var bodyPass = true;
             var customFnErr = null;
+            ///////////////////////////
+            //  Assertion Modifications
+            ///////////////////////////
             /*
              there are some assertion modifications that should alter the actual/expect prior to running an
              assertion function or doing a direct pojo comparision. run those here
              */
-            var expected = Object.assign({}, test.expect.body);
-            var actual = Object.assign({}, body);
+            var expected = void 0;
+            var actual = _.isArray(body) ? body.slice() : Object.assign({}, body);
+            if (_.isFunction(test.expect.body)) {
+                /*
+                 In the event that 'expect.body' is a custom fn, we'll make 'expected' == 'actual'
+                 This will allow the assertionModification fn's to run without blowing up since they mutate both
+                 'expected and 'actual'. Ultimately, when the assertions are run the 'expected' object set here will not
+                 be used and instead 'test.expect.body(actual)' will be evaluated.
+                 */
+                expected = _.isArray(actual) ? actual.slice() : Object.assign({}, actual);
+            }
+            else {
+                expected = _.isArray(test.expect.body) ? test.expect.body.slice() : Object.assign({}, test.expect.body);
+            }
             if (test.expect.assertionModifications) {
                 testResult.assertionModifications = test.expect.assertionModifications;
                 if (test.expect.assertionModifications.ignoreKeys) {
@@ -240,7 +255,9 @@ var RESTSuiteManager = /** @class */ (function () {
                     }
                 }
             }
-            // Run our assertions
+            ///////////////////////////
+            //  Run Assertions
+            ///////////////////////////
             if (_.isFunction(test.expect.body)) {
                 // if the test has a custom function for assertion, run it.
                 try {
