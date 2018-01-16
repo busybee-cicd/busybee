@@ -117,11 +117,6 @@ var RESTSuiteManager = /** @class */ (function () {
                             testSetResult.pass = pass;
                             testSetResult.id = testSet.id;
                             testSetResult.tests = testResults;
-                            // let testSetResults = {
-                            //   pass: pass,
-                            //   id: testSet.id,
-                            //   tests: testResults
-                            // };
                             if (err2) {
                                 _this.logger.trace('runRESTApiTestSet ERROR while running tests');
                                 _this.logger.trace(err2);
@@ -228,10 +223,28 @@ var RESTSuiteManager = /** @class */ (function () {
             };
             var bodyPass = true;
             var customFnErr = null;
+            /*
+             there are some assertion modifications that should alter the actual/expect prior to running an
+             assertion function or doing a direct pojo comparision. run those here
+             */
+            var expected = Object.assign({}, test.expect.body);
+            var actual = Object.assign({}, body);
+            if (test.expect.assertionModifications) {
+                testResult.assertionModifications = test.expect.assertionModifications;
+                if (test.expect.assertionModifications.ignoreKeys) {
+                    try {
+                        IgnoreKeys_1.IgnoreKeys.process(test.expect.assertionModifications.ignoreKeys, expected, actual);
+                    }
+                    catch (e) {
+                        this.logger.error("Error encountered while applying 'ignoreKeys'. Please confirm 'ignoreKeys' is formatted correctly");
+                    }
+                }
+            }
+            // Run our assertions
             if (_.isFunction(test.expect.body)) {
                 // if the test has a custom function for assertion, run it.
                 try {
-                    var bodyResult = test.expect.body(body);
+                    var bodyResult = test.expect.body(actual);
                     if (bodyResult === false) {
                         bodyPass = false;
                     } // else we pass it. ie) it doesn't return anything we assume it passed.
@@ -246,20 +259,6 @@ var RESTSuiteManager = /** @class */ (function () {
                 }
             }
             else {
-                // First check to see if we have any assertionModifications that may alter our expect/actual
-                var expected = Object.assign({}, test.expect.body);
-                var actual = Object.assign({}, body);
-                if (test.expect.assertionModifications) {
-                    testResult.assertionModifications = test.expect.assertionModifications;
-                    if (test.expect.assertionModifications.ignoreKeys) {
-                        try {
-                            IgnoreKeys_1.IgnoreKeys.process(test.expect.assertionModifications.ignoreKeys, expected, actual);
-                        }
-                        catch (e) {
-                            this.logger.error("Error encountered while applying 'ignoreKeys'. Please confirm 'ignoreKeys' is formatted correctly");
-                        }
-                    }
-                }
                 // assert the body against the provided pojo body
                 bodyPass = _.isEqual(expected, actual);
             }
