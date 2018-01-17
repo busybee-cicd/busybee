@@ -40,7 +40,8 @@ var _ = require("lodash");
 var Logger_1 = require("../lib/Logger");
 var RESTClient_1 = require("../lib/RESTClient");
 var TestSetResult_1 = require("../models/results/TestSetResult");
-var IgnoreKeys_1 = require("../lib/IgnoreKeys");
+var IgnoreKeys_1 = require("../lib/assertionModifications/IgnoreKeys");
+var UnorderedCollections_1 = require("../lib/assertionModifications/UnorderedCollections");
 // support JSON.stringify on Error objects
 if (!('toJSON' in Error.prototype))
     Object.defineProperty(Error.prototype, 'toJSON', {
@@ -224,61 +225,80 @@ var RESTSuiteManager = /** @class */ (function () {
             var bodyPass = true;
             var customFnErr = null;
             ///////////////////////////
-            //  Assertion Modifications
-            ///////////////////////////
-            /*
-             there are some assertion modifications that should alter the actual/expect prior to running an
-             assertion function or doing a direct pojo comparision. run those here
-             */
-            var expected = void 0;
-            var actual = _.isArray(body) ? body.slice() : Object.assign({}, body);
-            if (_.isFunction(test.expect.body)) {
-                /*
-                 In the event that 'expect.body' is a custom fn, we'll make 'expected' == 'actual'
-                 This will allow the assertionModification fn's to run without blowing up since they mutate both
-                 'expected and 'actual'. Ultimately, when the assertions are run the 'expected' object set here will not
-                 be used and instead 'test.expect.body(actual)' will be evaluated.
-                 */
-                expected = _.isArray(actual) ? actual.slice() : Object.assign({}, actual);
-            }
-            else {
-                expected = _.isArray(test.expect.body) ? test.expect.body.slice() : Object.assign({}, test.expect.body);
-            }
-            if (test.expect.assertionModifications) {
-                testResult.assertionModifications = test.expect.assertionModifications;
-                if (test.expect.assertionModifications.ignoreKeys) {
-                    try {
-                        IgnoreKeys_1.IgnoreKeys.process(test.expect.assertionModifications.ignoreKeys, expected, actual);
-                    }
-                    catch (e) {
-                        this.logger.error("Error encountered while applying 'ignoreKeys'. Please confirm 'ignoreKeys' is formatted correctly");
-                    }
-                }
-            }
-            ///////////////////////////
             //  Run Assertions
             ///////////////////////////
-            if (_.isFunction(test.expect.body)) {
-                // if the test has a custom function for assertion, run it.
-                try {
+            try {
+                //  Assertion Modifications
+                /*
+                 there are some assertion modifications that should alter the actual/expect prior to running an
+                 assertion function or doing a direct pojo comparision. run those here
+                 */
+                var expected = void 0;
+                var actual = _.isArray(body) ? body.slice() : Object.assign({}, body);
+                if (_.isFunction(test.expect.body)) {
+                    /*
+                     In the event that 'expect.body' is a custom fn, we'll make 'expected' == 'actual'
+                     This will allow the assertionModification fn's to run without blowing up since they mutate both
+                     'expected and 'actual'. Ultimately, when the assertions are run the 'expected' object set here will not
+                     be used and instead 'test.expect.body(actual)' will be evaluated.
+                     */
+                    expected = _.isArray(actual) ? actual.slice() : Object.assign({}, actual);
+                }
+                else {
+                    expected = _.isArray(test.expect.body) ? test.expect.body.slice() : Object.assign({}, test.expect.body);
+                }
+                if (test.expect.assertionModifications) {
+                    testResult.assertionModifications = test.expect.assertionModifications;
+                    if (test.expect.assertionModifications.ignoreKeys) {
+                        IgnoreKeys_1.IgnoreKeys.process(test.expect.assertionModifications.ignoreKeys, expected, actual);
+                    }
+                    if (test.expect.assertionModifications.unorderedCollections) {
+                        this.logger.debug("Processing UnorderedCollections");
+                        UnorderedCollections_1.UnorderedCollections.process(test.expect.assertionModifications.unorderedCollections, expected, actual);
+                    }
+                }
+                // /End Assertion Modifications
+                // Run Custom Function Assertion OR basic Pojo comparision
+                if (_.isFunction(test.expect.body)) {
+                    // if the test has a custom function for assertion, run it.
                     var bodyResult = test.expect.body(actual);
                     if (bodyResult === false) {
                         bodyPass = false;
                     } // else we pass it. ie) it doesn't return anything we assume it passed.
                 }
-                catch (e) {
-                    bodyPass = false;
-                    customFnErr = {
-                        type: 'custom validation function',
-                        error: e
-                    };
-                    this.logger.error(customFnErr);
+                else {
+                    // assert the body against the provided pojo body
+                    bodyPass = _.isEqual(expected, actual);
                 }
             }
-            else {
-                // assert the body against the provided pojo body
-                bodyPass = _.isEqual(expected, actual);
+            catch (e) {
+                bodyPass = false;
+                customFnErr = {
+                    type: 'custom validation function',
+                    error: e
+                };
+                this.logger.error(customFnErr);
             }
+            // if (_.isFunction(test.expect.body)) {
+            //     // if the test has a custom function for assertion, run it.
+            //     try {
+            //         let bodyResult = test.expect.body(actual);
+            //         if (bodyResult === false) {
+            //             bodyPass = false;
+            //         } // else we pass it. ie) it doesn't return anything we assume it passed.
+            //     } catch (e) {
+            //         bodyPass = false;
+            //         customFnErr = {
+            //             type: 'custom validation function',
+            //             error: e
+            //         };
+            //
+            //         this.logger.error(customFnErr);
+            //     }
+            // } else {
+            //     // assert the body against the provided pojo body
+            //     bodyPass = _.isEqual(expected, actual);
+            // }
             if (!bodyPass) {
                 testResult.pass = false;
                 testResult.body.pass = false;

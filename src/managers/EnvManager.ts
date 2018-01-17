@@ -145,7 +145,12 @@ export class EnvManager {
       // remove the env from currentEnvs
       this.currentEnvs.remove(generatedEnvID);
 
-      if (_.isEmpty(envInfo)) { return Promise.resolve(); }
+      if (_.isEmpty(envInfo)) { return resolve(); }
+
+      if (this.skipEnvProvisioningList && (this.skipEnvProvisioningList.indexOf(envInfo.suiteID) !== -1)) {
+        this.logger.info(`Skipping shutdown of '${envInfo.suiteID}'s environment. Suite's Environment was not provisioned by Busybee`);
+        return resolve();
+      }
       this.logger.info(`Stopping Environment: ${envInfo.suiteEnvID} ${generatedEnvID}`);
 
       this.logger.trace('envInfo');
