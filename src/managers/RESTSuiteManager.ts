@@ -108,7 +108,7 @@ export class RESTSuiteManager {
         this.logger.trace(`RESTSuiteManager:buildTestTasks <testSet> ${currentEnv.ports}`);
         this.logger.trace(testSet);
         // filter out any tests that do no contain a request object (usually the case if a
-        
+
         if (testSet.testsUnordered.length > 0) {
             // ADD ORDERED AND UNORDERED ARRAYS TOGETHER
             testSet.tests = testSet.tests.concat(testSet.testsUnordered);
