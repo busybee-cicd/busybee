@@ -106,6 +106,9 @@ var RESTSuiteManager = /** @class */ (function () {
                         var testFns = _this.buildTestTasks(currentEnv, testSet);
                         // run api test functions
                         _this.logger.info("Running Test Set: " + testSet.id);
+                        if (testSet.id == 'asset management') {
+                            _this.logger.debug(testSet.tests, true);
+                        }
                         if (testSet.description) {
                             _this.logger.info("" + testSet.description);
                         }
@@ -136,6 +139,10 @@ var RESTSuiteManager = /** @class */ (function () {
         this.logger.trace("RESTSuiteManager:buildTestTasks <testSet> " + currentEnv.ports);
         this.logger.trace(testSet);
         // filter out any tests that do no contain a request object (usually the case if a
+        if (testSet.testsUnordered.length > 0) {
+            // ADD ORDERED AND UNORDERED ARRAYS TOGETHER
+            testSet.tests = testSet.tests.concat(testSet.testsUnordered);
+        }
         var testsWithARequest = _.reject(testSet.tests, function (test) {
             return test === null;
         });

@@ -151,19 +151,25 @@ export class BusybeeParsedConfig {
         tests.forEach((test) => {
           this.logger.trace(test);
           test = new RESTTest(test);
+
           if (test.skip) { return; }
+
           if (mode === 'test') {
             if (!test.expect || !test.expect.status || !test.expect.body) {
+              this.logger.debug(`test.expect not defined for ${test.id}. Skipping`);
               return;
             }
           }
           if (mode === 'mock') {
             test.testSet = { id: 'default' }
+            if (!test.expect && !test.mockResponse) {
+              this.logger.warn(`test.expect && test.mockResponse not defined for ${test.id}. Cannot mock!`);
+              return;
+            }
           }
 
           if (_.isUndefined(test.testSet)) {
             this.logger.info(`test '${test.id}' does not contain required prop 'testSet'. Skipping`);
-
             return;
           }
 
@@ -195,18 +201,33 @@ export class BusybeeParsedConfig {
             let suiteID = this.env2TestSuiteMap.get(testEnvId);
             if (_.isUndefined(testSetInfo.index)) {
               // push it on the end
-              parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests.push(test);
-              //conf.restApi.testEnvs[testEnvId].testSets[testSetInfo.id].tests.push(test);
+              parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).testsUnordered.push(test);
+              // if (testSetInfo.id === 'asset management') {
+              //   this.logger.debug(parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id), true);
+              // }
             } else {
               // insert it at the proper index, fill any empty spots along the way
-              Array(testSetInfo.index + 1).fill(null).forEach((d,i) => {
+              let existingTests = parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests;
+
+              let newArrLength = testSetInfo.index + 1;
+              if (existingTests && existingTests.length > newArrLength) {
+                // we need to extend the length of the array to add this at the proper index.
+                newArrLength = existingTests.length;
+              }
+
+              // create an array of nulls of the current known maxLength and fill it back in.
+              Array(newArrLength).fill(null).forEach((d,i) => {
                 if (i == testSetInfo.index) {
                   parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i] = test;
                 } else {
-                  if (!parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i]) {
+                  if (!existingTests[i]) {
                     parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i] = null;
                   }
                 }
+
+                // if (testSetInfo.id === 'asset management') {
+                //   this.logger.debug(parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id), true);
+                // }
               });
             }
           });
