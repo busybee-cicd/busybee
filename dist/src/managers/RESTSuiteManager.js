@@ -42,6 +42,9 @@ var RESTClient_1 = require("../lib/RESTClient");
 var TestSetResult_1 = require("../models/results/TestSetResult");
 var IgnoreKeys_1 = require("../lib/assertionModifications/IgnoreKeys");
 var UnorderedCollections_1 = require("../lib/assertionModifications/UnorderedCollections");
+var RESTTestPartResult_1 = require("../models/results/RESTTestPartResult");
+var RESTTestHeaderResult_1 = require("../models/results/RESTTestHeaderResult");
+var RESTTestResult_1 = require("../models/results/RESTTestResult");
 // support JSON.stringify on Error objects
 if (!('toJSON' in Error.prototype))
     Object.defineProperty(Error.prototype, 'toJSON', {
@@ -187,36 +190,21 @@ var RESTSuiteManager = /** @class */ (function () {
     RESTSuiteManager.prototype.validateTestResult = function (test, reqOpts, res, body, cb) {
         this.logger.trace("validateTestResult");
         // validate results
-        var testResult = {
-            id: test.id,
-            index: test.testIndex,
-            pass: true
-        };
+        var testResult = new RESTTestResult_1.RESTTestResult(test.id, test.testIndex);
         if (test.expect.headers) {
             testResult.headers = [];
             _.forEach(test.expect.headers, function (v, headerName) {
                 if (res.headers[headerName] != v) {
                     testResult.pass = false;
-                    testResult.headers.push({
-                        pass: false,
-                        headerName: headerName,
-                        actual: res.headers[headerName],
-                        expected: v
-                    });
-                    testResult.headers[headerName] = "Expected " + v + " was " + res.headers[headerName];
+                    testResult.headers.push(new RESTTestHeaderResult_1.RESTTestHeaderResult(headerName, false, res.headers[headerName], v));
                 }
                 else {
-                    testResult.headers.push({
-                        pass: true,
-                        headerName: headerName
-                    });
+                    testResult.headers.push(new RESTTestHeaderResult_1.RESTTestHeaderResult(headerName, true));
                 }
             });
         }
         if (test.expect.status) {
-            testResult.status = {
-                pass: true
-            };
+            testResult.status = new RESTTestPartResult_1.RESTTestPartResult();
             var statusPass = res.statusCode == test.expect.status;
             if (!statusPass) {
                 testResult.pass = false;
@@ -226,9 +214,7 @@ var RESTSuiteManager = /** @class */ (function () {
             }
         }
         if (test.expect.body) {
-            testResult.body = {
-                pass: true
-            };
+            testResult.body = new RESTTestPartResult_1.RESTTestPartResult();
             var bodyPass = true;
             var customFnErr = null;
             ///////////////////////////
@@ -286,26 +272,6 @@ var RESTSuiteManager = /** @class */ (function () {
                 };
                 this.logger.error(customFnErr);
             }
-            // if (_.isFunction(test.expect.body)) {
-            //     // if the test has a custom function for assertion, run it.
-            //     try {
-            //         let bodyResult = test.expect.body(actual);
-            //         if (bodyResult === false) {
-            //             bodyPass = false;
-            //         } // else we pass it. ie) it doesn't return anything we assume it passed.
-            //     } catch (e) {
-            //         bodyPass = false;
-            //         customFnErr = {
-            //             type: 'custom validation function',
-            //             error: e
-            //         };
-            //
-            //         this.logger.error(customFnErr);
-            //     }
-            // } else {
-            //     // assert the body against the provided pojo body
-            //     bodyPass = _.isEqual(expected, actual);
-            // }
             if (!bodyPass) {
                 testResult.pass = false;
                 testResult.body.pass = false;
@@ -313,10 +279,8 @@ var RESTSuiteManager = /** @class */ (function () {
                 testResult.body.expected = _.isFunction(test.expect.body) ? customFnErr : test.expect.body;
             }
         }
-        // attach the request info if the test itself failed
-        if (!testResult.pass) {
-            testResult.request = reqOpts;
-        }
+        // attach the request info for reporting purposes
+        testResult.request = reqOpts;
         cb(null, testResult);
     };
     return RESTSuiteManager;
