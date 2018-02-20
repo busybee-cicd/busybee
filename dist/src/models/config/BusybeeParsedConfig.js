@@ -112,6 +112,7 @@ var BusybeeParsedConfig = /** @class */ (function () {
             else {
                 _this.logger.info("parsing " + file);
             }
+            // require all .js and .json files
             var tests;
             if (file.endsWith('.js')) {
                 tests = require(file);
@@ -119,12 +120,15 @@ var BusybeeParsedConfig = /** @class */ (function () {
             else {
                 tests = JSON.parse(fs.readFileSync(file, 'utf8').toString());
             }
+            // ensure that all of our testFiles return arrays of tests and not just a single test object
             if (!Array.isArray(tests)) {
                 tests = [tests];
+                _this.logger.trace("is not array of tests");
             }
             tests.forEach(function (test) {
                 _this.logger.trace(test);
                 test = new RESTTest_1.RESTTest(test);
+                // run through various business logic scenarios to determine if the current test should be parsed
                 if (test.skip) {
                     return;
                 }
@@ -197,6 +201,15 @@ var BusybeeParsedConfig = /** @class */ (function () {
                             // }
                         });
                     }
+                    _this.logger.trace(parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id));
+                });
+            });
+        });
+        // zip up any tests/unorderedTests
+        parsedTestSuites.forEach(function (pts, ptsId) {
+            pts.testEnvs.forEach(function (te, teId) {
+                te.testSets.forEach(function (ts, tsId) {
+                    ts.tests = ts.tests.concat(ts.testsUnordered);
                 });
             });
         });

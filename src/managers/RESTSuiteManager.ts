@@ -12,6 +12,7 @@ import {UnorderedCollections} from "../lib/assertionModifications/UnorderedColle
 import {RESTTestPartResult} from "../models/results/RESTTestPartResult";
 import {RESTTestHeaderResult} from "../models/results/RESTTestHeaderResult";
 import {RESTTestResult} from "../models/results/RESTTestResult";
+import {TestSetConfig} from "../models/config/user/TestSetConfig";
 
 // support JSON.stringify on Error objects
 if (!('toJSON' in Error.prototype))
@@ -110,13 +111,8 @@ export class RESTSuiteManager {
     buildTestTasks(currentEnv: SuiteEnvInfo, testSet: ParsedTestSetConfig) {
         this.logger.trace(`RESTSuiteManager:buildTestTasks <testSet> ${currentEnv.ports}`);
         this.logger.trace(testSet);
-        // filter out any tests that do no contain a request object (usually the case if a
 
-        if (testSet.testsUnordered.length > 0) {
-            // ADD ORDERED AND UNORDERED ARRAYS TOGETHER
-            testSet.tests = testSet.tests.concat(testSet.testsUnordered);
-        }
-
+        // filter out tests that do not contain .request object (shouldnt be required anymore) TODO: remove?
         let testsWithARequest = _.reject(testSet.tests, (test: RESTTest) => {
             return test === null;
         });
@@ -126,6 +122,11 @@ export class RESTSuiteManager {
                 // build request
                 let port = currentEnv.ports[0]; // the REST api port should be passed first in the userConfigFile.
                 let opts = this.restClient.buildRequest(test.request, port);
+                // filter everything in the request opts for variables that should be set via variableExports
+                this.logger.trace('opts before processRequestOptsForVariableDeclarations');
+                this.logger.trace(opts);
+                opts = this.processRequestOptsForVariableDeclarations(opts, testSet.variableExports);
+                this.logger.trace('opts after processRequestOptsForVariableDeclarations');
                 this.logger.trace(opts);
 
                 // figure out if this test is running at a specific index. (just nice for consoling)
@@ -157,14 +158,51 @@ export class RESTSuiteManager {
                         return cb(err);
                     }
 
-                    this.validateTestResult(test, Object.assign({}, this.restClient.getDefaultRequestOpts(), opts), res, body, cb)
+                    this.validateTestResult(testSet, test, Object.assign({}, this.restClient.getDefaultRequestOpts(), opts), res, body, cb)
                 });
             };
         });
     }
 
+    processRequestOptsForVariableDeclarations(opts: any, variableExports: any) {
+        // check url
+        opts.url = this.replaceVars(opts.url, variableExports);
+        let objBasedPropsToCheck = ['query', 'headers', 'body'];
+        objBasedPropsToCheck.forEach(prop => {
+            if (opts[prop]) {
+                opts[prop] = this.replaceVarsInObject(opts[prop], variableExports);
+            }
+        })
 
-    validateTestResult(test: RESTTest, reqOpts: any, res: IncomingMessage, body: any, cb: (Error, RESTTestResult?) => {}) {
+        return opts;
+    }
+
+    replaceVarsInObject(obj: any, variableExports: any) {
+        _.forEach(obj, (value, propName) => {
+           if (_.isObject(value) && !_.isArray(value)) {
+               obj[propName] = this.replaceVarsInObject(value, variableExports);
+           } else if (_.isString(value)) {
+               obj[propName] = this.replaceVars(value, variableExports);
+           }
+        });
+
+        return obj;
+    }
+
+    replaceVars(str:string, variableExports: any) {
+        let newStr = str.replace(/#{\w+}/g, (match) => {
+            match = match.substr(2); // remove #{
+            match = match.slice(0,-1); // remove }
+            this.logger.trace(`Setting ${match} for '${str}'`);
+            this.logger.trace(variableExports, true);
+            return variableExports[match];
+        });
+
+        return newStr;
+    }
+
+
+    validateTestResult(testSet: ParsedTestSetConfig, test: RESTTest, reqOpts: any, res: IncomingMessage, body: any, cb: (Error, RESTTestResult?) => {}) {
         this.logger.trace(`validateTestResult`)
         // validate results
         let testResult = new RESTTestResult(test.id, test.testIndex);
@@ -246,7 +284,7 @@ export class RESTSuiteManager {
                 // Run Custom Function Assertion OR basic Pojo comparision
                 if (_.isFunction(test.expect.body)) {
                     // if the test has a custom function for assertion, run it.
-                    let bodyResult = test.expect.body(actual);
+                    let bodyResult = test.expect.body(actual, testSet.variableExports);
                     if (bodyResult === false) {
                         bodyPass = false;
                     } // else we pass it. ie) it doesn't return anything we assume it passed.
