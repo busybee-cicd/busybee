@@ -7,6 +7,7 @@ export class ParsedTestSetConfig {
   data: any;
   tests: RESTTest[];
   testsUnordered: RESTTest[];
+  variableExports: any; // holds vars exported from tests so that they can be used in other tests
 
   constructor(testSetConfig: TestSetConfig) {
     this.id = testSetConfig.id;
@@ -14,5 +15,6 @@ export class ParsedTestSetConfig {
     this.data = testSetConfig.data;
     this.tests = <RESTTest []> [];
     this.testsUnordered = <RESTTest []> [];
+    this.variableExports = {};
   }
 }

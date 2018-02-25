@@ -42,6 +42,9 @@ var RESTClient_1 = require("../lib/RESTClient");
 var TestSetResult_1 = require("../models/results/TestSetResult");
 var IgnoreKeys_1 = require("../lib/assertionModifications/IgnoreKeys");
 var UnorderedCollections_1 = require("../lib/assertionModifications/UnorderedCollections");
+var RESTTestPartResult_1 = require("../models/results/RESTTestPartResult");
+var RESTTestHeaderResult_1 = require("../models/results/RESTTestHeaderResult");
+var RESTTestResult_1 = require("../models/results/RESTTestResult");
 // support JSON.stringify on Error objects
 if (!('toJSON' in Error.prototype))
     Object.defineProperty(Error.prototype, 'toJSON', {
@@ -138,11 +141,7 @@ var RESTSuiteManager = /** @class */ (function () {
         var _this = this;
         this.logger.trace("RESTSuiteManager:buildTestTasks <testSet> " + currentEnv.ports);
         this.logger.trace(testSet);
-        // filter out any tests that do no contain a request object (usually the case if a
-        if (testSet.testsUnordered.length > 0) {
-            // ADD ORDERED AND UNORDERED ARRAYS TOGETHER
-            testSet.tests = testSet.tests.concat(testSet.testsUnordered);
-        }
+        // filter out tests that do not contain .request object (shouldnt be required anymore) TODO: remove?
         var testsWithARequest = _.reject(testSet.tests, function (test) {
             return test === null;
         });
@@ -151,6 +150,11 @@ var RESTSuiteManager = /** @class */ (function () {
                 // build request
                 var port = currentEnv.ports[0]; // the REST api port should be passed first in the userConfigFile.
                 var opts = _this.restClient.buildRequest(test.request, port);
+                // filter everything in the request opts for variables that should be set via variableExports
+                _this.logger.trace('opts before processRequestOptsForVariableDeclarations');
+                _this.logger.trace(opts);
+                opts = _this.processRequestOptsForVariableDeclarations(opts, testSet.variableExports);
+                _this.logger.trace('opts after processRequestOptsForVariableDeclarations');
                 _this.logger.trace(opts);
                 // figure out if this test is running at a specific index. (just nice for consoling)
                 var testIndex;
@@ -179,74 +183,95 @@ var RESTSuiteManager = /** @class */ (function () {
                     if (err) {
                         return cb(err);
                     }
-                    _this.validateTestResult(test, Object.assign({}, _this.restClient.getDefaultRequestOpts(), opts), res, body, cb);
+                    _this.validateTestResult(testSet, test, Object.assign({}, _this.restClient.getDefaultRequestOpts(), opts), res, body, cb);
                 });
             };
         });
     };
-    RESTSuiteManager.prototype.validateTestResult = function (test, reqOpts, res, body, cb) {
+    RESTSuiteManager.prototype.processRequestOptsForVariableDeclarations = function (opts, variableExports) {
+        var _this = this;
+        // check url
+        opts.url = this.replaceVars(opts.url, variableExports);
+        var objBasedPropsToCheck = ['query', 'headers', 'body'];
+        objBasedPropsToCheck.forEach(function (prop) {
+            if (opts[prop]) {
+                opts[prop] = _this.replaceVarsInObject(opts[prop], variableExports);
+            }
+        });
+        return opts;
+    };
+    RESTSuiteManager.prototype.replaceVarsInObject = function (obj, variableExports) {
+        var _this = this;
+        _.forEach(obj, function (value, propName) {
+            if (_.isObject(value) && !_.isArray(value)) {
+                obj[propName] = _this.replaceVarsInObject(value, variableExports);
+            }
+            else if (_.isString(value)) {
+                obj[propName] = _this.replaceVars(value, variableExports);
+            }
+        });
+        return obj;
+    };
+    RESTSuiteManager.prototype.replaceVars = function (str, variableExports) {
+        var _this = this;
+        var newStr = str.replace(/#{\w+}/g, function (match) {
+            match = match.substr(2); // remove #{
+            match = match.slice(0, -1); // remove }
+            _this.logger.trace("Setting " + match + " for '" + str + "'");
+            _this.logger.trace(variableExports, true);
+            return variableExports[match];
+        });
+        return newStr;
+    };
+    RESTSuiteManager.prototype.validateTestResult = function (testSet, test, reqOpts, res, body, cb) {
         this.logger.trace("validateTestResult");
         // validate results
-        var testResult = {
-            id: test.id,
-            index: test.testIndex,
-            pass: true
-        };
+        var testResult = new RESTTestResult_1.RESTTestResult(test.id, test.testIndex);
         if (test.expect.headers) {
-            testResult.headers = [];
+            testResult.headers = new RESTTestHeaderResult_1.RESTTestHeaderResult();
             _.forEach(test.expect.headers, function (v, headerName) {
                 if (res.headers[headerName] != v) {
                     testResult.pass = false;
-                    testResult.headers.push({
-                        pass: false,
-                        headerName: headerName,
-                        actual: res.headers[headerName],
-                        expected: v
-                    });
-                    testResult.headers[headerName] = "Expected " + v + " was " + res.headers[headerName];
+                    testResult.headers.pass = false;
                 }
-                else {
-                    testResult.headers.push({
-                        pass: true,
-                        headerName: headerName
-                    });
-                }
+                var actual = {};
+                actual[headerName] = res.headers[headerName];
+                testResult.headers.actual.push(actual);
+                var expected = {};
+                expected[headerName] = v;
+                testResult.headers.expected.push(expected);
             });
         }
         if (test.expect.status) {
-            testResult.status = {
-                pass: true
-            };
+            testResult.status = new RESTTestPartResult_1.RESTTestPartResult();
             var statusPass = res.statusCode == test.expect.status;
+            testResult.status.actual = res.statusCode;
             if (!statusPass) {
                 testResult.pass = false;
                 testResult.status.pass = false;
-                testResult.status.actual = res.statusCode;
                 testResult.status.expected = test.expect.status;
             }
         }
         if (test.expect.body) {
-            testResult.body = {
-                pass: true
-            };
+            testResult.body = new RESTTestPartResult_1.RESTTestPartResult();
             var bodyPass = true;
             var customFnErr = null;
             ///////////////////////////
             //  Run Assertions
             ///////////////////////////
+            var actual = _.isArray(body) ? body.slice() : Object.assign({}, body);
+            var expected = void 0;
             try {
                 //  Assertion Modifications
                 /*
                  there are some assertion modifications that should alter the actual/expect prior to running an
                  assertion function or doing a direct pojo comparision. run those here
                  */
-                var expected = void 0;
-                var actual = _.isArray(body) ? body.slice() : Object.assign({}, body);
                 if (_.isFunction(test.expect.body)) {
                     /*
                      In the event that 'expect.body' is a custom fn, we'll make 'expected' == 'actual'
-                     This will allow the assertionModification fn's to run without blowing up since they mutate both
-                     'expected and 'actual'. Ultimately, when the assertions are run the 'expected' object set here will not
+                     assertionModification logic relies on 'expected' and 'actual' to both be objects.
+                     Ultimately, when the assertions are run the 'expected' object set here will not
                      be used and instead 'test.expect.body(actual)' will be evaluated.
                      */
                     expected = _.isArray(actual) ? actual.slice() : Object.assign({}, actual);
@@ -265,10 +290,12 @@ var RESTSuiteManager = /** @class */ (function () {
                     }
                 }
                 // /End Assertion Modifications
+                // IMPORTANT: the 'expected' and 'actual' at this point have been modified to remove anything that we should ignore.
+                // that is so that keys that don't matter aren't passed to the assertionFn or the _.isEqual
                 // Run Custom Function Assertion OR basic Pojo comparision
                 if (_.isFunction(test.expect.body)) {
                     // if the test has a custom function for assertion, run it.
-                    var bodyResult = test.expect.body(actual);
+                    var bodyResult = test.expect.body(actual, testSet.variableExports);
                     if (bodyResult === false) {
                         bodyPass = false;
                     } // else we pass it. ie) it doesn't return anything we assume it passed.
@@ -286,37 +313,15 @@ var RESTSuiteManager = /** @class */ (function () {
                 };
                 this.logger.error(customFnErr);
             }
-            // if (_.isFunction(test.expect.body)) {
-            //     // if the test has a custom function for assertion, run it.
-            //     try {
-            //         let bodyResult = test.expect.body(actual);
-            //         if (bodyResult === false) {
-            //             bodyPass = false;
-            //         } // else we pass it. ie) it doesn't return anything we assume it passed.
-            //     } catch (e) {
-            //         bodyPass = false;
-            //         customFnErr = {
-            //             type: 'custom validation function',
-            //             error: e
-            //         };
-            //
-            //         this.logger.error(customFnErr);
-            //     }
-            // } else {
-            //     // assert the body against the provided pojo body
-            //     bodyPass = _.isEqual(expected, actual);
-            // }
+            testResult.body.actual = actual;
             if (!bodyPass) {
                 testResult.pass = false;
                 testResult.body.pass = false;
-                testResult.body.actual = body;
-                testResult.body.expected = _.isFunction(test.expect.body) ? customFnErr : test.expect.body;
+                testResult.body.expected = _.isFunction(test.expect.body) ? customFnErr : expected;
             }
         }
-        // attach the request info if the test itself failed
-        if (!testResult.pass) {
-            testResult.request = reqOpts;
-        }
+        // attach the request info for reporting purposes
+        testResult.request = reqOpts;
         cb(null, testResult);
     };
     return RESTSuiteManager;

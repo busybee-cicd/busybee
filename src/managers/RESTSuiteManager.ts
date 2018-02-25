@@ -9,6 +9,10 @@ import {IncomingMessage} from "http";
 import {TestSetResult} from "../models/results/TestSetResult";
 import {IgnoreKeys} from "../lib/assertionModifications/IgnoreKeys";
 import {UnorderedCollections} from "../lib/assertionModifications/UnorderedCollections";
+import {RESTTestPartResult} from "../models/results/RESTTestPartResult";
+import {RESTTestHeaderResult} from "../models/results/RESTTestHeaderResult";
+import {RESTTestResult} from "../models/results/RESTTestResult";
+import {TestSetConfig} from "../models/config/user/TestSetConfig";
 
 // support JSON.stringify on Error objects
 if (!('toJSON' in Error.prototype))
@@ -82,7 +86,7 @@ export class RESTSuiteManager {
                 this.logger.info(`${testSet.description}`);
             }
 
-            _async.series(testFns, (err2, testResults) => {
+            _async.series(testFns, (err2: Error, testResults: Array<RESTTestResult>) => {
                 // see if any tests failed and mark the set according
                 let pass = _.find(testResults, (tr: any) => {
                     return tr.pass === false
@@ -107,13 +111,8 @@ export class RESTSuiteManager {
     buildTestTasks(currentEnv: SuiteEnvInfo, testSet: ParsedTestSetConfig) {
         this.logger.trace(`RESTSuiteManager:buildTestTasks <testSet> ${currentEnv.ports}`);
         this.logger.trace(testSet);
-        // filter out any tests that do no contain a request object (usually the case if a
 
-        if (testSet.testsUnordered.length > 0) {
-            // ADD ORDERED AND UNORDERED ARRAYS TOGETHER
-            testSet.tests = testSet.tests.concat(testSet.testsUnordered);
-        }
-
+        // filter out tests that do not contain .request object (shouldnt be required anymore) TODO: remove?
         let testsWithARequest = _.reject(testSet.tests, (test: RESTTest) => {
             return test === null;
         });
@@ -123,6 +122,11 @@ export class RESTSuiteManager {
                 // build request
                 let port = currentEnv.ports[0]; // the REST api port should be passed first in the userConfigFile.
                 let opts = this.restClient.buildRequest(test.request, port);
+                // filter everything in the request opts for variables that should be set via variableExports
+                this.logger.trace('opts before processRequestOptsForVariableDeclarations');
+                this.logger.trace(opts);
+                opts = this.processRequestOptsForVariableDeclarations(opts, testSet.variableExports);
+                this.logger.trace('opts after processRequestOptsForVariableDeclarations');
                 this.logger.trace(opts);
 
                 // figure out if this test is running at a specific index. (just nice for consoling)
@@ -154,64 +158,89 @@ export class RESTSuiteManager {
                         return cb(err);
                     }
 
-                    this.validateTestResult(test, Object.assign({}, this.restClient.getDefaultRequestOpts(), opts), res, body, cb)
+                    this.validateTestResult(testSet, test, Object.assign({}, this.restClient.getDefaultRequestOpts(), opts), res, body, cb)
                 });
             };
         });
     }
 
+    processRequestOptsForVariableDeclarations(opts: any, variableExports: any) {
+        // check url
+        opts.url = this.replaceVars(opts.url, variableExports);
+        let objBasedPropsToCheck = ['query', 'headers', 'body'];
+        objBasedPropsToCheck.forEach(prop => {
+            if (opts[prop]) {
+                opts[prop] = this.replaceVarsInObject(opts[prop], variableExports);
+            }
+        })
 
-    validateTestResult(test: RESTTest, reqOpts: any, res: IncomingMessage, body: any, cb: Function) {
+        return opts;
+    }
+
+    replaceVarsInObject(obj: any, variableExports: any) {
+        _.forEach(obj, (value, propName) => {
+           if (_.isObject(value) && !_.isArray(value)) {
+               obj[propName] = this.replaceVarsInObject(value, variableExports);
+           } else if (_.isString(value)) {
+               obj[propName] = this.replaceVars(value, variableExports);
+           }
+        });
+
+        return obj;
+    }
+
+    replaceVars(str:string, variableExports: any) {
+        let newStr = str.replace(/#{\w+}/g, (match) => {
+            match = match.substr(2); // remove #{
+            match = match.slice(0,-1); // remove }
+            this.logger.trace(`Setting ${match} for '${str}'`);
+            this.logger.trace(variableExports, true);
+            return variableExports[match];
+        });
+
+        return newStr;
+    }
+
+
+    validateTestResult(testSet: ParsedTestSetConfig, test: RESTTest, reqOpts: any, res: IncomingMessage, body: any, cb: (Error, RESTTestResult?) => {}) {
         this.logger.trace(`validateTestResult`)
         // validate results
-        let testResult = <any>{
-            id: test.id,
-            index: test.testIndex,
-            pass: true
-        };
-
+        let testResult = new RESTTestResult(test.id, test.testIndex);
 
         if (test.expect.headers) {
-            testResult.headers = []
+            testResult.headers = new RESTTestHeaderResult();
 
             _.forEach(test.expect.headers, (v, headerName) => {
                 if (res.headers[headerName] != v) {
                     testResult.pass = false;
-                    testResult.headers.push({
-                        pass: false,
-                        headerName: headerName,
-                        actual: res.headers[headerName],
-                        expected: v
-                    });
-                    testResult.headers[headerName] = `Expected ${v} was ${res.headers[headerName]}`;
-                } else {
-                    testResult.headers.push({
-                        pass: true,
-                        headerName: headerName
-                    })
+                    testResult.headers.pass = false;
                 }
+
+                let actual = {};
+                actual[headerName] = res.headers[headerName];
+                testResult.headers.actual.push(actual);
+                let expected = {};
+                expected[headerName] = v;
+                testResult.headers.expected.push(expected);
             });
         }
 
 
         if (test.expect.status) {
-            testResult.status = {
-                pass: true
-            }
+            testResult.status = new RESTTestPartResult();
 
             let statusPass = res.statusCode == test.expect.status;
+            testResult.status.actual = res.statusCode;
+
             if (!statusPass) {
                 testResult.pass = false;
                 testResult.status.pass = false;
-                testResult.status.actual = res.statusCode;
                 testResult.status.expected = test.expect.status;
             }
         }
 
         if (test.expect.body) {
-            testResult.body = {
-                pass: true
-            }
+            testResult.body = new RESTTestPartResult();
 
             let bodyPass = true;
             let customFnErr = null;
@@ -220,19 +249,21 @@ export class RESTSuiteManager {
             ///////////////////////////
             //  Run Assertions
             ///////////////////////////
+
+            let actual = _.isArray(body) ? body.slice() : Object.assign({}, body);
+            let expected;
             try {
                 //  Assertion Modifications
+
                 /*
                  there are some assertion modifications that should alter the actual/expect prior to running an
                  assertion function or doing a direct pojo comparision. run those here
                  */
-                let expected;
-                let actual = _.isArray(body) ? body.slice() : Object.assign({}, body);
                 if (_.isFunction(test.expect.body)) {
                     /*
                      In the event that 'expect.body' is a custom fn, we'll make 'expected' == 'actual'
-                     This will allow the assertionModification fn's to run without blowing up since they mutate both
-                     'expected and 'actual'. Ultimately, when the assertions are run the 'expected' object set here will not
+                     assertionModification logic relies on 'expected' and 'actual' to both be objects.
+                     Ultimately, when the assertions are run the 'expected' object set here will not
                      be used and instead 'test.expect.body(actual)' will be evaluated.
                      */
                     expected =  _.isArray(actual) ? actual.slice() : Object.assign({}, actual);
@@ -254,10 +285,13 @@ export class RESTSuiteManager {
                 }
                 // /End Assertion Modifications
 
+                // IMPORTANT: the 'expected' and 'actual' at this point have been modified to remove anything that we should ignore.
+                // that is so that keys that don't matter aren't passed to the assertionFn or the _.isEqual
+
                 // Run Custom Function Assertion OR basic Pojo comparision
                 if (_.isFunction(test.expect.body)) {
                     // if the test has a custom function for assertion, run it.
-                    let bodyResult = test.expect.body(actual);
+                    let bodyResult = test.expect.body(actual, testSet.variableExports);
                     if (bodyResult === false) {
                         bodyPass = false;
                     } // else we pass it. ie) it doesn't return anything we assume it passed.
@@ -275,39 +309,16 @@ export class RESTSuiteManager {
                 this.logger.error(customFnErr);
             }
 
-            // if (_.isFunction(test.expect.body)) {
-            //     // if the test has a custom function for assertion, run it.
-            //     try {
-            //         let bodyResult = test.expect.body(actual);
-            //         if (bodyResult === false) {
-            //             bodyPass = false;
-            //         } // else we pass it. ie) it doesn't return anything we assume it passed.
-            //     } catch (e) {
-            //         bodyPass = false;
-            //         customFnErr = {
-            //             type: 'custom validation function',
-            //             error: e
-            //         };
-            //
-            //         this.logger.error(customFnErr);
-            //     }
-            // } else {
-            //     // assert the body against the provided pojo body
-            //     bodyPass = _.isEqual(expected, actual);
-            // }
-
+            testResult.body.actual = actual;
             if (!bodyPass) {
                 testResult.pass = false;
                 testResult.body.pass = false;
-                testResult.body.actual = body;
-                testResult.body.expected = _.isFunction(test.expect.body) ? customFnErr : test.expect.body;
+                testResult.body.expected = _.isFunction(test.expect.body) ? customFnErr : expected;
             }
         }
 
-        // attach the request info if the test itself failed
-        if (!testResult.pass) {
-            testResult.request = reqOpts;
-        }
+        // attach the request info for reporting purposes
+        testResult.request = reqOpts;
 
         cb(null, testResult);
     }
