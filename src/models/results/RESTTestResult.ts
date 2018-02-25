@@ -8,7 +8,7 @@ export class RESTTestResult {
     index: number;
     pass: boolean;
     status: RESTTestPartResult;
-    headers: Array<RESTTestHeaderResult>;
+    headers: RESTTestHeaderResult;
     body: RESTTestPartResult;
     assertionModifications: RESTTestAssertionModifications;
     request: any;

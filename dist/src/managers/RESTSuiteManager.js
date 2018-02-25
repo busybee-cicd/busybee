@@ -228,24 +228,27 @@ var RESTSuiteManager = /** @class */ (function () {
         // validate results
         var testResult = new RESTTestResult_1.RESTTestResult(test.id, test.testIndex);
         if (test.expect.headers) {
-            testResult.headers = [];
+            testResult.headers = new RESTTestHeaderResult_1.RESTTestHeaderResult();
             _.forEach(test.expect.headers, function (v, headerName) {
                 if (res.headers[headerName] != v) {
                     testResult.pass = false;
-                    testResult.headers.push(new RESTTestHeaderResult_1.RESTTestHeaderResult(headerName, false, res.headers[headerName], v));
+                    testResult.headers.pass = false;
                 }
-                else {
-                    testResult.headers.push(new RESTTestHeaderResult_1.RESTTestHeaderResult(headerName, true));
-                }
+                var actual = {};
+                actual[headerName] = res.headers[headerName];
+                testResult.headers.actual.push(actual);
+                var expected = {};
+                expected[headerName] = v;
+                testResult.headers.expected.push(expected);
             });
         }
         if (test.expect.status) {
             testResult.status = new RESTTestPartResult_1.RESTTestPartResult();
             var statusPass = res.statusCode == test.expect.status;
+            testResult.status.actual = res.statusCode;
             if (!statusPass) {
                 testResult.pass = false;
                 testResult.status.pass = false;
-                testResult.status.actual = res.statusCode;
                 testResult.status.expected = test.expect.status;
             }
         }
@@ -256,19 +259,19 @@ var RESTSuiteManager = /** @class */ (function () {
             ///////////////////////////
             //  Run Assertions
             ///////////////////////////
+            var actual = _.isArray(body) ? body.slice() : Object.assign({}, body);
+            var expected = void 0;
             try {
                 //  Assertion Modifications
                 /*
                  there are some assertion modifications that should alter the actual/expect prior to running an
                  assertion function or doing a direct pojo comparision. run those here
                  */
-                var expected = void 0;
-                var actual = _.isArray(body) ? body.slice() : Object.assign({}, body);
                 if (_.isFunction(test.expect.body)) {
                     /*
                      In the event that 'expect.body' is a custom fn, we'll make 'expected' == 'actual'
-                     This will allow the assertionModification fn's to run without blowing up since they mutate both
-                     'expected and 'actual'. Ultimately, when the assertions are run the 'expected' object set here will not
+                     assertionModification logic relies on 'expected' and 'actual' to both be objects.
+                     Ultimately, when the assertions are run the 'expected' object set here will not
                      be used and instead 'test.expect.body(actual)' will be evaluated.
                      */
                     expected = _.isArray(actual) ? actual.slice() : Object.assign({}, actual);
@@ -287,6 +290,8 @@ var RESTSuiteManager = /** @class */ (function () {
                     }
                 }
                 // /End Assertion Modifications
+                // IMPORTANT: the 'expected' and 'actual' at this point have been modified to remove anything that we should ignore.
+                // that is so that keys that don't matter aren't passed to the assertionFn or the _.isEqual
                 // Run Custom Function Assertion OR basic Pojo comparision
                 if (_.isFunction(test.expect.body)) {
                     // if the test has a custom function for assertion, run it.
@@ -308,11 +313,11 @@ var RESTSuiteManager = /** @class */ (function () {
                 };
                 this.logger.error(customFnErr);
             }
+            testResult.body.actual = actual;
             if (!bodyPass) {
                 testResult.pass = false;
                 testResult.body.pass = false;
-                testResult.body.actual = body;
-                testResult.body.expected = _.isFunction(test.expect.body) ? customFnErr : test.expect.body;
+                testResult.body.expected = _.isFunction(test.expect.body) ? customFnErr : expected;
             }
         }
         // attach the request info for reporting purposes
