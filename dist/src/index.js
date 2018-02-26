@@ -211,7 +211,7 @@ function initTests(conf) {
             }
         }
         else {
-            //logger.debug(err || suiteResultsList);
+            logger.info(err || suiteResultsList);
             logger.info('Complete');
         }
     });

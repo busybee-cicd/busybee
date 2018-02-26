@@ -8,6 +8,7 @@ busybee
 * [About](#about)
     * [What it is](#what-it-is)
     * [What it isn't](#what-it-isnt)
+* [Configuration](#configuration)
 * [Todo](#todo)
 
 ## Requirements
@@ -244,7 +245,41 @@ module.exports = [{
 ```
 
 
+### AssertionModifications
+// TODO
+- when using unorderedCollections make sure that you specific the outter-most collection. ie)
+```
 
+expected = [
+    {
+        subCollection: [
+            1,2,3,4
+        ]
+    },
+    {
+        "key": "value",
+        subCollection: [
+            5,6,7,8
+        ]
+    }
+];
+
+actual = [
+    {
+        subCollection: [
+            4,3,2,1
+        ]
+    },
+    {
+        "key": "value",
+        subCollection: [
+            8,6,7,5
+        ]
+    }
+];
+
+# though it is the 'subCollection' that is out-of-order and not the root collection. The root collection
+```
 
 
 ## Todo

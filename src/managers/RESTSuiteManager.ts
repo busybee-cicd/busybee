@@ -13,6 +13,7 @@ import {RESTTestPartResult} from "../models/results/RESTTestPartResult";
 import {RESTTestHeaderResult} from "../models/results/RESTTestHeaderResult";
 import {RESTTestResult} from "../models/results/RESTTestResult";
 import {TestSetConfig} from "../models/config/user/TestSetConfig";
+import {DeleteCollections} from "../lib/assertionModifications/DeleteCollections";
 
 // support JSON.stringify on Error objects
 if (!('toJSON' in Error.prototype))
@@ -280,7 +281,22 @@ export class RESTSuiteManager {
 
                     if (test.expect.assertionModifications.unorderedCollections) {
                         this.logger.debug(`Processing UnorderedCollections`);
-                        UnorderedCollections.process(test.expect.assertionModifications.unorderedCollections, expected, actual)
+                        /*
+                         Due to the scenario where unorderedCollections may contain unorderedCollections ie)
+                         [
+                           {
+                             subCollection: [1,2,3,4]
+                           },
+                           {
+                             subCollection: [5,6,7,8]
+                           }
+                         ]
+
+                         We must do a first pass where we work from the outside -> in. We just check for equality while ignoring nested collections.
+                         On a second pass we remove the collections so that they don't appear in the body-assertion steps below
+                         */
+                        UnorderedCollections.process(test.expect.assertionModifications.unorderedCollections, expected, actual);
+                        DeleteCollections.process(test.expect.assertionModifications.unorderedCollections, expected, actual);
                     }
                 }
                 // /End Assertion Modifications
@@ -303,17 +319,17 @@ export class RESTSuiteManager {
                 bodyPass = false;
                 customFnErr = {
                     type: 'custom validation function',
-                    error: e
+                    error: e.message,
+                    stack: e.stack
                 };
 
-                this.logger.error(customFnErr);
             }
 
             testResult.body.actual = actual;
             if (!bodyPass) {
                 testResult.pass = false;
                 testResult.body.pass = false;
-                testResult.body.expected = _.isFunction(test.expect.body) ? customFnErr : expected;
+                testResult.body.expected = customFnErr ?  customFnErr : expected;
             }
         }
 

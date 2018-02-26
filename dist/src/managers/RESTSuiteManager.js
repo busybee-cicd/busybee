@@ -45,6 +45,7 @@ var UnorderedCollections_1 = require("../lib/assertionModifications/UnorderedCol
 var RESTTestPartResult_1 = require("../models/results/RESTTestPartResult");
 var RESTTestHeaderResult_1 = require("../models/results/RESTTestHeaderResult");
 var RESTTestResult_1 = require("../models/results/RESTTestResult");
+var DeleteCollections_1 = require("../lib/assertionModifications/DeleteCollections");
 // support JSON.stringify on Error objects
 if (!('toJSON' in Error.prototype))
     Object.defineProperty(Error.prototype, 'toJSON', {
@@ -286,7 +287,22 @@ var RESTSuiteManager = /** @class */ (function () {
                     }
                     if (test.expect.assertionModifications.unorderedCollections) {
                         this.logger.debug("Processing UnorderedCollections");
+                        /*
+                         Due to the scenario where unorderedCollections may contain unorderedCollections ie)
+                         [
+                           {
+                             subCollection: [1,2,3,4]
+                           },
+                           {
+                             subCollection: [5,6,7,8]
+                           }
+                         ]
+
+                         We must do a first pass where we work from the outside -> in. We just check for equality while ignoring nested collections.
+                         On a second pass we remove the collections so that they don't appear in the body-assertion steps below
+                         */
                         UnorderedCollections_1.UnorderedCollections.process(test.expect.assertionModifications.unorderedCollections, expected, actual);
+                        DeleteCollections_1.DeleteCollections.process(test.expect.assertionModifications.unorderedCollections, expected, actual);
                     }
                 }
                 // /End Assertion Modifications
@@ -309,15 +325,15 @@ var RESTSuiteManager = /** @class */ (function () {
                 bodyPass = false;
                 customFnErr = {
                     type: 'custom validation function',
-                    error: e
+                    error: e.message,
+                    stack: e.stack
                 };
-                this.logger.error(customFnErr);
             }
             testResult.body.actual = actual;
             if (!bodyPass) {
                 testResult.pass = false;
                 testResult.body.pass = false;
-                testResult.body.expected = _.isFunction(test.expect.body) ? customFnErr : expected;
+                testResult.body.expected = customFnErr ? customFnErr : expected;
             }
         }
         // attach the request info for reporting purposes
