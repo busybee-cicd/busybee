@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var _ = require("lodash");
 var Logger = /** @class */ (function () {
     function Logger(conf, clazz) {
-        this.conf = conf;
+        this.conf = _.cloneDeep(conf);
         this.className = clazz.constructor.name;
         this.logLevel = conf.logLevel || Logger.INFO;
         this.logLevel = this.logLevel.toUpperCase();

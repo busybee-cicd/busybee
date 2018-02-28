@@ -45,7 +45,6 @@ var UnorderedCollections_1 = require("../lib/assertionModifications/UnorderedCol
 var RESTTestPartResult_1 = require("../models/results/RESTTestPartResult");
 var RESTTestHeaderResult_1 = require("../models/results/RESTTestHeaderResult");
 var RESTTestResult_1 = require("../models/results/RESTTestResult");
-var DeleteCollections_1 = require("../lib/assertionModifications/DeleteCollections");
 // support JSON.stringify on Error objects
 if (!('toJSON' in Error.prototype))
     Object.defineProperty(Error.prototype, 'toJSON', {
@@ -61,7 +60,7 @@ if (!('toJSON' in Error.prototype))
     });
 var RESTSuiteManager = /** @class */ (function () {
     function RESTSuiteManager(conf, suiteEnvConf) {
-        this.conf = conf;
+        this.conf = _.cloneDeep(conf);
         this.logger = new Logger_1.Logger(conf, this);
         this.restClient = new RESTClient_1.RESTClient(conf, suiteEnvConf);
     }
@@ -260,7 +259,7 @@ var RESTSuiteManager = /** @class */ (function () {
             ///////////////////////////
             //  Run Assertions
             ///////////////////////////
-            var actual = _.isArray(body) ? body.slice() : Object.assign({}, body);
+            var actual = _.cloneDeep(body);
             var expected = void 0;
             try {
                 //  Assertion Modifications
@@ -275,10 +274,10 @@ var RESTSuiteManager = /** @class */ (function () {
                      Ultimately, when the assertions are run the 'expected' object set here will not
                      be used and instead 'test.expect.body(actual)' will be evaluated.
                      */
-                    expected = _.isArray(actual) ? actual.slice() : Object.assign({}, actual);
+                    expected = _.cloneDeep(actual);
                 }
                 else {
-                    expected = _.isArray(test.expect.body) ? test.expect.body.slice() : Object.assign({}, test.expect.body);
+                    expected = _.cloneDeep(test.expect.body);
                 }
                 if (test.expect.assertionModifications) {
                     testResult.assertionModifications = test.expect.assertionModifications;
@@ -302,7 +301,6 @@ var RESTSuiteManager = /** @class */ (function () {
                          On a second pass we remove the collections so that they don't appear in the body-assertion steps below
                          */
                         UnorderedCollections_1.UnorderedCollections.process(test.expect.assertionModifications.unorderedCollections, expected, actual);
-                        DeleteCollections_1.DeleteCollections.process(test.expect.assertionModifications.unorderedCollections, expected, actual);
                     }
                 }
                 // /End Assertion Modifications
@@ -329,11 +327,15 @@ var RESTSuiteManager = /** @class */ (function () {
                     stack: e.stack
                 };
             }
-            testResult.body.actual = actual;
+            // actual and expected should return the original info, not mutated by assertionModifications
+            testResult.body.actual = actual; // original returned body is never mutated
             if (!bodyPass) {
                 testResult.pass = false;
                 testResult.body.pass = false;
-                testResult.body.expected = customFnErr ? customFnErr : expected;
+                testResult.body.expected = expected;
+                if (customFnErr) {
+                    testResult.body.error = customFnErr;
+                }
             }
         }
         // attach the request info for reporting purposes

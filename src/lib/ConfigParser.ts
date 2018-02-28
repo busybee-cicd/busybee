@@ -7,7 +7,6 @@ export class ConfigParser {
 
   private cmdOpts: any;
   private logLevel: string;
-  private parsedConfig: BusybeeParsedConfig;
   private filePaths: FilePathsConfig;
 
   constructor(cmdOpts) {
@@ -17,8 +16,7 @@ export class ConfigParser {
 
   parse(mode): BusybeeParsedConfig {
     let userConfig = deserialize(BusybeeUserConfig, require(this.filePaths.userConfigFile));
-    this.parsedConfig = new BusybeeParsedConfig(userConfig, this.cmdOpts, mode);
-    return this.parsedConfig;
+    return new BusybeeParsedConfig(userConfig, this.cmdOpts, mode);
   }
 
 }

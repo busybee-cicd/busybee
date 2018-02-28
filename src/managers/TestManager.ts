@@ -6,16 +6,18 @@ import {EnvManager} from "./EnvManager";
 import {BusybeeParsedConfig} from "../models/config/BusybeeParsedConfig";
 import {SuiteEnvInfo} from "../lib/SuiteEnvInfo";
 import {EnvResult} from "../models/results/EnvResult";
+import {ParsedTestSuite} from "../models/config/parsed/ParsedTestSuiteConfig";
+import {ParsedTestEnvConfig} from "../models/config/parsed/ParsedTestEnvConfig";
 
 export class TestManager {
 
   testSuiteTasks: any;
-  private conf: any;
+  private conf: BusybeeParsedConfig;
   private logger: Logger;
   private envManager: EnvManager;
 
   constructor(conf: BusybeeParsedConfig, envManager: EnvManager) {
-    this.conf = conf;
+    this.conf = _.cloneDeep(conf);
     this.logger = new Logger(conf, this);
     this.envManager = envManager;
     this.testSuiteTasks = {};
@@ -24,7 +26,7 @@ export class TestManager {
   buildTestSuiteTasks() {
     this.logger.trace('buildTestSuiteTasks');
     let conf = this.conf;
-    conf.parsedTestSuites.forEach((testSuite, suiteID) => {
+    conf.parsedTestSuites.forEach((testSuite: ParsedTestSuite, suiteID: string) => {
       if (testSuite.skip) { return; }
       // parse the envs of this TestSuite
       this.testSuiteTasks[suiteID] = { envTasks: [] };
@@ -32,8 +34,17 @@ export class TestManager {
       this.logger.trace(suiteID);
       this.logger.trace(testSuite);
       this.logger.trace(`Processing ${suiteID} : type = ${testSuite.type}`);
-      testSuite.testEnvs.forEach((testEnv, suiteEnvID) => {
-        this.logger.trace(testEnv);
+      testSuite.testEnvs.forEach((testEnv: ParsedTestEnvConfig, suiteEnvID: string) => {
+        this.logger.trace(`testEnv: ${testEnv}`);
+        this.logger.trace(`suiteEnvID: ${suiteEnvID}`);
+
+        // Check to see if a specific set of envId's has been passed. If so, only run those
+        if (this.conf.getEnvInstancesToRun().length > 0) {
+          if (this.conf.getEnvInstancesToRun().indexOf(suiteEnvID) === -1) {
+            this.logger.debug(`Skipping envInstance with id ${suiteEnvID}`);
+            return;
+          }
+        }
 
         if (testSuite.type === 'USER_PROVIDED') {
           this.testSuiteTasks[suiteID].envTasks.push(this.buildTestEnvTask(suiteID, testEnv.suiteEnvID));
@@ -62,10 +73,10 @@ export class TestManager {
     });
   }
 
-  buildRESTTestEnvTask(suiteID, suiteEnvID) {
+  buildRESTTestEnvTask(suiteID: string, suiteEnvID: string) {
     this.logger.trace(`buildRESTTestEnvTask ${suiteID} ${suiteEnvID}`);
 
-    let generatedEnvID: string;
+    var generatedEnvID;
     return (cb: (err:any, envResult:EnvResult) => void) => {
       let currentEnv: SuiteEnvInfo;
       let restManager: RESTSuiteManager;
@@ -123,7 +134,7 @@ export class TestManager {
       let buildEnvFn = async () => {
         await this.envManager.start(generatedEnvID, suiteID, suiteEnvID);
         let currentEnv:SuiteEnvInfo = this.envManager.getCurrentEnv(generatedEnvID);
-        // create a restmanager to handle these tests
+        // create a GenericSuiteManager to handle coordinating these tests
         let suiteManager = new GenericSuiteManager(this.conf, currentEnv, this.envManager);
         let testSetResults = await suiteManager.runTestSets(generatedEnvID);
 

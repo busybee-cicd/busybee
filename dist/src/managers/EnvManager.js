@@ -47,7 +47,7 @@ var TypedMap_1 = require("../lib/TypedMap");
 var SuiteEnvInfo_1 = require("../lib/SuiteEnvInfo");
 var EnvManager = /** @class */ (function () {
     function EnvManager(conf) {
-        this.conf = conf;
+        this.conf = _.cloneDeep(conf);
         this.logger = new Logger_1.Logger(conf, this);
         if (conf.cmdOpts.skipEnvProvisioning) {
             this.skipEnvProvisioningList = conf.cmdOpts.skipEnvProvisioning.split(',');

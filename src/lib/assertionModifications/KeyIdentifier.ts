@@ -81,13 +81,7 @@ export class KeyIdentifier {
     private static parseConfigString(configString, expected, actual, action: (key:string, expected:any, actual:any) => void) {
         let configArr = configString === '*' ? [configString] : configString.split('.');
         if (configArr.length === 1) {
-            if (KeyIdentifier.valueIsArray(nextExpected, nextActual)) {
-                nextExpected.for((_nextExpected, i) => {
-                    action(configArr[0], _nextExpected, actual[i]);
-                })
-            } else {
-                action(configArr[0], expected, actual);
-            }
+            action(configArr[0], expected, actual);
 
             return;
         }

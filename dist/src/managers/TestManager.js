@@ -42,7 +42,7 @@ var GenericSuiteManager_1 = require("./GenericSuiteManager");
 var EnvResult_1 = require("../models/results/EnvResult");
 var TestManager = /** @class */ (function () {
     function TestManager(conf, envManager) {
-        this.conf = conf;
+        this.conf = _.cloneDeep(conf);
         this.logger = new Logger_1.Logger(conf, this);
         this.envManager = envManager;
         this.testSuiteTasks = {};
@@ -62,7 +62,15 @@ var TestManager = /** @class */ (function () {
             _this.logger.trace(testSuite);
             _this.logger.trace("Processing " + suiteID + " : type = " + testSuite.type);
             testSuite.testEnvs.forEach(function (testEnv, suiteEnvID) {
-                _this.logger.trace(testEnv);
+                _this.logger.trace("testEnv: " + testEnv);
+                _this.logger.trace("suiteEnvID: " + suiteEnvID);
+                // Check to see if a specific set of envId's has been passed. If so, only run those
+                if (_this.conf.getEnvInstancesToRun().length > 0) {
+                    if (_this.conf.getEnvInstancesToRun().indexOf(suiteEnvID) === -1) {
+                        _this.logger.debug("Skipping envInstance with id " + suiteEnvID);
+                        return;
+                    }
+                }
                 if (testSuite.type === 'USER_PROVIDED') {
                     _this.testSuiteTasks[suiteID].envTasks.push(_this.buildTestEnvTask(suiteID, testEnv.suiteEnvID));
                 }

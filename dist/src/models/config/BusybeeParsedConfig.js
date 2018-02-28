@@ -14,15 +14,17 @@ var BusybeeParsedConfig = /** @class */ (function () {
     function BusybeeParsedConfig(userConfig, cmdOpts, mode) {
         this.testSet2EnvMap = new TypedMap_1.TypedMap();
         this.env2TestSuiteMap = new TypedMap_1.TypedMap();
+        this.testFiles = [];
+        this.skipTestSuites = [];
+        this.envInstancesToRun = [];
         this.cmdOpts = cmdOpts;
-        this.parseCmdOpts();
-        this.logLevel = this.getLogLevel(cmdOpts);
+        this.logLevel = this.getLogLevel();
         this.logger = new Logger_1.Logger({ logLevel: this.logLevel }, this);
+        this.parseCmdOpts();
         this.filePaths = new FilePathsConfig_1.FilePathsConfig(cmdOpts);
         this.onComplete = userConfig.onComplete;
         this.parsedTestSuites = this.parseTestSuites(userConfig, mode);
         this.envResources = userConfig.envResources;
-        this.skipTestSuites = [];
         this.reporters = userConfig.reporters;
         if (cmdOpts.localMode) {
             this.logger.info("LocalMode detected. Host Configuration will be ignored in favor of 'localhost'");
@@ -35,6 +37,12 @@ var BusybeeParsedConfig = /** @class */ (function () {
         if (this.cmdOpts.testFiles) {
             this.testFiles = this.cmdOpts.testFiles.split(',');
         }
+        if (this.cmdOpts.envInstances) {
+            this.envInstancesToRun = this.cmdOpts.envInstances.split(',');
+        }
+    };
+    BusybeeParsedConfig.prototype.getEnvInstancesToRun = function () {
+        return this.envInstancesToRun;
     };
     BusybeeParsedConfig.prototype.toJSON = function () {
         return {
@@ -105,7 +113,7 @@ var BusybeeParsedConfig = /** @class */ (function () {
         this.logger.info("parsing files...");
         files.forEach(function (file) {
             // support for running specific tests files
-            if (_this.testFiles && !_.find(_this.testFiles, function (fileName) { return file.endsWith(fileName); })) {
+            if (_this.testFiles.length > 0 && !_.find(_this.testFiles, function (fileName) { return file.endsWith(fileName); })) {
                 _this.logger.info("skipping " + file);
                 return;
             }
@@ -196,12 +204,10 @@ var BusybeeParsedConfig = /** @class */ (function () {
                                     parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i] = null;
                                 }
                             }
-                            // if (testSetInfo.id === 'asset management') {
-                            //   this.logger.debug(parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id), true);
-                            // }
                         });
                     }
-                    _this.logger.trace(parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id));
+                    // this.logger.trace(`testSet updated`);
+                    // this.logger.trace(parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id));
                 });
             });
         });
@@ -215,7 +221,7 @@ var BusybeeParsedConfig = /** @class */ (function () {
         });
         return parsedTestSuites;
     };
-    BusybeeParsedConfig.prototype.getLogLevel = function (cmdOpts) {
+    BusybeeParsedConfig.prototype.getLogLevel = function () {
         var logLevel;
         if (process.env['BUSYBEE_DEBUG']) {
             logLevel = Logger_1.Logger.DEBUG;
@@ -225,13 +231,13 @@ var BusybeeParsedConfig = /** @class */ (function () {
                 logLevel = process.env['BUSYBEE_LOG_LEVEL'];
             }
         }
-        else if (cmdOpts) {
+        else if (this.cmdOpts) {
             if (this.cmdOpts.debug) {
                 logLevel = Logger_1.Logger.DEBUG;
             }
-            else if (cmdOpts.logLevel) {
-                if (Logger_1.Logger.isLogLevel(cmdOpts.logLevel)) {
-                    logLevel = cmdOpts.logLevel;
+            else if (this.cmdOpts.logLevel) {
+                if (Logger_1.Logger.isLogLevel(this.cmdOpts.logLevel)) {
+                    logLevel = this.cmdOpts.logLevel;
                 }
             }
         }

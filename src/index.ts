@@ -31,6 +31,7 @@ Commander
     .option('-s, --skipEnvProvisioning <ids>', 'list of comma-separated TestSuite ids. Environments will not be provisioned for these TestSuites prior to running tests')
     .option('-k, --skipTestSuite <ids>', 'list of comma-separated TestSuite ids to skip')
     .option('-t, --testFiles <filenames>', 'list of comma-separated test files to run. ie) test.json,test2.json,users/mytest.json')
+    .option('-e, --envInstances <ids>', 'list of comma-separated envInstance ids to run')
     .action((options) => {
         let configParser = new ConfigParser(options);
         const conf: BusybeeParsedConfig = configParser.parse('test');
@@ -182,7 +183,8 @@ function initTests(conf: BusybeeParsedConfig) {
                 console.log(e);
             }
         } else {
-            logger.info(err || suiteResultsList);
+            logger.debug(err || suiteResultsList);
+            logger.info(suiteResultsList);
             logger.info('Complete');
         }
     });

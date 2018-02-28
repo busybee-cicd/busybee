@@ -2,37 +2,105 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var KeyIdentifier_1 = require("./KeyIdentifier");
 var _ = require("lodash");
+/*
+    Will only check that the collections specified are equal. Any child collections are ignored during the equality check.
+    However, the collections tested ARE ordered as a result of the testing and therefor any child collections can be
+    tested for equality further down the road.
+    ie) if the config is ['*', '*.collection'] then the first iteration is dealing with '*'
+    EXPECTED
+    [
+        {
+          id: 1,
+          collection: [a,b,c]
+        },
+        {
+          id: 2,
+          collection [d,e,f]
+        }
+    ]
+
+    ACTUAL
+    [
+         {
+             id: 2,
+             collection [f,e,d]
+         },
+        {
+            id: 1,
+            collection: [c,b,a]
+        },
+
+    ]
+
+    becomes
+
+     EXPECTED
+     [
+         {
+             id: 1,
+             collection: [a,b,c]
+         },
+         {
+             id: 2,
+             collection [d,e,f]
+         }
+     ]
+
+     ACTUAL
+     [
+         {
+             id: 1,
+             collection: [c,b,a]
+         },
+             {
+             id: 2,
+             collection [f,e,d]
+         }
+     ]
+
+    Now that the outter-most collection has been deemed equal (not including child collections) and re-ordered
+    so that EXEPECTED and ACTUAL are in the same order. On the next iteration when we're dealing with '*.collection'
+    the 'collection' key enters the iteration with the 'collections' matched
+
+    EXPECTED
+        collection: [a,b,c]
+
+    ACTUAL
+        collection: [c,b,a]
+
+    Next iteration
+
+    EXPECTED
+        collection [d,e,f]
+    ACTUAL
+        collection [f,e,d]
+
+ */
 var UnorderedCollections = /** @class */ (function () {
     function UnorderedCollections() {
     }
     UnorderedCollections.process = function (config, expected, actual) {
-        try {
-            KeyIdentifier_1.KeyIdentifier.process(config, expected, actual, function (currentKey, _expected, _actual) {
-                // compare the 2 collections
-                var expectedCol;
-                var actualCol;
-                if (_expected[currentKey]) {
-                    expectedCol = _expected[currentKey];
-                    actualCol = _actual[currentKey];
-                }
-                else if (currentKey == '*' || _.isArray(_expected)) {
-                    expectedCol = _expected;
-                    actualCol = _actual;
-                }
-                if (!expectedCol && !actualCol) {
-                    throw new Error("The collection at '" + currentKey + "' cannot be found. It's possible that this collection is nested under an unorderedCollection that has already been asserted or that the collection simply does not exist.");
-                }
-                // check length.
-                if (expectedCol.length != actualCol.length) {
-                    throw new Error("The collections at '" + currentKey + "' are not of equal length. Expected == " + expectedCol.length + ", Actual == " + expectedCol.length);
-                }
-                UnorderedCollections.testEqualityOfCollections(expectedCol, actualCol, currentKey);
-            });
-        }
-        catch (e) {
-            throw e;
-            // throw new Error(`Error encountered while applying your 'assertionModifications.unorderedCollection'. Please confirm 'assertionModifications.unorderedCollection' is formatted correctly`)
-        }
+        KeyIdentifier_1.KeyIdentifier.process(config, expected, actual, function (currentKey, _expected, _actual) {
+            // compare the 2 collections
+            var expectedCol;
+            var actualCol;
+            if (_expected[currentKey]) {
+                expectedCol = _expected[currentKey];
+                actualCol = _actual[currentKey];
+            }
+            else if (currentKey == '*' || _.isArray(_expected)) {
+                expectedCol = _expected;
+                actualCol = _actual;
+            }
+            if (!expectedCol && !actualCol) {
+                throw new Error("The collection at '" + currentKey + "' cannot be found. It's possible that this collection is nested under an unorderedCollection that has already been asserted or that the collection simply does not exist.");
+            }
+            // check length.
+            if (expectedCol.length != actualCol.length) {
+                throw new Error("The collections at '" + currentKey + "' are not of equal length. Expected == " + expectedCol.length + ", Actual == " + expectedCol.length);
+            }
+            UnorderedCollections.testEqualityOfCollections(expectedCol, actualCol, currentKey);
+        });
     };
     UnorderedCollections.testEqualityOfCollections = function (expected, actual, currentKey) {
         if (expected.length != actual.length) {
@@ -52,7 +120,7 @@ var UnorderedCollections = /** @class */ (function () {
                 // 1. make copy. if what we're comparing is an array of arrays we just set to null because we're not going to support this;
                 var expectedItemWithCollsRemoved = _.isObject(expectedItem) ? Object.assign({}, expectedItem) : expectedItem;
                 var actualItemWithCollsRemoved = _.isObject(actualItem) ? Object.assign({}, actualItem) : actualItem;
-                // 2. remove any child collections
+                // 2. remove any child collections (we wont take these into account for equality check)
                 if (_.isObject(expectedItemWithCollsRemoved)) {
                     if (UnorderedCollections.hasChildCollections(expectedItemWithCollsRemoved)
                         || UnorderedCollections.hasChildCollections(actualItemWithCollsRemoved)) {
@@ -69,6 +137,8 @@ var UnorderedCollections = /** @class */ (function () {
                 return itemsAreEqual;
             });
             if (!result) {
+                console.log(JSON.stringify(expected));
+                console.log(JSON.stringify(actual));
                 throw new Error("The collections at '" + currentKey + "' are not equal");
             }
         });

@@ -14,6 +14,8 @@ import {RESTTestHeaderResult} from "../models/results/RESTTestHeaderResult";
 import {RESTTestResult} from "../models/results/RESTTestResult";
 import {TestSetConfig} from "../models/config/user/TestSetConfig";
 import {DeleteCollections} from "../lib/assertionModifications/DeleteCollections";
+import {BusybeeParsedConfig} from "../models/config/BusybeeParsedConfig";
+import {ParsedTestEnvConfig} from "../models/config/parsed/ParsedTestEnvConfig";
 
 // support JSON.stringify on Error objects
 if (!('toJSON' in Error.prototype))
@@ -33,12 +35,12 @@ if (!('toJSON' in Error.prototype))
 
 export class RESTSuiteManager {
 
-    private conf: any;
+    private conf: BusybeeParsedConfig;
     private logger: Logger;
-    private restClient: any;
+    private restClient: RESTClient;
 
-    constructor(conf, suiteEnvConf) {
-        this.conf = conf;
+    constructor(conf:BusybeeParsedConfig, suiteEnvConf:ParsedTestEnvConfig) {
+        this.conf = _.cloneDeep(conf);
         this.logger = new Logger(conf, this);
         this.restClient = new RESTClient(conf, suiteEnvConf);
     }
@@ -251,7 +253,7 @@ export class RESTSuiteManager {
             //  Run Assertions
             ///////////////////////////
 
-            let actual = _.isArray(body) ? body.slice() : Object.assign({}, body);
+            let actual = _.cloneDeep(body);
             let expected;
             try {
                 //  Assertion Modifications
@@ -267,9 +269,9 @@ export class RESTSuiteManager {
                      Ultimately, when the assertions are run the 'expected' object set here will not
                      be used and instead 'test.expect.body(actual)' will be evaluated.
                      */
-                    expected =  _.isArray(actual) ? actual.slice() : Object.assign({}, actual);
+                    expected =  _.cloneDeep(actual);
                 } else {
-                    expected = _.isArray(test.expect.body) ? test.expect.body.slice() : Object.assign({}, test.expect.body);
+                    expected = _.cloneDeep(test.expect.body);
                 }
 
                 if (test.expect.assertionModifications) {
@@ -296,7 +298,6 @@ export class RESTSuiteManager {
                          On a second pass we remove the collections so that they don't appear in the body-assertion steps below
                          */
                         UnorderedCollections.process(test.expect.assertionModifications.unorderedCollections, expected, actual);
-                        DeleteCollections.process(test.expect.assertionModifications.unorderedCollections, expected, actual);
                     }
                 }
                 // /End Assertion Modifications
@@ -322,14 +323,17 @@ export class RESTSuiteManager {
                     error: e.message,
                     stack: e.stack
                 };
-
             }
 
-            testResult.body.actual = actual;
+            // actual and expected should return the original info, not mutated by assertionModifications
+            testResult.body.actual = actual; // original returned body is never mutated
             if (!bodyPass) {
                 testResult.pass = false;
                 testResult.body.pass = false;
-                testResult.body.expected = customFnErr ?  customFnErr : expected;
+                testResult.body.expected = expected;
+                if (customFnErr) {
+                    testResult.body.error = customFnErr;
+                }
             }
         }
 
