@@ -11,9 +11,9 @@ var RESTClient = /** @class */ (function () {
         var standardRequestOpts = { "json": true };
         this.defaultRequestOpts = Object.assign({}, standardRequestOpts, this.suiteEnvConf.defaultRequestOpts);
         this.apiRequest = request.defaults(this.defaultRequestOpts);
-        if (conf.debug) {
-            this.apiRequest.debug = true;
-        }
+        // if (conf.debug) {
+        //   this.apiRequest.debug = true;
+        // }
     }
     RESTClient.prototype.getDefaultRequestOpts = function () {
         return Object.assign({}, this.defaultRequestOpts);

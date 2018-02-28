@@ -10,12 +10,12 @@ import {BusybeeParsedConfig} from "../models/config/BusybeeParsedConfig";
 export class RESTClient {
 
   conf: BusybeeParsedConfig;
-  suiteEnvConf: ParsedTestSuite;
+  suiteEnvConf: any;
   apiRequest: any;
   private logger: any;
   private defaultRequestOpts: any;
 
-  constructor(conf: BusybeeParsedConfig, suiteEnvConf: ParsedTestSuite) {
+  constructor(conf:BusybeeParsedConfig, suiteEnvConf) {
     this.conf = _.cloneDeep(conf);
     this.suiteEnvConf = _.cloneDeep(suiteEnvConf);
     this.logger = new Logger(conf, this);
@@ -23,9 +23,9 @@ export class RESTClient {
     this.defaultRequestOpts = Object.assign({}, standardRequestOpts, this.suiteEnvConf.defaultRequestOpts);
     this.apiRequest = request.defaults(this.defaultRequestOpts);
 
-    if (conf.debug) {
-      this.apiRequest.debug = true;
-    }
+    // if (conf.debug) {
+    //   this.apiRequest.debug = true;
+    // }
   }
 
   getDefaultRequestOpts() {

@@ -39,7 +39,7 @@ export class RESTSuiteManager {
     private logger: Logger;
     private restClient: RESTClient;
 
-    constructor(conf:BusybeeParsedConfig, suiteEnvConf:ParsedTestEnvConfig) {
+    constructor(conf:BusybeeParsedConfig, suiteEnvConf:SuiteEnvInfo) {
         this.conf = _.cloneDeep(conf);
         this.logger = new Logger(conf, this);
         this.restClient = new RESTClient(conf, suiteEnvConf);
@@ -181,6 +181,10 @@ export class RESTSuiteManager {
     }
 
     replaceVarsInObject(obj: any, variableExports: any) {
+        if (_.isString(obj)) {
+            return this.replaceVars(obj, variableExports);
+        }
+
         _.forEach(obj, (value, propName) => {
            if (_.isObject(value) && !_.isArray(value)) {
                obj[propName] = this.replaceVarsInObject(value, variableExports);
@@ -193,15 +197,24 @@ export class RESTSuiteManager {
     }
 
     replaceVars(str:string, variableExports: any) {
-        let newStr = str.replace(/#{\w+}/g, (match) => {
+        let replaced = str.replace(/#{\w+}/g, (match) => {
             match = match.substr(2); // remove #{
             match = match.slice(0,-1); // remove }
             this.logger.trace(`Setting ${match} for '${str}'`);
             this.logger.trace(variableExports, true);
+            if (_.isObject(variableExports[match])) {
+                return `OBJECT-${match}`;
+            }
             return variableExports[match];
         });
 
-        return newStr;
+
+        if (replaced.startsWith("OBJECT")) {
+            let key = replaced.substr(7);
+            replaced = variableExports[key];
+        }
+
+        return replaced;
     }
 
 

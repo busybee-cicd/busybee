@@ -202,6 +202,9 @@ var RESTSuiteManager = /** @class */ (function () {
     };
     RESTSuiteManager.prototype.replaceVarsInObject = function (obj, variableExports) {
         var _this = this;
+        if (_.isString(obj)) {
+            return this.replaceVars(obj, variableExports);
+        }
         _.forEach(obj, function (value, propName) {
             if (_.isObject(value) && !_.isArray(value)) {
                 obj[propName] = _this.replaceVarsInObject(value, variableExports);
@@ -214,14 +217,21 @@ var RESTSuiteManager = /** @class */ (function () {
     };
     RESTSuiteManager.prototype.replaceVars = function (str, variableExports) {
         var _this = this;
-        var newStr = str.replace(/#{\w+}/g, function (match) {
+        var replaced = str.replace(/#{\w+}/g, function (match) {
             match = match.substr(2); // remove #{
             match = match.slice(0, -1); // remove }
             _this.logger.trace("Setting " + match + " for '" + str + "'");
             _this.logger.trace(variableExports, true);
+            if (_.isObject(variableExports[match])) {
+                return "OBJECT-" + match;
+            }
             return variableExports[match];
         });
-        return newStr;
+        if (replaced.startsWith("OBJECT")) {
+            var key = replaced.substr(7);
+            replaced = variableExports[key];
+        }
+        return replaced;
     };
     RESTSuiteManager.prototype.validateTestResult = function (testSet, test, reqOpts, res, body, cb) {
         this.logger.trace("validateTestResult");
