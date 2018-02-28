@@ -5,8 +5,8 @@ var _ = require("lodash");
 var Logger_1 = require("./Logger");
 var RESTClient = /** @class */ (function () {
     function RESTClient(conf, suiteEnvConf) {
-        this.conf = conf;
-        this.suiteEnvConf = Object.assign({}, suiteEnvConf);
+        this.conf = _.cloneDeep(conf);
+        this.suiteEnvConf = _.cloneDeep(suiteEnvConf);
         this.logger = new Logger_1.Logger(conf, this);
         var standardRequestOpts = { "json": true };
         this.defaultRequestOpts = Object.assign({}, standardRequestOpts, this.suiteEnvConf.defaultRequestOpts);

@@ -60,7 +60,7 @@ if (!('toJSON' in Error.prototype))
     });
 var RESTSuiteManager = /** @class */ (function () {
     function RESTSuiteManager(conf, suiteEnvConf) {
-        this.conf = conf;
+        this.conf = _.cloneDeep(conf);
         this.logger = new Logger_1.Logger(conf, this);
         this.restClient = new RESTClient_1.RESTClient(conf, suiteEnvConf);
     }
@@ -259,7 +259,7 @@ var RESTSuiteManager = /** @class */ (function () {
             ///////////////////////////
             //  Run Assertions
             ///////////////////////////
-            var actual = _.isArray(body) ? body.slice() : Object.assign({}, body);
+            var actual = _.cloneDeep(body);
             var expected = void 0;
             try {
                 //  Assertion Modifications
@@ -274,10 +274,10 @@ var RESTSuiteManager = /** @class */ (function () {
                      Ultimately, when the assertions are run the 'expected' object set here will not
                      be used and instead 'test.expect.body(actual)' will be evaluated.
                      */
-                    expected = _.isArray(actual) ? actual.slice() : Object.assign({}, actual);
+                    expected = _.cloneDeep(actual);
                 }
                 else {
-                    expected = _.isArray(test.expect.body) ? test.expect.body.slice() : Object.assign({}, test.expect.body);
+                    expected = _.cloneDeep(test.expect.body);
                 }
                 if (test.expect.assertionModifications) {
                     testResult.assertionModifications = test.expect.assertionModifications;
@@ -286,6 +286,20 @@ var RESTSuiteManager = /** @class */ (function () {
                     }
                     if (test.expect.assertionModifications.unorderedCollections) {
                         this.logger.debug("Processing UnorderedCollections");
+                        /*
+                         Due to the scenario where unorderedCollections may contain unorderedCollections ie)
+                         [
+                           {
+                             subCollection: [1,2,3,4]
+                           },
+                           {
+                             subCollection: [5,6,7,8]
+                           }
+                         ]
+
+                         We must do a first pass where we work from the outside -> in. We just check for equality while ignoring nested collections.
+                         On a second pass we remove the collections so that they don't appear in the body-assertion steps below
+                         */
                         UnorderedCollections_1.UnorderedCollections.process(test.expect.assertionModifications.unorderedCollections, expected, actual);
                     }
                 }
@@ -309,15 +323,19 @@ var RESTSuiteManager = /** @class */ (function () {
                 bodyPass = false;
                 customFnErr = {
                     type: 'custom validation function',
-                    error: e
+                    error: e.message,
+                    stack: e.stack
                 };
-                this.logger.error(customFnErr);
             }
-            testResult.body.actual = actual;
+            // actual and expected should return the original info, not mutated by assertionModifications
+            testResult.body.actual = actual; // original returned body is never mutated
             if (!bodyPass) {
                 testResult.pass = false;
                 testResult.body.pass = false;
-                testResult.body.expected = _.isFunction(test.expect.body) ? customFnErr : expected;
+                testResult.body.expected = expected;
+                if (customFnErr) {
+                    testResult.body.error = customFnErr;
+                }
             }
         }
         // attach the request info for reporting purposes

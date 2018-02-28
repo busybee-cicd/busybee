@@ -17,7 +17,7 @@ import {SuiteEnvInfo} from "../lib/SuiteEnvInfo";
 
 
 export class EnvManager {
-  private conf: any;
+  private conf: BusybeeParsedConfig;
   private logger: Logger;
   private skipEnvProvisioningList: string[];
   private envsWaitingForProvision: string[];
@@ -25,7 +25,7 @@ export class EnvManager {
   private currentEnvs: TypedMap<SuiteEnvInfo>;
 
   constructor(conf: BusybeeParsedConfig) {
-    this.conf = conf;
+    this.conf = _.cloneDeep(conf);
     this.logger = new Logger(conf, this);
     if (conf.cmdOpts.skipEnvProvisioning) {
       this.skipEnvProvisioningList = conf.cmdOpts.skipEnvProvisioning.split(',');

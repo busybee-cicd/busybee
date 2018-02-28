@@ -4,18 +4,20 @@ import {Logger} from './Logger';
 import {RequestOptsConfig} from "../models/config/common/RequestOptsConfig";
 import {IncomingMessage} from "http";
 import {TestSetConfig} from "../models/config/user/TestSetConfig";
+import {ParsedTestSuite} from "../models/config/parsed/ParsedTestSuiteConfig";
+import {BusybeeParsedConfig} from "../models/config/BusybeeParsedConfig";
 
 export class RESTClient {
 
-  conf: any;
-  suiteEnvConf: any;
+  conf: BusybeeParsedConfig;
+  suiteEnvConf: ParsedTestSuite;
   apiRequest: any;
   private logger: any;
   private defaultRequestOpts: any;
 
-  constructor(conf: any, suiteEnvConf: any) {
-    this.conf = conf;
-    this.suiteEnvConf = Object.assign({}, suiteEnvConf);
+  constructor(conf: BusybeeParsedConfig, suiteEnvConf: ParsedTestSuite) {
+    this.conf = _.cloneDeep(conf);
+    this.suiteEnvConf = _.cloneDeep(suiteEnvConf);
     this.logger = new Logger(conf, this);
     const standardRequestOpts = {"json": true};
     this.defaultRequestOpts = Object.assign({}, standardRequestOpts, this.suiteEnvConf.defaultRequestOpts);

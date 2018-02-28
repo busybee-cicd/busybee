@@ -4,16 +4,17 @@ import {Logger} from '../lib/Logger';
 import {EnvManager} from "./EnvManager";
 import {ParsedTestSetConfig} from "../models/config/parsed/ParsedTestSetConfig";
 import {SuiteEnvInfo} from "../lib/SuiteEnvInfo";
+import {BusybeeParsedConfig} from "../models/config/BusybeeParsedConfig";
 
 export class GenericSuiteManager {
 
-  private conf: any;
+  private conf: BusybeeParsedConfig;
   private suiteEnvConf: SuiteEnvInfo;
   private envManager: EnvManager;
   private logger: Logger;
 
-  constructor(conf: any, suiteEnvConf: SuiteEnvInfo, envManager: EnvManager) {
-    this.conf = conf;
+  constructor(conf: BusybeeParsedConfig, suiteEnvConf: SuiteEnvInfo, envManager: EnvManager) {
+    this.conf = _.cloneDeep(conf);
     this.suiteEnvConf = suiteEnvConf;
     this.envManager = envManager;
     this.logger = new Logger(conf, this);

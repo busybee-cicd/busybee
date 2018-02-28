@@ -18,8 +18,9 @@ export class BusybeeParsedConfig {
   private logger: Logger;
   private testSet2EnvMap = new TypedMap<string>();
   private env2TestSuiteMap = new TypedMap<string>();
-  private testFiles: string[];
-  private skipTestSuites: string[];
+  private testFiles: string[] = [];
+  private skipTestSuites: string[] = [];
+  private envInstancesToRun: string[] = [];
 
   filePaths: FilePathsConfig;
   cmdOpts: any;
@@ -31,14 +32,13 @@ export class BusybeeParsedConfig {
 
   constructor(userConfig: BusybeeUserConfig, cmdOpts: any, mode: string) {
     this.cmdOpts = cmdOpts;
-    this.parseCmdOpts();
-    this.logLevel = this.getLogLevel(cmdOpts);
+    this.logLevel = this.getLogLevel();
     this.logger = new Logger({logLevel: this.logLevel}, this);
+    this.parseCmdOpts();
     this.filePaths = new FilePathsConfig(cmdOpts);
     this.onComplete = userConfig.onComplete;
     this.parsedTestSuites = this.parseTestSuites(userConfig, mode);
     this.envResources = userConfig.envResources;
-    this.skipTestSuites = [];
     this.reporters = userConfig.reporters;
 
     if (cmdOpts.localMode) {
@@ -53,6 +53,13 @@ export class BusybeeParsedConfig {
     if (this.cmdOpts.testFiles) {
       this.testFiles = this.cmdOpts.testFiles.split(',');
     }
+    if (this.cmdOpts.envInstances) {
+      this.envInstancesToRun = this.cmdOpts.envInstances.split(',');
+    }
+  }
+
+  getEnvInstancesToRun(): string[] {
+    return this.envInstancesToRun;
   }
 
   toJSON() {
@@ -132,7 +139,7 @@ export class BusybeeParsedConfig {
     this.logger.info("parsing files...");
     files.forEach((file: string) => {
       // support for running specific tests files
-      if (this.testFiles && !_.find(this.testFiles, (fileName) => { return file.endsWith(fileName); })) {
+      if (this.testFiles.length > 0 && !_.find(this.testFiles, (fileName) => { return file.endsWith(fileName); })) {
         this.logger.info(`skipping ${file}`);
         return;
       } else {
@@ -229,14 +236,11 @@ export class BusybeeParsedConfig {
                   parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i] = null;
                 }
               }
-
-              // if (testSetInfo.id === 'asset management') {
-              //   this.logger.debug(parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id), true);
-              // }
             });
           }
 
-          this.logger.trace(parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id));
+          // this.logger.trace(`testSet updated`);
+          // this.logger.trace(parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id));
         });
       });
     });
@@ -253,7 +257,7 @@ export class BusybeeParsedConfig {
     return parsedTestSuites;
   }
 
-  getLogLevel(cmdOpts: any) {
+  getLogLevel() {
     let logLevel;
 
     if (process.env['BUSYBEE_DEBUG']) {
@@ -262,12 +266,12 @@ export class BusybeeParsedConfig {
       if (Logger.isLogLevel(process.env['BUSYBEE_LOG_LEVEL'])) {
         logLevel = process.env['BUSYBEE_LOG_LEVEL'];
       }
-    } else if (cmdOpts) {
+    } else if (this.cmdOpts) {
       if (this.cmdOpts.debug) {
         logLevel = Logger.DEBUG;
-      } else if (cmdOpts.logLevel) {
-        if (Logger.isLogLevel(cmdOpts.logLevel)) {
-          logLevel = cmdOpts.logLevel;
+      } else if (this.cmdOpts.logLevel) {
+        if (Logger.isLogLevel(this.cmdOpts.logLevel)) {
+          logLevel = this.cmdOpts.logLevel;
         }
       }
     }

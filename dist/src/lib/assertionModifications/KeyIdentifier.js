@@ -21,8 +21,8 @@ var KeyIdentifier = /** @class */ (function () {
      */
     KeyIdentifier.parseConfigObject = function (configObj, expected, actual, action) {
         _.forEach(configObj, function (v, k) {
-            // first split the key to see if we need to traverse further before deleting anything
-            var keyArray = k === '.' ? [k] : k.split('.');
+            // first split the key to see if we need to traverse further before performing the supplied action
+            var keyArray = k === '*' ? [k] : k.split('.');
             if (keyArray.length > 1) {
                 // we need to dive deeper..this key describes further nesting ie) key.childKey.grandChild.key
                 KeyIdentifier.parseConfigObjectPathString(k, v, expected, actual, action);
@@ -67,17 +67,15 @@ var KeyIdentifier = /** @class */ (function () {
         });
     };
     KeyIdentifier.advanceAndRemoveKey = function (advanceKey, keyToRemove, actual, expected, action) {
-        var nextExpected = advanceKey === '.' ? expected : expected[advanceKey];
-        var nextActual = advanceKey === '.' ? actual : actual[advanceKey];
+        var nextExpected = advanceKey === '*' ? expected : expected[advanceKey];
+        var nextActual = advanceKey === '*' ? actual : actual[advanceKey];
         if (KeyIdentifier.valueIsArray(nextExpected, nextActual)) {
             nextExpected.forEach(function (_nextExpected, i) {
                 action(keyToRemove, _nextExpected, nextActual[i]);
-                //KeyIdentifier.deleteKey(keyToRemove, _nextExpected, nextActual[i]);
             });
         }
         else {
             action(keyToRemove, nextExpected, nextActual);
-            // KeyIdentifier.deleteKey(keyToRemove, nextExpected, nextActual);
         }
     };
     /*
@@ -85,16 +83,15 @@ var KeyIdentifier = /** @class */ (function () {
         opposed to an object at the top-level
      */
     KeyIdentifier.parseConfigString = function (configString, expected, actual, action) {
-        var configArr = configString === '.' ? [configString] : configString.split('.');
+        var configArr = configString === '*' ? [configString] : configString.split('.');
         if (configArr.length === 1) {
             action(configArr[0], expected, actual);
-            //KeyIdentifier.deleteKey(configArr[0], expected, actual);
             return;
         }
         var advanceKey = configArr.shift();
         var nextConfigString = configArr.join('.');
-        var nextExpected = advanceKey === '.' ? expected : expected[advanceKey];
-        var nextActual = advanceKey === '.' ? actual : actual[advanceKey];
+        var nextExpected = advanceKey === '*' ? expected : expected[advanceKey];
+        var nextActual = advanceKey === '*' ? actual : actual[advanceKey];
         if (KeyIdentifier.valueIsArray(nextExpected, nextActual)) {
             nextExpected.forEach(function (_nextExpected, i) {
                 KeyIdentifier.parseConfigString(nextConfigString, _nextExpected, nextActual[i], action);
@@ -111,13 +108,13 @@ var KeyIdentifier = /** @class */ (function () {
      */
     KeyIdentifier.parseConfigObjectPathString = function (configStringKey, configValue, expected, actual, action) {
         // goal here is to split the string, advance to the next item, once fully advanced, take action
-        var configArr = configStringKey === '.' ? [configStringKey] : configStringKey.split('.');
+        var configArr = configStringKey === '*' ? [configStringKey] : configStringKey.split('.');
         if (configArr.length > 1) {
             // advance in the expected and actual objects and recurse
             var advanceKey = configArr.shift();
             var nextConfigStringKey_1 = configArr.join(".");
-            var nextExpected = advanceKey === '.' ? expected : expected[advanceKey];
-            var nextActual_2 = advanceKey === '.' ? actual : actual[advanceKey];
+            var nextExpected = advanceKey === '*' ? expected : expected[advanceKey];
+            var nextActual_2 = advanceKey === '*' ? actual : actual[advanceKey];
             if (KeyIdentifier.valueIsArray(nextExpected, nextActual_2)) {
                 nextExpected.forEach(function (_nextExpected, i) {
                     KeyIdentifier.parseConfigObjectPathString(nextConfigStringKey_1, configValue, _nextExpected, nextActual_2[i], action);
@@ -130,8 +127,8 @@ var KeyIdentifier = /** @class */ (function () {
         else {
             // take action
             var advanceKey = configArr[0];
-            var nextExpected_1 = advanceKey === '.' ? expected : expected[advanceKey];
-            var nextActual_3 = advanceKey === '.' ? actual : actual[advanceKey];
+            var nextExpected_1 = advanceKey === '*' ? expected : expected[advanceKey];
+            var nextActual_3 = advanceKey === '*' ? actual : actual[advanceKey];
             // the value could be another object, an array of keys to delete
             if (_.isArray(configValue)) {
                 // remove all these dang keys

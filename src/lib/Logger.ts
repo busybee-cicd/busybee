@@ -14,7 +14,7 @@ export class Logger {
   private levelMap: any;
 
   constructor(conf: any, clazz) {
-    this.conf = conf;
+    this.conf = _.cloneDeep(conf);
     this.className = clazz.constructor.name;
     this.logLevel = conf.logLevel || Logger.INFO;
     this.logLevel = this.logLevel.toUpperCase();

@@ -35,11 +35,12 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var _ = require("lodash");
 var path = require("path");
 var Logger_1 = require("../lib/Logger");
 var GenericSuiteManager = /** @class */ (function () {
     function GenericSuiteManager(conf, suiteEnvConf, envManager) {
-        this.conf = conf;
+        this.conf = _.cloneDeep(conf);
         this.suiteEnvConf = suiteEnvConf;
         this.envManager = envManager;
         this.logger = new Logger_1.Logger(conf, this);
