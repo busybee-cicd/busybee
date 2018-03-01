@@ -213,7 +213,6 @@ function initTests(conf) {
         }
         else {
             logger.debug(err || suiteResultsList);
-            logger.info(suiteResultsList);
             logger.info('Complete');
         }
     });

@@ -137,8 +137,6 @@ var UnorderedCollections = /** @class */ (function () {
                 return itemsAreEqual;
             });
             if (!result) {
-                console.log(JSON.stringify(expected));
-                console.log(JSON.stringify(actual));
                 throw new Error("The collections at '" + currentKey + "' are not equal");
             }
         });
