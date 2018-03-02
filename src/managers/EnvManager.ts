@@ -116,7 +116,7 @@ export class EnvManager {
     // }
 
     let hosts = {};
-    if (conf.cmdOpts.localMode) {
+    if (conf.localMode) {
       hosts['localhost'] = {
         load: 0,
         capacity: 100,
@@ -646,6 +646,7 @@ export class EnvManager {
         _async.retry({times: healthcheckConf.retries || 50, interval: opts.timeout},
           (asyncCb) => {
             this.logger.info(`Attempting healthcheck for ${generatedEnvID} on port ${healthcheckPort}`);
+            this.logger.debug(opts);
             restClient.makeRequest(opts, (err, res, body) => {
               if (err) {
                 asyncCb("failed");
@@ -656,7 +657,7 @@ export class EnvManager {
                 this.logger.info(`Healthcheck Confirmed for ${generatedEnvID}!`);
                 asyncCb(null, true);
               } else {
-                this.logger.trace(`Healthcheck returned: ${res.statusCode}`);
+                this.logger.debug(`Healthcheck returned: ${res.statusCode}`);
                 asyncCb(`Healthcheck failed for ${generatedEnvID}`);
               }
             })

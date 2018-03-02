@@ -28,33 +28,37 @@ export class BusybeeParsedConfig {
   parsedTestSuites: TypedMap<ParsedTestSuite>;
   envResources: EnvResourceConfig[];
   onComplete: string;
-  reporters: Array<any>
+  reporters: Array<any>;
+  localMode: boolean = false;
 
   constructor(userConfig: BusybeeUserConfig, cmdOpts: any, mode: string) {
-    this.cmdOpts = cmdOpts;
+    this.cmdOpts = Object.assign({}, cmdOpts); // TODO make sure nothing references this directly from this point
     this.logLevel = this.getLogLevel();
     this.logger = new Logger({logLevel: this.logLevel}, this);
-    this.parseCmdOpts();
+    this.parseCmdOpts(this.cmdOpts);
     this.filePaths = new FilePathsConfig(cmdOpts);
     this.onComplete = userConfig.onComplete;
     this.parsedTestSuites = this.parseTestSuites(userConfig, mode);
     this.envResources = userConfig.envResources;
     this.reporters = userConfig.reporters;
 
-    if (cmdOpts.localMode) {
+    if (this.localMode) {
       this.logger.info(`LocalMode detected. Host Configuration will be ignored in favor of 'localhost'`);
     }
   }
 
-  parseCmdOpts() {
-    if (this.cmdOpts.skipTestSuite) {
-      this.skipTestSuites = this.cmdOpts.skipTestSuite.split(',');
+  parseCmdOpts(cmdOpts: any) {
+    if (cmdOpts.skipTestSuite) {
+      this.skipTestSuites = cmdOpts.skipTestSuite.split(',');
     }
-    if (this.cmdOpts.testFiles) {
-      this.testFiles = this.cmdOpts.testFiles.split(',');
+    if (cmdOpts.testFiles) {
+      this.testFiles = cmdOpts.testFiles.split(',');
     }
-    if (this.cmdOpts.envInstances) {
-      this.envInstancesToRun = this.cmdOpts.envInstances.split(',');
+    if (cmdOpts.envInstances) {
+      this.envInstancesToRun = cmdOpts.envInstances.split(',');
+    }
+    if (cmdOpts.localMode) {
+      this.localMode = cmdOpts.localMode;
     }
   }
 

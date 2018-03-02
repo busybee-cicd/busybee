@@ -17,28 +17,32 @@ var BusybeeParsedConfig = /** @class */ (function () {
         this.testFiles = [];
         this.skipTestSuites = [];
         this.envInstancesToRun = [];
-        this.cmdOpts = cmdOpts;
+        this.localMode = false;
+        this.cmdOpts = Object.assign({}, cmdOpts); // TODO make sure nothing references this directly from this point
         this.logLevel = this.getLogLevel();
         this.logger = new Logger_1.Logger({ logLevel: this.logLevel }, this);
-        this.parseCmdOpts();
+        this.parseCmdOpts(this.cmdOpts);
         this.filePaths = new FilePathsConfig_1.FilePathsConfig(cmdOpts);
         this.onComplete = userConfig.onComplete;
         this.parsedTestSuites = this.parseTestSuites(userConfig, mode);
         this.envResources = userConfig.envResources;
         this.reporters = userConfig.reporters;
-        if (cmdOpts.localMode) {
+        if (this.localMode) {
             this.logger.info("LocalMode detected. Host Configuration will be ignored in favor of 'localhost'");
         }
     }
-    BusybeeParsedConfig.prototype.parseCmdOpts = function () {
-        if (this.cmdOpts.skipTestSuite) {
-            this.skipTestSuites = this.cmdOpts.skipTestSuite.split(',');
+    BusybeeParsedConfig.prototype.parseCmdOpts = function (cmdOpts) {
+        if (cmdOpts.skipTestSuite) {
+            this.skipTestSuites = cmdOpts.skipTestSuite.split(',');
         }
-        if (this.cmdOpts.testFiles) {
-            this.testFiles = this.cmdOpts.testFiles.split(',');
+        if (cmdOpts.testFiles) {
+            this.testFiles = cmdOpts.testFiles.split(',');
         }
-        if (this.cmdOpts.envInstances) {
-            this.envInstancesToRun = this.cmdOpts.envInstances.split(',');
+        if (cmdOpts.envInstances) {
+            this.envInstancesToRun = cmdOpts.envInstances.split(',');
+        }
+        if (cmdOpts.localMode) {
+            this.localMode = cmdOpts.localMode;
         }
     };
     BusybeeParsedConfig.prototype.getEnvInstancesToRun = function () {

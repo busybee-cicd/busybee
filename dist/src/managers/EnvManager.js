@@ -135,7 +135,7 @@ var EnvManager = /** @class */ (function () {
         //   return;
         // }
         var hosts = {};
-        if (conf.cmdOpts.localMode) {
+        if (conf.localMode) {
             hosts['localhost'] = {
                 load: 0,
                 capacity: 100,
@@ -752,6 +752,7 @@ var EnvManager = /** @class */ (function () {
                 // when successful calls the cb passed to confirmHealthcheck()
                 _async.retry({ times: healthcheckConf.retries || 50, interval: opts_1.timeout }, function (asyncCb) {
                     _this.logger.info("Attempting healthcheck for " + generatedEnvID + " on port " + healthcheckPort_1);
+                    _this.logger.debug(opts_1);
                     restClient_1.makeRequest(opts_1, function (err, res, body) {
                         if (err) {
                             asyncCb("failed");
@@ -762,7 +763,7 @@ var EnvManager = /** @class */ (function () {
                             asyncCb(null, true);
                         }
                         else {
-                            _this.logger.trace("Healthcheck returned: " + res.statusCode);
+                            _this.logger.debug("Healthcheck returned: " + res.statusCode);
                             asyncCb("Healthcheck failed for " + generatedEnvID);
                         }
                     });

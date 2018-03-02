@@ -2,6 +2,7 @@ import {deserialize} from 'json-typescript-mapper';
 import {BusybeeUserConfig} from "../models/config/BusybeeUserConfig";
 import {BusybeeParsedConfig} from "../models/config/BusybeeParsedConfig";
 import {FilePathsConfig} from "../models/config/parsed/FilePathsConfig";
+import * as _ from 'lodash';
 
 export class ConfigParser {
 
@@ -11,7 +12,7 @@ export class ConfigParser {
 
   constructor(cmdOpts) {
     this.filePaths = new FilePathsConfig(cmdOpts);
-    this.cmdOpts = cmdOpts;
+    this.cmdOpts = Object.assign({}, cmdOpts);
   }
 
   parse(mode): BusybeeParsedConfig {
