@@ -27,8 +27,8 @@ export class EnvManager {
   constructor(conf: BusybeeParsedConfig) {
     this.conf = _.cloneDeep(conf);
     this.logger = new Logger(conf, this);
-    if (conf.cmdOpts.skipEnvProvisioning) {
-      this.skipEnvProvisioningList = conf.cmdOpts.skipEnvProvisioning.split(',');
+    if (conf.getSkipEnvProvisioning().length > 0) {
+      this.skipEnvProvisioningList = conf.getSkipEnvProvisioning();
     }
     this.currentHosts = this.buildHosts(conf);
     this.currentEnvs = new TypedMap<SuiteEnvInfo>();

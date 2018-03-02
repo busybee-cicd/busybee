@@ -21,6 +21,7 @@ export class BusybeeParsedConfig {
   private testFiles: string[] = [];
   private skipTestSuites: string[] = [];
   private envInstancesToRun: string[] = [];
+  private skipEnvProvisioning: string[] = [];
 
   filePaths: FilePathsConfig;
   cmdOpts: any;
@@ -30,13 +31,14 @@ export class BusybeeParsedConfig {
   onComplete: string;
   reporters: Array<any>;
   localMode: boolean = false;
+  noProxy: boolean = false;
 
   constructor(userConfig: BusybeeUserConfig, cmdOpts: any, mode: string) {
-    this.cmdOpts = Object.assign({}, cmdOpts); // TODO make sure nothing references this directly from this point
+    let _cmdOpts = Object.assign({}, cmdOpts); // TODO make sure nothing references this directly from this point
     this.logLevel = this.getLogLevel();
     this.logger = new Logger({logLevel: this.logLevel}, this);
-    this.parseCmdOpts(this.cmdOpts);
-    this.filePaths = new FilePathsConfig(cmdOpts);
+    this.parseCmdOpts(_cmdOpts);
+    this.filePaths = new FilePathsConfig(_cmdOpts);
     this.onComplete = userConfig.onComplete;
     this.parsedTestSuites = this.parseTestSuites(userConfig, mode);
     this.envResources = userConfig.envResources;
@@ -51,6 +53,9 @@ export class BusybeeParsedConfig {
     if (cmdOpts.skipTestSuite) {
       this.skipTestSuites = cmdOpts.skipTestSuite.split(',');
     }
+    if (cmdOpts.skipEnvProvisioning) {
+      this.skipEnvProvisioning = cmdOpts.skipEnvProvisioning.split(',');
+    }
     if (cmdOpts.testFiles) {
       this.testFiles = cmdOpts.testFiles.split(',');
     }
@@ -59,6 +64,12 @@ export class BusybeeParsedConfig {
     }
     if (cmdOpts.localMode) {
       this.localMode = cmdOpts.localMode;
+    }
+    if (cmdOpts.onComplete) {
+      this.onComplete = cmdOpts.onComplete;
+    }
+    if (cmdOpts.noProxy) {
+      this.noProxy = true;
     }
   }
 
@@ -80,6 +91,10 @@ export class BusybeeParsedConfig {
 
   getEnv2TestSuiteMap(): TypedMap<string> {
     return this.env2TestSuiteMap;
+  }
+
+  getSkipEnvProvisioning(): string[] {
+    return [...this.skipEnvProvisioning];
   }
 
   parseTestSuites(userConf: BusybeeUserConfig, mode: string): TypedMap<ParsedTestSuite> {

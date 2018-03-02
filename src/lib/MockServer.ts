@@ -30,7 +30,7 @@ export class MockServer {
     this.routeMap = {}; // store the routes and all of the known request combos for each route
 
     let serverConf:MockServerConfig = this.testSuiteConf.mockServer;
-    if (serverConf && serverConf.proxy && (conf.cmdOpts && !conf.cmdOpts.noProxy)) {
+    if (serverConf && serverConf.proxy && !conf.noProxy) {
       this.logger.info(`Proxy config detected`);
       if (!serverConf.proxy.protocol || !serverConf.proxy.host || !serverConf.proxy.port) {
         this.logger.warn(`WARNING: mockServer proxy configuration does not contain required properties 'protocol', 'host' and 'port' \n Requests will not be proxied`);

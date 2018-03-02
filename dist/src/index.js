@@ -199,10 +199,8 @@ function initTests(conf) {
                 }
             });
         }
-        if (conf.onComplete || conf.cmdOpts.onComplete) {
-            var scriptPath = conf.onComplete ?
-                path.join(conf.filePaths.busybeeDir, conf.onComplete)
-                : path.join(conf.filePaths.busybeeDir, conf.cmdOpts.onComplete);
+        if (conf.onComplete) {
+            var scriptPath = conf.onComplete = path.join(conf.filePaths.busybeeDir, conf.onComplete);
             try {
                 logger.debug("Running onComplete: " + scriptPath);
                 require(scriptPath)(err, suiteResultsList);

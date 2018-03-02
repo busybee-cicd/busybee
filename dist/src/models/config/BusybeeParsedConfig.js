@@ -17,12 +17,14 @@ var BusybeeParsedConfig = /** @class */ (function () {
         this.testFiles = [];
         this.skipTestSuites = [];
         this.envInstancesToRun = [];
+        this.skipEnvProvisioning = [];
         this.localMode = false;
-        this.cmdOpts = Object.assign({}, cmdOpts); // TODO make sure nothing references this directly from this point
+        this.noProxy = false;
+        var _cmdOpts = Object.assign({}, cmdOpts); // TODO make sure nothing references this directly from this point
         this.logLevel = this.getLogLevel();
         this.logger = new Logger_1.Logger({ logLevel: this.logLevel }, this);
-        this.parseCmdOpts(this.cmdOpts);
-        this.filePaths = new FilePathsConfig_1.FilePathsConfig(cmdOpts);
+        this.parseCmdOpts(_cmdOpts);
+        this.filePaths = new FilePathsConfig_1.FilePathsConfig(_cmdOpts);
         this.onComplete = userConfig.onComplete;
         this.parsedTestSuites = this.parseTestSuites(userConfig, mode);
         this.envResources = userConfig.envResources;
@@ -35,6 +37,9 @@ var BusybeeParsedConfig = /** @class */ (function () {
         if (cmdOpts.skipTestSuite) {
             this.skipTestSuites = cmdOpts.skipTestSuite.split(',');
         }
+        if (cmdOpts.skipEnvProvisioning) {
+            this.skipEnvProvisioning = cmdOpts.skipEnvProvisioning.split(',');
+        }
         if (cmdOpts.testFiles) {
             this.testFiles = cmdOpts.testFiles.split(',');
         }
@@ -43,6 +48,12 @@ var BusybeeParsedConfig = /** @class */ (function () {
         }
         if (cmdOpts.localMode) {
             this.localMode = cmdOpts.localMode;
+        }
+        if (cmdOpts.onComplete) {
+            this.onComplete = cmdOpts.onComplete;
+        }
+        if (cmdOpts.noProxy) {
+            this.noProxy = true;
         }
     };
     BusybeeParsedConfig.prototype.getEnvInstancesToRun = function () {
@@ -60,6 +71,9 @@ var BusybeeParsedConfig = /** @class */ (function () {
     };
     BusybeeParsedConfig.prototype.getEnv2TestSuiteMap = function () {
         return this.env2TestSuiteMap;
+    };
+    BusybeeParsedConfig.prototype.getSkipEnvProvisioning = function () {
+        return this.skipEnvProvisioning.slice();
     };
     BusybeeParsedConfig.prototype.parseTestSuites = function (userConf, mode) {
         var _this = this;

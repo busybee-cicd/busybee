@@ -171,10 +171,8 @@ function initTests(conf: BusybeeParsedConfig) {
             });
         }
 
-        if (conf.onComplete || conf.cmdOpts.onComplete) {
-            let scriptPath = conf.onComplete ?
-                path.join(conf.filePaths.busybeeDir, conf.onComplete)
-                : path.join(conf.filePaths.busybeeDir, conf.cmdOpts.onComplete);
+        if (conf.onComplete) {
+            let scriptPath = conf.onComplete = path.join(conf.filePaths.busybeeDir, conf.onComplete);
 
             try {
                 logger.debug(`Running onComplete: ${scriptPath}`);
