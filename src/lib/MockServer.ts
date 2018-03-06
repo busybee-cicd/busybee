@@ -343,8 +343,8 @@ export class MockServer {
         }
 
         // check for a delay
-        if (mockToReturn.delay) {
-          await this.sleep(mockToReturn.delay);
+        if (mockToReturn.delayMockedResponse) {
+          await this.sleep(mockToReturn.delayMockedResponse);
         }
 
         let bodyToReturn = mockResponse.body;

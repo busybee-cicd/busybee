@@ -311,7 +311,7 @@ export class EnvManager {
   runScript(path, args) {
     return new Promise(async (resolve, reject) => {
       this.logger.info(`runScript ${path} <args>`);
-      this.logger.info(args);
+      this.logger.debug(args);
       const completeMessage = `${path} completed`;
       let returned = false;
 

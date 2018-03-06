@@ -121,7 +121,7 @@ export class RESTSuiteManager {
         });
         return _.map(testsWithARequest, (test: RESTTest) => {
 
-            return (cb) => {
+            return async (cb) => {
                 // build request
                 let port = currentEnv.ports[0]; // the REST api port should be passed first in the userConfigFile.
                 let opts = this.restClient.buildRequest(test.request, port);
@@ -155,7 +155,14 @@ export class RESTSuiteManager {
 
                 }
 
-                this.logger.info(`${testSet.id}: ${testIndex}: ${test.id}`)
+
+                this.logger.info(`${testSet.id}: ${testIndex}: ${test.id}`);
+                if (test.delayTestRequest) {
+                    this.logger.info(`Delaying request for ${test.delayTestRequest / 1000} seconds.`);
+                    var now = new Date().getTime();
+                    while(new Date().getTime() < now + test.delayTestRequest){ /* do nothing */ }
+                }
+
                 this.restClient.makeRequest(opts, (err: Error, res: IncomingMessage, body: any) => {
                     if (err) {
                         return cb(err);
@@ -355,4 +362,5 @@ export class RESTSuiteManager {
 
         cb(null, testResult);
     }
+
 }

@@ -16,6 +16,8 @@ var RESTTest = /** @class */ (function () {
         this.skip = data.skip;
         this.mockResponse = json_typescript_mapper_1.deserialize(ResponseBody_1.ResponseBody, data.mockResponse);
         this.testIndex = data.testIndex;
+        this.delayTestRequest = data.delayTestRequest;
+        this.delayMockedResponse = data.mockResponseDelay;
     }
     return RESTTest;
 }());

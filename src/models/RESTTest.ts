@@ -11,6 +11,8 @@ export class RESTTest {
     expect: RESTTestExpect;
     skip: boolean;
     mockResponse: ResponseBody;
+    delayTestRequest: number;
+    delayMockedResponse: number;
     testIndex: number;
 
     constructor(data: any) {
@@ -24,5 +26,7 @@ export class RESTTest {
         this.skip = data.skip;
         this.mockResponse = deserialize(ResponseBody, data.mockResponse);
         this.testIndex = data.testIndex;
+        this.delayTestRequest = data.delayTestRequest;
+        this.delayMockedResponse = data.mockResponseDelay;
     }
 }

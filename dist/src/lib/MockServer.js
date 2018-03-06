@@ -340,8 +340,8 @@ var MockServer = /** @class */ (function () {
                                     res.append(k, v);
                                 });
                             }
-                            if (!mockToReturn.delay) return [3 /*break*/, 2];
-                            return [4 /*yield*/, this.sleep(mockToReturn.delay)];
+                            if (!mockToReturn.delayMockedResponse) return [3 /*break*/, 2];
+                            return [4 /*yield*/, this.sleep(mockToReturn.delayMockedResponse)];
                         case 1:
                             _a.sent();
                             _a.label = 2;
