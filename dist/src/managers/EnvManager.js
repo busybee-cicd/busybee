@@ -166,13 +166,13 @@ var EnvManager = /** @class */ (function () {
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
-                                    envInfo = Object.assign({}, this.currentEnvs.get(generatedEnvID));
+                                    envInfo = _.cloneDeep(this.currentEnvs.get(generatedEnvID));
                                     // remove the env from currentEnvs
                                     this.currentEnvs.remove(generatedEnvID);
                                     if (_.isEmpty(envInfo)) {
                                         return [2 /*return*/, resolve()];
                                     }
-                                    if (this.skipEnvProvisioningList && (this.skipEnvProvisioningList.indexOf(envInfo.suiteID) !== -1)) {
+                                    if (this.shouldSkipProvisioning(envInfo.suiteID)) {
                                         this.logger.info("Skipping shutdown of '" + envInfo.suiteID + "'s environment. Suite's Environment was not provisioned by Busybee");
                                         return [2 /*return*/, resolve()];
                                     }
@@ -324,16 +324,14 @@ var EnvManager = /** @class */ (function () {
     EnvManager.prototype.provisionEnv = function (generatedEnvID, suiteID, suiteEnvID) {
         var _this = this;
         return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-            var skipEnvProvisioning, testSuiteConf, hostName, ports, busybeeDir, args, err_1;
+            var testSuiteConf, hostName, ports, busybeeDir, args, err_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         this.logger.trace("provisionEnv " + generatedEnvID + " " + suiteID + " " + suiteEnvID);
                         this.logger.trace('currentHosts');
                         this.logger.trace(this.currentHosts, true);
-                        skipEnvProvisioning = false;
-                        if (this.skipEnvProvisioningList && (this.skipEnvProvisioningList.indexOf(suiteID) !== -1)) {
-                            skipEnvProvisioning = true;
+                        if (this.shouldSkipProvisioning(suiteID)) {
                             this.logger.info("Skipping Environment provisioning for Test Suite '" + suiteID + "'");
                         }
                         else {
@@ -354,7 +352,7 @@ var EnvManager = /** @class */ (function () {
                         ports = _a.sent();
                         _a.label = 4;
                     case 4:
-                        if (skipEnvProvisioning) {
+                        if (this.shouldSkipProvisioning(suiteID)) {
                             resolve(generatedEnvID);
                             return [2 /*return*/];
                         }
@@ -464,16 +462,12 @@ var EnvManager = /** @class */ (function () {
                         var cost = suiteConf.env.resourceCost || 0;
                         var identifyHost = function (cb) {
                             _this.logger.trace("identifyHost");
-                            if (_this.shouldSkipProvisioning(suiteID)) {
-                                if (suiteConf.host) {
-                                    return cb(suiteConf.host);
-                                }
-                                else if (_this.conf.localMode) {
-                                    return cb('localhost');
-                                }
-                                else {
-                                    _this.logger.warn("--skipEnvProvisioning is enabled without providing a specific host for this TestSuite. This can yield undesirable results if more than 1 host is available.");
-                                }
+                            // see if we have a pre-determined host
+                            if (suiteConf.host) {
+                                return cb(suiteConf.host);
+                            }
+                            else if (_this.conf.localMode) {
+                                return cb('localhost');
                             }
                             // 1. calculate the capacity remaining for each host
                             var capacityHosts = _.map(_this.currentHosts, function (hostInfo, hostName) {

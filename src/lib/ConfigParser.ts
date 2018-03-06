@@ -16,7 +16,7 @@ export class ConfigParser {
   }
 
   parse(mode): BusybeeParsedConfig {
-    let userConfig = deserialize(BusybeeUserConfig, require(this.filePaths.userConfigFile));
+    let userConfig:BusybeeUserConfig = deserialize(BusybeeUserConfig, require(this.filePaths.userConfigFile));
     return new BusybeeParsedConfig(userConfig, this.cmdOpts, mode);
   }
 

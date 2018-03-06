@@ -140,16 +140,17 @@ export class EnvManager {
   async stop(generatedEnvID: string) {
     this.logger.trace(`stop ${generatedEnvID}`);
     return new Promise(async (resolve, reject) => {
-      let envInfo = Object.assign({}, this.currentEnvs.get(generatedEnvID));
+      let envInfo = _.cloneDeep(this.currentEnvs.get(generatedEnvID));
       // remove the env from currentEnvs
       this.currentEnvs.remove(generatedEnvID);
 
       if (_.isEmpty(envInfo)) { return resolve(); }
 
-      if (this.skipEnvProvisioningList && (this.skipEnvProvisioningList.indexOf(envInfo.suiteID) !== -1)) {
+      if (this.shouldSkipProvisioning(envInfo.suiteID)) {
         this.logger.info(`Skipping shutdown of '${envInfo.suiteID}'s environment. Suite's Environment was not provisioned by Busybee`);
         return resolve();
       }
+
       this.logger.info(`Stopping Environment: ${envInfo.suiteEnvID} ${generatedEnvID}`);
 
       this.logger.trace('envInfo');
@@ -262,9 +263,7 @@ export class EnvManager {
       this.logger.trace(`provisionEnv ${generatedEnvID} ${suiteID} ${suiteEnvID}`);
       this.logger.trace('currentHosts');
       this.logger.trace(this.currentHosts, true);
-      let skipEnvProvisioning = false;
-      if (this.skipEnvProvisioningList && (this.skipEnvProvisioningList.indexOf(suiteID) !== -1)) {
-        skipEnvProvisioning = true;
+      if (this.shouldSkipProvisioning(suiteID)) {
         this.logger.info(`Skipping Environment provisioning for Test Suite '${suiteID}'`);
       } else {
         this.logger.info(`Starting Environment: ${suiteEnvID} - ${generatedEnvID}`);
@@ -280,7 +279,7 @@ export class EnvManager {
           ports = await this.getAvailablePorts(hostName, suiteID, generatedEnvID);
         }
 
-        if (skipEnvProvisioning) {
+        if (this.shouldSkipProvisioning(suiteID)) {
           resolve(generatedEnvID);
           return;
         }
@@ -378,14 +377,11 @@ export class EnvManager {
 
       let identifyHost = (cb) => {
         this.logger.trace(`identifyHost`);
-        if (this.shouldSkipProvisioning(suiteID)) {
-          if (suiteConf.host) {
-            return cb(suiteConf.host);
-          } else if (this.conf.localMode) {
-            return cb('localhost');
-          } else {
-            this.logger.warn("--skipEnvProvisioning is enabled without providing a specific host for this TestSuite. This can yield undesirable results if more than 1 host is available.")
-          }
+        // see if we have a pre-determined host
+        if (suiteConf.host) {
+          return cb(suiteConf.host);
+        } else if (this.conf.localMode) {
+          return cb('localhost');
         }
         // 1. calculate the capacity remaining for each host
         let capacityHosts = _.map(this.currentHosts, (hostInfo:any, hostName) => {
