@@ -38,7 +38,7 @@ when it comes to deciding how your environments are started, when they're ready,
 ### What it isn't
 It is not a magic bullet. You still have to write tests. You still have to provide 'start' and 'stop' scripts detailing how start/stop your environments. If your [Test Suite](#TestSuite) is not a REST [Test Suite](#TestSuite) then you will also need to provide a 'run' script that actually runs your tests once the environment as been provisioned.
 
-## Configuration
+## Busbyee Configuration
 By default, Busybee will look for configuration in busybee/config.json
 
 ### config.json
@@ -159,92 +159,41 @@ ex)
 ```
 ---
 
-## Test
+
+## JSON REST-API Test Configuration
 Tests can exist in 2 forms, .json and .js. The latter provides a mechanism for creating custom validations via a js method. When using the .js formation it's wise to provide a 'mockResponse' for use by the `busybee mock` command.
 
-```
-test.json
+---
+### test.js/json
+- `name`* - String: unique name of the test
+- `description` - String: description of what the test is for
+- `testSet`* - [TestSet](#TestSet): list of or single TestSet
+- `request`* - [RequestOpts](#RequestOpts): list of or single TestSet
+- `expect` - [Expect](#Expect)
+- `mockResponse` - [Response](#Response)
+- `skip` - Boolean: whether or not to skip this test
+- `delayTestRequest` - Number: number of milliseconds to wait before making a test request
+- `delayMockedResponse` - Number: nmber or milliseconds to wait before returning a response when running in `mock` mode
 
-[{
-  "name": "my test",
-  "skip": false,
-  "delay": 0,
-  "testSet": {
-    "id": "My Test Set",
-    "index": 0
-  },
-  "request": {
-    "method": "GET",
-    "endpoint": "/my-endpoint",
-    "query": {
-      "myQueryParam": "myQueryValue"
-    },
-    "body": {
-      "myBodyKey": "myBodyValue"
-    }
-  },
-  "expect": {
-    "status": 200,
-    "headers": {
-      "my-expected-header": "myExpectedHeaderValue"
-    },
-    "body": {
-      "myExpectedKey": "myExpectedValue"
-    }
-  }
-}]
-```
+---
+### TestSet
+- `id`* - unique id (name) assigned to the testSet
+- `index`* - this index that this test should run with-in the specified testSet
 
-```
-test.js
+---
+### Expect
+- `status` - Number: the Http status code to expect
+- `headers` - Object: a <String,String> object containing header key's and their values to check for in the response
+- `body` - Function|Object: when a Function is provided, it should have the signature of (body, variableExports) => {}. If the function returns false or throws an error it will be considered a failure. In the instance that an Object is provided Busybee will attempt to assert the response.body with the provided Object.
+- `assertionModifications` - [AssertionModifications](#AssertionModifications)
 
-module.exports = [{
-    "name": "my test",
-    "skip": false,
-    "delay": 0,
-    "testSet": {
-        "id": "My Test Set",
-        "index": 1
-    },
-    "request": {
-        "method": "GET",
-        "endpoint": "/my-endpoint",
-        "query": {
-            "myQueryParam": "myQueryValue"
-        },
-        "body": {
-            "myBodyKey": "myBodyValue"
-        }
-    },
-    "expect": {
-        "status": 200,
-        "headers": {
-            "my-expected-header": "myExpectedHeaderValue"
-        },
-        "body": (body) => {
-            try {
-                return body.content.hello === 'world' ? true : false;
-            } catch (e) {
-                return false;
-            }
+---
+### Response
+- `status` - Number: Http status
+- `headers` - Object: a <String,String> object containing header key's and their values
+- `body` - Object
 
-        }
-    },
-    "mockResponse": {
-        "status": 200,
-        "headers": {
-          "my-expected-header": "myExpectedHeaderValue"
-        },
-        "body": {
-          "content": {
-            "hello": "world"
-          }
-        }
-    }
-}]
-```
-
-
+---
 ### AssertionModifications
 // TODO
 - when using unorderedCollections make sure that you specific the outter-most collection. ie)

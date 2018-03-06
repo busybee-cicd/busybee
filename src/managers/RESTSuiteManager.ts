@@ -228,7 +228,7 @@ export class RESTSuiteManager {
     validateTestResult(testSet: ParsedTestSetConfig, test: RESTTest, reqOpts: any, res: IncomingMessage, body: any, cb: (Error, RESTTestResult?) => {}) {
         this.logger.trace(`validateTestResult`)
         // validate results
-        let testResult = new RESTTestResult(test.id, test.testIndex);
+        let testResult = new RESTTestResult(test.id);
 
         if (test.expect.headers) {
             testResult.headers = new RESTTestHeaderResult();

@@ -5,7 +5,6 @@ import {RESTTestAssertionModifications} from "../RESTTestAssertionModifications"
 export class RESTTestResult {
 
     id: string;
-    index: number;
     pass: boolean;
     status: RESTTestPartResult;
     headers: RESTTestHeaderResult;
@@ -13,10 +12,9 @@ export class RESTTestResult {
     assertionModifications: RESTTestAssertionModifications;
     request: any;
 
-    constructor(id:string, index: number) {
+    constructor(id:string) {
         this.pass = true;
         this.id = id;
-        this.index = index;
     }
 
 }
