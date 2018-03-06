@@ -1,10 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var RESTTestResult = /** @class */ (function () {
-    function RESTTestResult(id, index) {
+    function RESTTestResult(id) {
         this.pass = true;
         this.id = id;
-        this.index = index;
     }
     return RESTTestResult;
 }());

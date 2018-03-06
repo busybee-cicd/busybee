@@ -468,6 +468,9 @@ var EnvManager = /** @class */ (function () {
                                 if (suiteConf.host) {
                                     return cb(suiteConf.host);
                                 }
+                                else if (_this.conf.localMode) {
+                                    return cb('localhost');
+                                }
                                 else {
                                     _this.logger.warn("--skipEnvProvisioning is enabled without providing a specific host for this TestSuite. This can yield undesirable results if more than 1 host is available.");
                                 }

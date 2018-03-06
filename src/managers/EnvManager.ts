@@ -114,7 +114,6 @@ export class EnvManager {
     //   this.logger.info("No host information provided. Only generatedEnvID info will be passed to scripts");
     //   return;
     // }
-
     let hosts = {};
     if (conf.localMode) {
       hosts['localhost'] = {
@@ -382,6 +381,8 @@ export class EnvManager {
         if (this.shouldSkipProvisioning(suiteID)) {
           if (suiteConf.host) {
             return cb(suiteConf.host);
+          } else if (this.conf.localMode) {
+            return cb('localhost');
           } else {
             this.logger.warn("--skipEnvProvisioning is enabled without providing a specific host for this TestSuite. This can yield undesirable results if more than 1 host is available.")
           }

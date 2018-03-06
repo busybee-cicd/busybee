@@ -241,7 +241,7 @@ var RESTSuiteManager = /** @class */ (function () {
     RESTSuiteManager.prototype.validateTestResult = function (testSet, test, reqOpts, res, body, cb) {
         this.logger.trace("validateTestResult");
         // validate results
-        var testResult = new RESTTestResult_1.RESTTestResult(test.id, test.testIndex);
+        var testResult = new RESTTestResult_1.RESTTestResult(test.id);
         if (test.expect.headers) {
             testResult.headers = new RESTTestHeaderResult_1.RESTTestHeaderResult();
             _.forEach(test.expect.headers, function (v, headerName) {
