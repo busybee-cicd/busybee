@@ -88,12 +88,14 @@ var UnorderedCollections = /** @class */ (function () {
                 expectedCol = _expected[currentKey];
                 actualCol = _actual[currentKey];
             }
-            else if (currentKey == '*' || _.isArray(_expected)) {
+            else if (currentKey == '*' || (_.isArray(_expected) && _.isArray(_actual))) {
                 expectedCol = _expected;
                 actualCol = _actual;
             }
             if (!expectedCol && !actualCol) {
-                throw new Error("The collection at '" + currentKey + "' cannot be found. It's possible that this collection is nested under an unorderedCollection that has already been asserted or that the collection simply does not exist.");
+                // if we can't find the key then we assume that it may be null OR omitted
+                // this can happen if they reference something deeply nested that isn't required. don't throw an error, just bail
+                return;
             }
             // check length.
             if (expectedCol.length != actualCol.length) {
@@ -137,7 +139,7 @@ var UnorderedCollections = /** @class */ (function () {
                 return itemsAreEqual;
             });
             if (!result) {
-                throw new Error("The collections at '" + currentKey + "' are not equal");
+                throw new Error("The collections at '" + currentKey + "' are not equal OR the parent object is a member of an ambiguous collection");
             }
         });
         actual.splice.apply(actual, [0, actual.length].concat(actualOrdered));

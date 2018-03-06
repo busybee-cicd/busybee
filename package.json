@@ -44,7 +44,8 @@
     "start": "node ./dist/src/index.js",
     "remoteIT": "node --inspect-brk=9222 ./dist/src/index.js mock -t 'CR Services IT' -d itTests/default",
     "IT": "node ./dist/src/index.js test -d itTests/default -D",
-    "test": "tsc && ava dist/test/**/*.js"
+    "test": "tsc && ava dist/test/**/*.js",
+    "debugSingleTest": "node --interactive --inspect-brk node_modules/ava/profile.js dist/test/**/unorderedCollectionsTest.js"
   },
   "author": "Simon Townsend",
   "license": "ISC"
