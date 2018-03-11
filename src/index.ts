@@ -162,6 +162,12 @@ function initTests(conf: BusybeeParsedConfig) {
         if (conf.reporters && !_.isEmpty(conf.reporters)) {
             conf.reporters.forEach(r => {
                 try {
+                    if (conf.localMode) {
+                        if (!_.isUndefined(r.skipInLocalMode) && r.skipInLocalMode) {
+                            return;
+                        }
+                    }
+
                     r.run(suiteResultsList)
                 } catch (e) {
                     logger.error('Error encountered while running reporter');

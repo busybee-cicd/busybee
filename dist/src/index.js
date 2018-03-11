@@ -190,6 +190,11 @@ function initTests(conf) {
         if (conf.reporters && !_.isEmpty(conf.reporters)) {
             conf.reporters.forEach(function (r) {
                 try {
+                    if (conf.localMode) {
+                        if (!_.isUndefined(r.skipInLocalMode) && r.skipInLocalMode) {
+                            return;
+                        }
+                    }
                     r.run(suiteResultsList);
                 }
                 catch (e) {
