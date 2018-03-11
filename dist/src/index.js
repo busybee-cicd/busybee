@@ -48,6 +48,7 @@ var EnvManager_1 = require("./managers/EnvManager");
 var TestManager_1 = require("./managers/TestManager");
 var MockServer_1 = require("./lib/MockServer");
 var Logger_1 = require("./lib/Logger");
+var TestSuiteResult_1 = require("./models/results/TestSuiteResult");
 var logger;
 Commander
     .version('0.1.0');
@@ -166,12 +167,14 @@ function initTests(conf) {
         // group the result sets by their Suite
         var suiteResults = {};
         envResults.forEach(function (envResult) {
+            // todo use TestSuiteResult model instead of any
             if (!suiteResults[envResult.suiteID]) {
-                suiteResults[envResult.suiteID] = {
-                    testSets: envResult.testSets,
-                    pass: true,
-                    type: envResult.type
-                };
+                var sr = new TestSuiteResult_1.TestSuiteResult();
+                sr.testSets = envResult.testSets;
+                sr.pass = true;
+                sr.type = envResult.type;
+                sr.id = envResult.suiteID;
+                suiteResults[envResult.suiteID] = sr;
             }
             else {
                 suiteResults[envResult.suiteID].testSets = suiteResults[envResult.suiteID].testSets.concat(envResult.testSets);
@@ -183,11 +186,7 @@ function initTests(conf) {
             ;
         });
         // for easier parsing lets return each suite as its own object in a list
-        var suiteResultsList = [];
-        _.forEach(suiteResults, function (v, suiteID) {
-            var sr = Object.assign({}, { id: suiteID }, v);
-            suiteResultsList.push(sr);
-        });
+        var suiteResultsList = _.values(suiteResults).slice();
         if (conf.reporters && !_.isEmpty(conf.reporters)) {
             conf.reporters.forEach(function (r) {
                 try {

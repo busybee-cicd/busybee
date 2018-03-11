@@ -12,6 +12,7 @@ import {TestManager} from './managers/TestManager';
 import {MockServer} from './lib/MockServer';
 import {Logger} from './lib/Logger';
 import {EnvResult} from "./models/results/EnvResult";
+import {TestSuiteResult} from "./models/results/TestSuiteResult";
 let logger;
 
 
@@ -137,12 +138,14 @@ function initTests(conf: BusybeeParsedConfig) {
         let suiteResults = {};
 
         envResults.forEach((envResult: EnvResult) => {
+            // todo use TestSuiteResult model instead of any
             if (!suiteResults[envResult.suiteID]) {
-                suiteResults[envResult.suiteID] = {
-                    testSets: envResult.testSets,
-                    pass: true,
-                    type: envResult.type
-                };
+                let sr = new TestSuiteResult();
+                sr.testSets = envResult.testSets;
+                sr.pass = true;
+                sr.type = envResult.type;
+                sr.id = envResult.suiteID;
+                suiteResults[envResult.suiteID] = sr;
             } else {
                 suiteResults[envResult.suiteID].testSets = suiteResults[envResult.suiteID].testSets.concat(envResult.testSets);
             }
@@ -154,11 +157,7 @@ function initTests(conf: BusybeeParsedConfig) {
         });
 
         // for easier parsing lets return each suite as its own object in a list
-        let suiteResultsList = [];
-        _.forEach(suiteResults, (v, suiteID) => {
-            let sr = Object.assign({}, {id: suiteID}, v);
-            suiteResultsList.push(sr);
-        });
+        let suiteResultsList = [..._.values(suiteResults)];
 
         if (conf.reporters && !_.isEmpty(conf.reporters)) {
             conf.reporters.forEach(r => {
