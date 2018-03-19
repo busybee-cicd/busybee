@@ -187,7 +187,7 @@ export class BusybeeParsedConfig {
         if (test.skip) { return; }
 
         if (mode === 'test') {
-          if (!test.expect || !test.expect.status || !test.expect.body) {
+          if (!test.expect || (!test.expect.status && !test.expect.body && !test.expect.headers)) {
             this.logger.debug(`test.expect not defined for ${test.id}. Skipping`);
             return;
           }
