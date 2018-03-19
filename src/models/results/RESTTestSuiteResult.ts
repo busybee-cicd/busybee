@@ -1,8 +1,8 @@
 class RESTTestSuiteResult {
 
-    id: string;
+  id: string;
 
-    constructor() {
-    }
+  constructor() {
+  }
 
 }

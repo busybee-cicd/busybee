@@ -29,7 +29,7 @@ export class MockServer {
     this.logger.info('Initializing Mock Server');
     this.routeMap = {}; // store the routes and all of the known request combos for each route
 
-    let serverConf:MockServerConfig = this.testSuiteConf.mockServer;
+    let serverConf: MockServerConfig = this.testSuiteConf.mockServer;
     if (serverConf && serverConf.proxy && !conf.noProxy) {
       this.logger.info(`Proxy config detected`);
       if (!serverConf.proxy.protocol || !serverConf.proxy.host || !serverConf.proxy.port) {
@@ -55,7 +55,7 @@ export class MockServer {
     server.set('etag', false);
     server.use(bodyParser.json()); // for parsing application/json
     server.use(restream(null));
-    server.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
+    server.use(bodyParser.urlencoded({extended: true})); // for parsing application/x-www-form-urlencoded
     if (this.corsActive()) {
       server.use((req, res, next) => {
         res.append('Access-Control-Allow-Origin', req.header('origin'));
@@ -98,7 +98,7 @@ export class MockServer {
           'Access-Control-Max-Age': 86400
         }
 
-        _.forEach(headers, (v:string, k) => {
+        _.forEach(headers, (v: string, k) => {
           res.append(k, v);
         });
 
@@ -172,12 +172,12 @@ export class MockServer {
     let endpoint = this.getEndpoint(mock);
     if (!this.routeMap[endpoint]) {
       this.routeMap[endpoint] = {
-        get: {200:[]},
-        post: {200:[]},
-        put: {200:[]},
-        delete: {200:[]},
-        head: {200:[]},
-        options: {200:[]}
+        get: {200: []},
+        post: {200: []},
+        put: {200: []},
+        delete: {200: []},
+        head: {200: []},
+        options: {200: []}
       };
     }
     // 1. see if this req has already been recorded (could be in multiple sets)
@@ -195,7 +195,9 @@ export class MockServer {
 
     if (this.routeMap[endpoint][method]) {
       if (this.routeMap[endpoint][method][resStatus]) {
-        if (_.find(this.routeMap[endpoint][method], (reqInfo) => { reqInfo.hash === hashedReq})) {
+        if (_.find(this.routeMap[endpoint][method], (reqInfo) => {
+            reqInfo.hash === hashedReq
+          })) {
           // skip this one it exists
           return
         }
@@ -216,7 +218,7 @@ export class MockServer {
 
     _.forEach(reqMethodMap, (statusMap, methodName) => {
       // 1. build a controller
-      let ctrl = async (req, res) => {
+      let ctrl = async(req, res) => {
         this.logger.trace(req.path);
         // First we check to see if the requester wants a mockResponse with a specific status. If not, we default to 200
         let requestedStatus = 200;
@@ -256,7 +258,7 @@ export class MockServer {
          but a request can have many more and therfore we can't just hash the whole thing
          and use that to compare on. we need to look for just the ones
          mentioned in the mockResponse.
-        */
+         */
         let mocksWithoutHeaders = [];
         let mocksWithHeaders = [];
         matchingMocks.forEach((m) => {
@@ -317,7 +319,7 @@ export class MockServer {
           } else {
             if (mocksWithoutHeaders.length == 0 && mocksWithHeaders.length == 0) {
               let message = "This request did not match any mocks and no proxy is available.";
-              return res.status(404).json({ err: message });
+              return res.status(404).json({err: message});
             } else {
               let message = "This request is ambiguous due to multiple mocks sharing the name header requirements.";
               return res.status(404).json({
@@ -336,9 +338,11 @@ export class MockServer {
           resHeaders = Object.assign({}, resHeaders, mockResponse);
         }
         if (mockResponse) {
-          _.forEach(resHeaders, (v,k) => {
-            if (v == null) { return; }
-            res.append(k,v);
+          _.forEach(resHeaders, (v, k) => {
+            if (v == null) {
+              return;
+            }
+            res.append(k, v);
           });
         }
 

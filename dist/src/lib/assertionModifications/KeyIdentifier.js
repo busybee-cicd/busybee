@@ -17,7 +17,7 @@ var KeyIdentifier = /** @class */ (function () {
         return { expected: expected, actual: actual };
     };
     /*
-        Called when the initial process() method encounters an Object
+     Called when the initial process() method encounters an Object
      */
     KeyIdentifier.parseConfigObject = function (configObj, expected, actual, action) {
         _.forEach(configObj, function (v, k) {
@@ -79,8 +79,8 @@ var KeyIdentifier = /** @class */ (function () {
         }
     };
     /*
-        Called when the initial process() method encounters a String as
-        opposed to an object at the top-level
+     Called when the initial process() method encounters a String as
+     opposed to an object at the top-level
      */
     KeyIdentifier.parseConfigString = function (configString, expected, actual, action) {
         var configArr = configString === '*' ? [configString] : configString.split('.');

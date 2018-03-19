@@ -27,9 +27,11 @@ export class TestManager {
     this.logger.trace('buildTestSuiteTasks');
     let conf = this.conf;
     conf.parsedTestSuites.forEach((testSuite: ParsedTestSuite, suiteID: string) => {
-      if (testSuite.skip) { return; }
+      if (testSuite.skip) {
+        return;
+      }
       // parse the envs of this TestSuite
-      this.testSuiteTasks[suiteID] = { envTasks: [] };
+      this.testSuiteTasks[suiteID] = {envTasks: []};
       //conf.parsedTestSuites[suiteID].envTasks = [];
       this.logger.trace(suiteID);
       this.logger.trace(testSuite);
@@ -77,12 +79,12 @@ export class TestManager {
     this.logger.trace(`buildRESTTestEnvTask ${suiteID} ${suiteEnvID}`);
 
     var generatedEnvID;
-    return (cb: (err:any, envResult:EnvResult) => void) => {
+    return (cb: (err: any, envResult: EnvResult) => void) => {
       let currentEnv: SuiteEnvInfo;
       let restManager: RESTSuiteManager;
       let testSetResults;
 
-      let buildEnvFn = async () => {
+      let buildEnvFn = async() => {
         generatedEnvID = this.envManager.generateId();
         await this.envManager.start(generatedEnvID, suiteID, suiteEnvID);
         currentEnv = this.envManager.getCurrentEnv(generatedEnvID);
@@ -124,16 +126,16 @@ export class TestManager {
   }
 
   /*
-    TODO: use the GenericSuiteManager to kick off tests
-  */
+   TODO: use the GenericSuiteManager to kick off tests
+   */
   buildTestEnvTask(suiteID, suiteEnvID) {
     this.logger.trace(`buildTestEnvTask ${suiteID} ${suiteEnvID}`);
 
     let generatedEnvID = this.envManager.generateId();
     return (cb) => {
-      let buildEnvFn = async () => {
+      let buildEnvFn = async() => {
         await this.envManager.start(generatedEnvID, suiteID, suiteEnvID);
-        let currentEnv:SuiteEnvInfo = this.envManager.getCurrentEnv(generatedEnvID);
+        let currentEnv: SuiteEnvInfo = this.envManager.getCurrentEnv(generatedEnvID);
         // create a GenericSuiteManager to handle coordinating these tests
         let suiteManager = new GenericSuiteManager(this.conf, currentEnv, this.envManager);
         let testSetResults = await suiteManager.runTestSets(generatedEnvID);
@@ -145,14 +147,20 @@ export class TestManager {
         .then((testSetResults) => {
           this.logger.trace("TEST SET SUCCESS");
           this.envManager.stop(generatedEnvID)
-            .then(() => { cb(null, testSetResults); })
-            .catch((err) => { cb(err); });
+            .then(() => {
+              cb(null, testSetResults);
+            })
+            .catch((err) => {
+              cb(err);
+            });
         })
         .catch((err) => {
           this.logger.error("buildTestEnvTask: ERROR CAUGHT WHILE RUNNING TEST SETS");
           this.logger.error(err);
           this.envManager.stop(generatedEnvID)
-            .then(() => { cb(err); })
+            .then(() => {
+              cb(err);
+            })
             .catch((err2) => cb(err2));
         });
     };

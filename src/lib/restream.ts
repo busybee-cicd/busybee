@@ -6,12 +6,12 @@ export = (options) => {
   return function (req, res, next) {
     req.removeAllListeners('data')
     req.removeAllListeners('end')
-    if(req.headers['content-length'] !== undefined){
+    if (req.headers['content-length'] !== undefined) {
       req.headers['content-length'] = Buffer.byteLength(options.stringify(req[options.property]), 'utf8')
     }
     process.nextTick(function () {
-      if(req[options.property]) {
-        if('function' === typeof options.modify)
+      if (req[options.property]) {
+        if ('function' === typeof options.modify)
           req[options.property] = options.modify(req[options.property])
         req.emit('data', options.stringify(req[options.property]))
       }

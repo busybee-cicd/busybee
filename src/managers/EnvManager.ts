@@ -1,4 +1,4 @@
-import {spawn } from 'child_process';
+import {spawn} from 'child_process';
 import * as uuid from 'uuid';
 import * as path from 'path';
 import * as _ from 'lodash';
@@ -13,7 +13,6 @@ import {RequestOptsConfig} from "../models/config/common/RequestOptsConfig";
 import {TypedMap} from "../lib/TypedMap";
 import {ParsedTestSuite} from "../models/config/parsed/ParsedTestSuiteConfig";
 import {SuiteEnvInfo} from "../lib/SuiteEnvInfo";
-
 
 
 export class EnvManager {
@@ -37,76 +36,76 @@ export class EnvManager {
   }
 
   /*
-  envConf
-  {
-    hosts: ['host1', 'host2'],
-    testSuites: {
-      'test suite 1': {
-        'skip': false,
-        'protocol': 'http',
-        'ports': [8080],
-        'env': {
-          'parallel': true,
-          'resourceCost': 50,
-          'startScript': 'api/envStart.sh',
-          'stopScript': 'api/envStop.sh',
-          'healthcheck': {
-            'type': 'REST',
-            'retries': 30,
-            'request': {
-              'endpoint': '/healthcheck',
-              'timeout': 5000
-            }
-          }
-        }
-      }
-    }
-  }
+   envConf
+   {
+   hosts: ['host1', 'host2'],
+   testSuites: {
+   'test suite 1': {
+   'skip': false,
+   'protocol': 'http',
+   'ports': [8080],
+   'env': {
+   'parallel': true,
+   'resourceCost': 50,
+   'startScript': 'api/envStart.sh',
+   'stopScript': 'api/envStop.sh',
+   'healthcheck': {
+   'type': 'REST',
+   'retries': 30,
+   'request': {
+   'endpoint': '/healthcheck',
+   'timeout': 5000
+   }
+   }
+   }
+   }
+   }
+   }
 
-  currentHosts
-  {
-    'host1': {
-      'load': 0,
-      'envs': {
-        '111-111-111-111': {
-          ports: [8080],
-          portOffset: 0
-        }
-      }
-     },
-    'host2': {
-      'capacity': 0,
-      'envs': {
-        '222-222-222-222': {
-          ports: [8080],
-          portOffset: 0
-        }
-      }
-    }
-  }
+   currentHosts
+   {
+   'host1': {
+   'load': 0,
+   'envs': {
+   '111-111-111-111': {
+   ports: [8080],
+   portOffset: 0
+   }
+   }
+   },
+   'host2': {
+   'capacity': 0,
+   'envs': {
+   '222-222-222-222': {
+   ports: [8080],
+   portOffset: 0
+   }
+   }
+   }
+   }
 
-  currentEnvs
-  {
-    '111-111-111-111': {
-      'suiteId': 'test suite 1',
-      'suiteEnvID': ''
-      'hostName': 'host1',
-      'resourceCost': 100,
-      'startScript': '',
-      'stopScript': '',
-      'testSets': []
-    },
-    '222-222-222-222': {
-      'suiteId': 'test suite 1',
-      'suiteEnvID': ''
-      'hostName': 'host2',
-      'resourceCost': 100,
-      'startScript': '',
-      'stopScript': ''
-      'testSets': []
-    }
-  }
-  */
+   currentEnvs
+   {
+   '111-111-111-111': {
+   'suiteId': 'test suite 1',
+   'suiteEnvID': ''
+   'hostName': 'host1',
+   'resourceCost': 100,
+   'startScript': '',
+   'stopScript': '',
+   'testSets': []
+   },
+   '222-222-222-222': {
+   'suiteId': 'test suite 1',
+   'suiteEnvID': ''
+   'hostName': 'host2',
+   'resourceCost': 100,
+   'startScript': '',
+   'stopScript': ''
+   'testSets': []
+   }
+   }
+   */
   buildHosts(conf: BusybeeParsedConfig) {
     this.logger.trace(`buildHostConfs`);
     // TODO add back
@@ -139,12 +138,14 @@ export class EnvManager {
 
   async stop(generatedEnvID: string) {
     this.logger.trace(`stop ${generatedEnvID}`);
-    return new Promise(async (resolve, reject) => {
+    return new Promise(async(resolve, reject) => {
       let envInfo = _.cloneDeep(this.currentEnvs.get(generatedEnvID));
       // remove the env from currentEnvs
       this.currentEnvs.remove(generatedEnvID);
 
-      if (_.isEmpty(envInfo)) { return resolve(); }
+      if (_.isEmpty(envInfo)) {
+        return resolve();
+      }
 
       if (this.shouldSkipProvisioning(envInfo.suiteID)) {
         this.logger.info(`Skipping shutdown of '${envInfo.suiteID}'s environment. Suite's Environment was not provisioned by Busybee`);
@@ -196,7 +197,7 @@ export class EnvManager {
   async stopAll() {
     this.logger.trace('stopAll');
 
-    return new Promise(async (resolve, reject) => {
+    return new Promise(async(resolve, reject) => {
       this.logger.trace('currentEnvs');
       this.logger.trace(this.currentEnvs);
       let stopFns = [];
@@ -246,7 +247,9 @@ export class EnvManager {
         this.logger.trace(`this.envsWaitingForProvision ${this.envsWaitingForProvision}`);
         if (this.envsWaitingForProvision[0] != generatedEnvID) {
           this.logger.trace(`${generatedEnvID} waiting its turn`);
-          setTimeout(() => { wait(timeout, cb)}, timeout);
+          setTimeout(() => {
+            wait(timeout, cb)
+          }, timeout);
         } else {
           cb();
         }
@@ -259,7 +262,7 @@ export class EnvManager {
   }
 
   provisionEnv(generatedEnvID, suiteID, suiteEnvID) {
-    return new Promise(async (resolve, reject) => {
+    return new Promise(async(resolve, reject) => {
       this.logger.trace(`provisionEnv ${generatedEnvID} ${suiteID} ${suiteEnvID}`);
       this.logger.trace('currentHosts');
       this.logger.trace(this.currentHosts, true);
@@ -307,7 +310,7 @@ export class EnvManager {
   }
 
   runScript(path, args) {
-    return new Promise(async (resolve, reject) => {
+    return new Promise(async(resolve, reject) => {
       this.logger.info(`runScript ${path} <args>`);
       this.logger.debug(args);
       const completeMessage = `${path} completed`;
@@ -317,8 +320,12 @@ export class EnvManager {
 
       // listen for errors and reject
       script.stderr.on('data', (data) => {
-        if (returned) { return; }
-        if (!data) { data = ""; }
+        if (returned) {
+          return;
+        }
+        if (!data) {
+          data = "";
+        }
         let output = data.toString();
         this.logger.debug(output);
 
@@ -331,8 +338,12 @@ export class EnvManager {
 
       // listen for data and discern if an error has been thrown.
       script.stdout.on('data', (data) => {
-        if (returned) { return; }
-        if (!data) { return; }
+        if (returned) {
+          return;
+        }
+        if (!data) {
+          return;
+        }
         let origOutput = data.toString();
         let upperOutput = origOutput.toUpperCase();
         this.logger.debug(origOutput);
@@ -346,7 +357,8 @@ export class EnvManager {
           returned = true;
           resolve(completeMessage);
           script.kill('SIGHUP');
-        };
+        }
+        ;
       });
 
       script.on('close', () => {
@@ -366,8 +378,8 @@ export class EnvManager {
   }
 
   /*
-    Attempts to identify a host with enough capacity for an env of this suite type
-  */
+   Attempts to identify a host with enough capacity for an env of this suite type
+   */
   async getAvailableHostName(suiteID, suiteEnvID, generatedEnvID) {
     return new Promise((resolve, reject) => {
       this.logger.trace(`getAvailableHostName ${suiteID} | ${suiteEnvID} | ${generatedEnvID}`);
@@ -384,7 +396,7 @@ export class EnvManager {
           return cb('localhost');
         }
         // 1. calculate the capacity remaining for each host
-        let capacityHosts = _.map(this.currentHosts, (hostInfo:any, hostName) => {
+        let capacityHosts = _.map(this.currentHosts, (hostInfo: any, hostName) => {
           return {
             name: hostName,
             remainingCapacity: hostInfo.capacity - hostInfo.load
@@ -401,7 +413,9 @@ export class EnvManager {
           cb(freestHost.name);
         } else {
           this.logger.info(`${generatedEnvID} Host ${freestHost.name} remaining capacity is ${freestHost.remainingCapacity}. ${cost} is required. Retrying...`);
-          setTimeout(() => {identifyHost(cb)}, 3000);
+          setTimeout(() => {
+            identifyHost(cb)
+          }, 3000);
         }
       };
 
@@ -424,10 +438,10 @@ export class EnvManager {
   }
 
   /*
-    Discover available ports for a given hostName and suite definition
-  */
+   Discover available ports for a given hostName and suite definition
+   */
   getAvailablePorts(hostName, suiteID, generatedEnvID) {
-    return new Promise(async (resolve, reject) => {
+    return new Promise(async(resolve, reject) => {
       this.logger.trace(`getAvailablePorts ${hostName} | ${suiteID} | ${generatedEnvID}`);
       let hostConf = Object.assign({}, this.currentHosts[hostName]);
       let suiteConf = this.conf.parsedTestSuites.get(suiteID);
@@ -449,7 +463,7 @@ export class EnvManager {
         if (suiteConf.env && suiteConf.env.parallel) {
           parallelMode = suiteConf.env.parallel;
         }
-        let { ports, portOffset } =
+        let {ports, portOffset} =
           await this.identifyPorts(generatedEnvID, hostName, portsInUse, suiteConf.ports, 0, parallelMode);
         // 3. update global host and env info
         this.updateGlobalPortInfo(hostName, generatedEnvID, ports, portOffset);
@@ -470,37 +484,37 @@ export class EnvManager {
   }
 
   getReservedBusybeePorts(hostConf) {
-      return new Promise((resolve, reject) => {
-        this.logger.trace(`getReservedBusybeePorts`);
-        this.logger.trace(hostConf);
-        let portsInUse = [];
-        _.forEach(hostConf.envs, (envInfo, generatedEnvID) => {
-          this.logger.trace(`envInfo`)
-          this.logger.trace(envInfo);
-          if (envInfo.ports) {
-            envInfo.ports.forEach((port) => {
-              this.logger.trace(`port in use ${port}`);
-              portsInUse.push(port);
-            });
-          }
-        });
-
-        resolve(portsInUse)
+    return new Promise((resolve, reject) => {
+      this.logger.trace(`getReservedBusybeePorts`);
+      this.logger.trace(hostConf);
+      let portsInUse = [];
+      _.forEach(hostConf.envs, (envInfo, generatedEnvID) => {
+        this.logger.trace(`envInfo`)
+        this.logger.trace(envInfo);
+        if (envInfo.ports) {
+          envInfo.ports.forEach((port) => {
+            this.logger.trace(`port in use ${port}`);
+            portsInUse.push(port);
+          });
+        }
       });
+
+      resolve(portsInUse)
+    });
   }
 
   /*
-    Recursively check for available ports
+   Recursively check for available ports
 
-    IF (parallelMode)
-      IF (portsTaken)
-        increment ports and try again
-      ELSE
-        we've identified available ports, return
-    ELSE
-      IF (portsTaken)
-        do not increment ports, try again
-  */
+   IF (parallelMode)
+   IF (portsTaken)
+   increment ports and try again
+   ELSE
+   we've identified available ports, return
+   ELSE
+   IF (portsTaken)
+   do not increment ports, try again
+   */
   async identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset, parallelMode) {
     this.logger.trace(`identifyPorts: ${generatedEnvID} ${hostName}, ${portsInUse}, ${nextPorts}, ${portOffset}, ${parallelMode}`);
     let portsInUseByBusybee = await this.arePortsInUseByBusybee(portsInUse, nextPorts);
@@ -510,7 +524,9 @@ export class EnvManager {
     if (parallelMode) {
       if (portsInUseByBusybee) {
         let oldPorts = nextPorts;
-        nextPorts = nextPorts.map((p) => { return p + 1 });
+        nextPorts = nextPorts.map((p) => {
+          return p + 1
+        });
         this.logger.info(`${generatedEnvID} Ports ${oldPorts} in use by Busybee, retrying with ${nextPorts}`);
         return await this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset + 1, parallelMode);
       } else {
@@ -519,7 +535,9 @@ export class EnvManager {
         if (portsTaken) {
           // shift ports and try again
           let oldPorts = nextPorts;
-          nextPorts = nextPorts.map((p) => { return p + 1 });
+          nextPorts = nextPorts.map((p) => {
+            return p + 1
+          });
           this.logger.info(`${generatedEnvID} Ports ${oldPorts} in use by an unknown service, retrying with ${nextPorts}`);
           return await this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset + 1, parallelMode);
         }
@@ -560,17 +578,17 @@ export class EnvManager {
   }
 
   /*
-    Helper method for quickly checking if ports are known to be in use by busybee.
-    Cheaper than checking the actual port via port scan.
-  */
+   Helper method for quickly checking if ports are known to be in use by busybee.
+   Cheaper than checking the actual port via port scan.
+   */
   async arePortsInUseByBusybee(portsInUse, ports) {
     this.logger.trace(`arePortsInUseByBusybee ${portsInUse} | ${ports}`);
     return _.difference(ports, portsInUse).length < ports.length;
   }
 
   /*
-    Checks if a list of [hostName:port] is in use
-  */
+   Checks if a list of [hostName:port] is in use
+   */
   async arePortsTaken(hostName, ports) {
     this.logger.trace(`arePortsTaken ${hostName} ${ports}`);
     let takenPorts = [];
@@ -583,8 +601,8 @@ export class EnvManager {
   }
 
   /*
-    Checks if a single hostName:port is in use
-  */
+   Checks if a single hostName:port is in use
+   */
   isPortTaken(hostName, port) {
     return new Promise((resolve, reject) => {
       this.logger.trace(`isPortTaken ${hostName} ${port}`);
@@ -603,8 +621,8 @@ export class EnvManager {
   }
 
   /*
-    TODO: support multiple healthcheck types
-  */
+   TODO: support multiple healthcheck types
+   */
   confirmHealthcheck(generatedEnvID) {
     return new Promise((resolve, reject) => {
       this.logger.trace(`confirmHealthcheck ${generatedEnvID}`);

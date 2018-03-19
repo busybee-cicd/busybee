@@ -84,7 +84,9 @@ var BusybeeParsedConfig = /** @class */ (function () {
         // test suites regardless of mode. However, if we do...for some reason the test suite to be mocked does not include
         // any tests.
         if (mode === 'mock') {
-            var testSuite = _.find(userConf.testSuites, function (suite) { return suite.id == _this.cmdOpts.testSuite; });
+            var testSuite = _.find(userConf.testSuites, function (suite) {
+                return suite.id == _this.cmdOpts.testSuite;
+            });
             var parsedTestSuite = this.parseTestSuite(testSuite, mode);
             parsedTestSuites.set(parsedTestSuite.suiteID, parsedTestSuite);
         }
@@ -93,7 +95,9 @@ var BusybeeParsedConfig = /** @class */ (function () {
                 var suiteID = testSuite.id || uuidv1();
                 _this.logger.trace("suiteID: " + suiteID);
                 _this.logger.trace("skipTestSuites: " + JSON.stringify(_this.skipTestSuites));
-                if (_.find(_this.skipTestSuites, function (sID) { return sID === suiteID; })) {
+                if (_.find(_this.skipTestSuites, function (sID) {
+                    return sID === suiteID;
+                })) {
                     _this.logger.trace("Skipping testSuite: " + suiteID);
                     return;
                 }
@@ -111,7 +115,7 @@ var BusybeeParsedConfig = /** @class */ (function () {
         return new ParsedTestSuiteConfig_1.ParsedTestSuite(testSuite, mode, this.testSet2EnvMap, this.env2TestSuiteMap);
     };
     /*
-      Discovers any test files, parses them, and inserts them into the testSuites/envs that they belong
+     Discovers any test files, parses them, and inserts them into the testSuites/envs that they belong
      */
     BusybeeParsedConfig.prototype.parseTestFiles = function (parsedTestSuites, mode) {
         var _this = this;
@@ -131,7 +135,9 @@ var BusybeeParsedConfig = /** @class */ (function () {
         this.logger.info("parsing files...");
         files.forEach(function (file) {
             // support for running specific tests files
-            if (_this.testFiles.length > 0 && !_.find(_this.testFiles, function (fileName) { return file.endsWith(fileName); })) {
+            if (_this.testFiles.length > 0 && !_.find(_this.testFiles, function (fileName) {
+                return file.endsWith(fileName);
+            })) {
                 _this.logger.info("skipping " + file);
                 return;
             }

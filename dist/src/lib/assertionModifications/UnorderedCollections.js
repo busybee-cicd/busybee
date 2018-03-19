@@ -3,77 +3,77 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var KeyIdentifier_1 = require("./KeyIdentifier");
 var _ = require("lodash");
 /*
-    Will only check that the collections specified are equal. Any child collections are ignored during the equality check.
-    However, the collections tested ARE ordered as a result of the testing and therefor any child collections can be
-    tested for equality further down the road.
-    ie) if the config is ['*', '*.collection'] then the first iteration is dealing with '*'
-    EXPECTED
-    [
-        {
-          id: 1,
-          collection: [a,b,c]
-        },
-        {
-          id: 2,
-          collection [d,e,f]
-        }
-    ]
+ Will only check that the collections specified are equal. Any child collections are ignored during the equality check.
+ However, the collections tested ARE ordered as a result of the testing and therefor any child collections can be
+ tested for equality further down the road.
+ ie) if the config is ['*', '*.collection'] then the first iteration is dealing with '*'
+ EXPECTED
+ [
+ {
+ id: 1,
+ collection: [a,b,c]
+ },
+ {
+ id: 2,
+ collection [d,e,f]
+ }
+ ]
 
-    ACTUAL
-    [
-         {
-             id: 2,
-             collection [f,e,d]
-         },
-        {
-            id: 1,
-            collection: [c,b,a]
-        },
+ ACTUAL
+ [
+ {
+ id: 2,
+ collection [f,e,d]
+ },
+ {
+ id: 1,
+ collection: [c,b,a]
+ },
 
-    ]
+ ]
 
-    becomes
+ becomes
 
-     EXPECTED
-     [
-         {
-             id: 1,
-             collection: [a,b,c]
-         },
-         {
-             id: 2,
-             collection [d,e,f]
-         }
-     ]
+ EXPECTED
+ [
+ {
+ id: 1,
+ collection: [a,b,c]
+ },
+ {
+ id: 2,
+ collection [d,e,f]
+ }
+ ]
 
-     ACTUAL
-     [
-         {
-             id: 1,
-             collection: [c,b,a]
-         },
-             {
-             id: 2,
-             collection [f,e,d]
-         }
-     ]
+ ACTUAL
+ [
+ {
+ id: 1,
+ collection: [c,b,a]
+ },
+ {
+ id: 2,
+ collection [f,e,d]
+ }
+ ]
 
-    Now that the outter-most collection has been deemed equal (not including child collections) and re-ordered
-    so that EXEPECTED and ACTUAL are in the same order. On the next iteration when we're dealing with '*.collection'
-    the 'collection' key enters the iteration with the 'collections' matched
+ Now that the outter-most collection has been deemed equal (not including child collections) and re-ordered
+ so that EXEPECTED and ACTUAL are in the same order. On the next iteration when we're dealing with '*.collection'
+ the 'collection' key enters the iteration with the 'collections' matched
 
-    EXPECTED
-        collection: [a,b,c]
+ EXPECTED
+ collection: [a,b,c]
 
-    ACTUAL
-        collection: [c,b,a]
+ ACTUAL
+ collection: [c,b,a]
 
-    Next iteration
+ Next iteration
 
-    EXPECTED
-        collection [d,e,f]
-    ACTUAL
-        collection [f,e,d]
+ EXPECTED
+ collection [d,e,f]
+ ACTUAL
+ collection [f,e,d]
 
  */
 var UnorderedCollections = /** @class */ (function () {

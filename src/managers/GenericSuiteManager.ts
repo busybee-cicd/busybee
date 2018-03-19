@@ -35,7 +35,7 @@ export class GenericSuiteManager {
 
   runTestSets(generatedEnvID) {
     // TODO: logic for running TestSets in order
-    return new Promise(async (resolve, reject) => {
+    return new Promise(async(resolve, reject) => {
       this.logger.trace(`runTestSets ${this.suiteEnvConf.suiteID} ${this.suiteEnvConf.suiteEnvID}`);
       this.logger.trace(this.suiteEnvConf, true);
       let testSetPromises = this.suiteEnvConf.testSets.values().map((testSet) => {
@@ -61,22 +61,22 @@ export class GenericSuiteManager {
   }
 
   async runTestSet(testSet: ParsedTestSetConfig, generatedEnvID: string) {
-      this.logger.trace(`runTestSet | ${this.suiteEnvConf.suiteID} | ${this.suiteEnvConf.suiteEnvID} | ${testSet.id}`);
-      this.logger.trace(testSet, true);
-      // run the script via envManager
-      let busybeeDir = this.conf.filePaths.busybeeDir;
-      let scriptPath = path.join(busybeeDir, this.suiteEnvConf.runScript);
+    this.logger.trace(`runTestSet | ${this.suiteEnvConf.suiteID} | ${this.suiteEnvConf.suiteEnvID} | ${testSet.id}`);
+    this.logger.trace(testSet, true);
+    // run the script via envManager
+    let busybeeDir = this.conf.filePaths.busybeeDir;
+    let scriptPath = path.join(busybeeDir, this.suiteEnvConf.runScript);
 
-      let args = {
-        generatedEnvID: generatedEnvID,
-        protocol: this.suiteEnvConf.protocol,
-        hostName: this.suiteEnvConf.hostName,
-        ports: this.suiteEnvConf.ports,
-        busybeeDir: busybeeDir,
-        data: testSet.data
-      };
+    let args = {
+      generatedEnvID: generatedEnvID,
+      protocol: this.suiteEnvConf.protocol,
+      hostName: this.suiteEnvConf.hostName,
+      ports: this.suiteEnvConf.ports,
+      busybeeDir: busybeeDir,
+      data: testSet.data
+    };
 
-      return this.envManager.runScript(scriptPath, [JSON.stringify(args)]);
+    return this.envManager.runScript(scriptPath, [JSON.stringify(args)]);
   }
 
 }

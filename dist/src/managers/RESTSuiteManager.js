@@ -218,7 +218,9 @@ var RESTSuiteManager = /** @class */ (function () {
                 obj[propName] = _this.replaceVarsInObject(value, variableExports);
             }
             else if (_.isArray(value)) {
-                obj[propName] = value.map(function (v) { return _this.replaceVarsInObject(v, variableExports); });
+                obj[propName] = value.map(function (v) {
+                    return _this.replaceVarsInObject(v, variableExports);
+                });
             }
             else if (_.isString(value)) {
                 obj[propName] = _this.replaceVars(value, variableExports);

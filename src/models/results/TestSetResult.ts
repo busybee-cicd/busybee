@@ -1,10 +1,10 @@
 export class TestSetResult {
 
-    id: string;
-    pass: boolean;
-    tests: Array<any>;
+  id: string;
+  pass: boolean;
+  tests: Array<any>;
 
-    constructor() {
-    }
+  constructor() {
+  }
 
 }

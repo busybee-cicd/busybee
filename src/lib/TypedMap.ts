@@ -8,7 +8,7 @@ export class TypedMap<T> {
     this._values = <T[]> [];
   }
 
-  set(key:string, value: T): void {
+  set(key: string, value: T): void {
     let index = this._keys.indexOf(key);
     if (index == -1) {
       this._values[this._keys.length] = value;
@@ -18,9 +18,11 @@ export class TypedMap<T> {
     }
   }
 
-  get(key:string): T {
+  get(key: string): T {
     let index = this._keys.indexOf(key);
-    if (index === -1) { return null; }
+    if (index === -1) {
+      return null;
+    }
     return this._values[index];
   }
 
@@ -34,7 +36,9 @@ export class TypedMap<T> {
 
   remove(key): void {
     let index = this._keys.indexOf(key);
-    if (index === -1) { return; }
+    if (index === -1) {
+      return;
+    }
 
     this._keys.splice(index, 1);
     this._values.splice(index, 1);

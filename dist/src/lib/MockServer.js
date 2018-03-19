@@ -203,7 +203,9 @@ var MockServer = /** @class */ (function () {
         var resStatus = mock.mockResponse ? mock.mockResponse.status : mock.expect.status; // default to mockResponse
         if (this.routeMap[endpoint][method]) {
             if (this.routeMap[endpoint][method][resStatus]) {
-                if (_.find(this.routeMap[endpoint][method], function (reqInfo) { reqInfo.hash === hashedReq; })) {
+                if (_.find(this.routeMap[endpoint][method], function (reqInfo) {
+                    reqInfo.hash === hashedReq;
+                })) {
                     // skip this one it exists
                     return;
                 }

@@ -57,76 +57,76 @@ var EnvManager = /** @class */ (function () {
         this.envsWaitingForProvision = [];
     }
     /*
-    envConf
-    {
-      hosts: ['host1', 'host2'],
-      testSuites: {
-        'test suite 1': {
-          'skip': false,
-          'protocol': 'http',
-          'ports': [8080],
-          'env': {
-            'parallel': true,
-            'resourceCost': 50,
-            'startScript': 'api/envStart.sh',
-            'stopScript': 'api/envStop.sh',
-            'healthcheck': {
-              'type': 'REST',
-              'retries': 30,
-              'request': {
-                'endpoint': '/healthcheck',
-                'timeout': 5000
-              }
-            }
-          }
-        }
-      }
-    }
+     envConf
+     {
+     hosts: ['host1', 'host2'],
+     testSuites: {
+     'test suite 1': {
+     'skip': false,
+     'protocol': 'http',
+     'ports': [8080],
+     'env': {
+     'parallel': true,
+     'resourceCost': 50,
+     'startScript': 'api/envStart.sh',
+     'stopScript': 'api/envStop.sh',
+     'healthcheck': {
+     'type': 'REST',
+     'retries': 30,
+     'request': {
+     'endpoint': '/healthcheck',
+     'timeout': 5000
+     }
+     }
+     }
+     }
+     }
+     }
   
-    currentHosts
-    {
-      'host1': {
-        'load': 0,
-        'envs': {
-          '111-111-111-111': {
-            ports: [8080],
-            portOffset: 0
-          }
-        }
-       },
-      'host2': {
-        'capacity': 0,
-        'envs': {
-          '222-222-222-222': {
-            ports: [8080],
-            portOffset: 0
-          }
-        }
-      }
-    }
+     currentHosts
+     {
+     'host1': {
+     'load': 0,
+     'envs': {
+     '111-111-111-111': {
+     ports: [8080],
+     portOffset: 0
+     }
+     }
+     },
+     'host2': {
+     'capacity': 0,
+     'envs': {
+     '222-222-222-222': {
+     ports: [8080],
+     portOffset: 0
+     }
+     }
+     }
+     }
   
-    currentEnvs
-    {
-      '111-111-111-111': {
-        'suiteId': 'test suite 1',
-        'suiteEnvID': ''
-        'hostName': 'host1',
-        'resourceCost': 100,
-        'startScript': '',
-        'stopScript': '',
-        'testSets': []
-      },
-      '222-222-222-222': {
-        'suiteId': 'test suite 1',
-        'suiteEnvID': ''
-        'hostName': 'host2',
-        'resourceCost': 100,
-        'startScript': '',
-        'stopScript': ''
-        'testSets': []
-      }
-    }
-    */
+     currentEnvs
+     {
+     '111-111-111-111': {
+     'suiteId': 'test suite 1',
+     'suiteEnvID': ''
+     'hostName': 'host1',
+     'resourceCost': 100,
+     'startScript': '',
+     'stopScript': '',
+     'testSets': []
+     },
+     '222-222-222-222': {
+     'suiteId': 'test suite 1',
+     'suiteEnvID': ''
+     'hostName': 'host2',
+     'resourceCost': 100,
+     'startScript': '',
+     'stopScript': ''
+     'testSets': []
+     }
+     }
+     */
     EnvManager.prototype.buildHosts = function (conf) {
         this.logger.trace("buildHostConfs");
         // TODO add back
@@ -308,7 +308,9 @@ var EnvManager = /** @class */ (function () {
                             _this.logger.trace("this.envsWaitingForProvision " + _this.envsWaitingForProvision);
                             if (_this.envsWaitingForProvision[0] != generatedEnvID) {
                                 _this.logger.trace(generatedEnvID + " waiting its turn");
-                                setTimeout(function () { wait(timeout, cb); }, timeout);
+                                setTimeout(function () {
+                                    wait(timeout, cb);
+                                }, timeout);
                             }
                             else {
                                 cb();
@@ -449,8 +451,8 @@ var EnvManager = /** @class */ (function () {
         return this.skipEnvProvisioningList && (this.skipEnvProvisioningList.indexOf(suiteID) !== -1);
     };
     /*
-      Attempts to identify a host with enough capacity for an env of this suite type
-    */
+     Attempts to identify a host with enough capacity for an env of this suite type
+     */
     EnvManager.prototype.getAvailableHostName = function (suiteID, suiteEnvID, generatedEnvID) {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
@@ -487,7 +489,9 @@ var EnvManager = /** @class */ (function () {
                             }
                             else {
                                 _this.logger.info(generatedEnvID + " Host " + freestHost.name + " remaining capacity is " + freestHost.remainingCapacity + ". " + cost + " is required. Retrying...");
-                                setTimeout(function () { identifyHost(cb); }, 3000);
+                                setTimeout(function () {
+                                    identifyHost(cb);
+                                }, 3000);
                             }
                         };
                         identifyHost(function (hostName) {
@@ -509,8 +513,8 @@ var EnvManager = /** @class */ (function () {
         });
     };
     /*
-      Discover available ports for a given hostName and suite definition
-    */
+     Discover available ports for a given hostName and suite definition
+     */
     EnvManager.prototype.getAvailablePorts = function (hostName, suiteID, generatedEnvID) {
         var _this = this;
         return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
@@ -582,17 +586,17 @@ var EnvManager = /** @class */ (function () {
         });
     };
     /*
-      Recursively check for available ports
+     Recursively check for available ports
   
-      IF (parallelMode)
-        IF (portsTaken)
-          increment ports and try again
-        ELSE
-          we've identified available ports, return
-      ELSE
-        IF (portsTaken)
-          do not increment ports, try again
-    */
+     IF (parallelMode)
+     IF (portsTaken)
+     increment ports and try again
+     ELSE
+     we've identified available ports, return
+     ELSE
+     IF (portsTaken)
+     do not increment ports, try again
+     */
     EnvManager.prototype.identifyPorts = function (generatedEnvID, hostName, portsInUse, nextPorts, portOffset, parallelMode) {
         return __awaiter(this, void 0, void 0, function () {
             var portsInUseByBusybee, oldPorts, portsTaken, oldPorts, ret, portsTaken, ret;
@@ -608,7 +612,9 @@ var EnvManager = /** @class */ (function () {
                         if (!parallelMode) return [3 /*break*/, 8];
                         if (!portsInUseByBusybee) return [3 /*break*/, 3];
                         oldPorts = nextPorts;
-                        nextPorts = nextPorts.map(function (p) { return p + 1; });
+                        nextPorts = nextPorts.map(function (p) {
+                            return p + 1;
+                        });
                         this.logger.info(generatedEnvID + " Ports " + oldPorts + " in use by Busybee, retrying with " + nextPorts);
                         return [4 /*yield*/, this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset + 1, parallelMode)];
                     case 2: return [2 /*return*/, _a.sent()];
@@ -617,7 +623,9 @@ var EnvManager = /** @class */ (function () {
                         portsTaken = _a.sent();
                         if (!portsTaken) return [3 /*break*/, 6];
                         oldPorts = nextPorts;
-                        nextPorts = nextPorts.map(function (p) { return p + 1; });
+                        nextPorts = nextPorts.map(function (p) {
+                            return p + 1;
+                        });
                         this.logger.info(generatedEnvID + " Ports " + oldPorts + " in use by an unknown service, retrying with " + nextPorts);
                         return [4 /*yield*/, this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset + 1, parallelMode)];
                     case 5: return [2 /*return*/, _a.sent()];
@@ -656,9 +664,9 @@ var EnvManager = /** @class */ (function () {
         });
     };
     /*
-      Helper method for quickly checking if ports are known to be in use by busybee.
-      Cheaper than checking the actual port via port scan.
-    */
+     Helper method for quickly checking if ports are known to be in use by busybee.
+     Cheaper than checking the actual port via port scan.
+     */
     EnvManager.prototype.arePortsInUseByBusybee = function (portsInUse, ports) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
@@ -668,8 +676,8 @@ var EnvManager = /** @class */ (function () {
         });
     };
     /*
-      Checks if a list of [hostName:port] is in use
-    */
+     Checks if a list of [hostName:port] is in use
+     */
     EnvManager.prototype.arePortsTaken = function (hostName, ports) {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
@@ -691,8 +699,8 @@ var EnvManager = /** @class */ (function () {
         });
     };
     /*
-      Checks if a single hostName:port is in use
-    */
+     Checks if a single hostName:port is in use
+     */
     EnvManager.prototype.isPortTaken = function (hostName, port) {
         var _this = this;
         return new Promise(function (resolve, reject) {
@@ -713,8 +721,8 @@ var EnvManager = /** @class */ (function () {
         });
     };
     /*
-      TODO: support multiple healthcheck types
-    */
+     TODO: support multiple healthcheck types
+     */
     EnvManager.prototype.confirmHealthcheck = function (generatedEnvID) {
         var _this = this;
         return new Promise(function (resolve, reject) {

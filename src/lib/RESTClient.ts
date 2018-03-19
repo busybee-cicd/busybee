@@ -15,7 +15,7 @@ export class RESTClient {
   private logger: any;
   private defaultRequestOpts: any;
 
-  constructor(conf:BusybeeParsedConfig, suiteEnvConf) {
+  constructor(conf: BusybeeParsedConfig, suiteEnvConf) {
     this.conf = _.cloneDeep(conf);
     this.suiteEnvConf = _.cloneDeep(suiteEnvConf);
     this.logger = new Logger(conf, this);
@@ -75,15 +75,21 @@ export class RESTClient {
       timeout: requestConf.timeout || 30000 // default 30 seconds
     };
 
-    if (requestConf.query) { req['qs'] = requestConf.query; }
-    if (requestConf.headers) { req['headers'] = requestConf.headers; }
-    if (requestConf.body) { req['body'] = requestConf.body; }
+    if (requestConf.query) {
+      req['qs'] = requestConf.query;
+    }
+    if (requestConf.headers) {
+      req['headers'] = requestConf.headers;
+    }
+    if (requestConf.body) {
+      req['body'] = requestConf.body;
+    }
 
     return req;
   }
 
 
-  makeRequest(opts, cb: (err: Error, res: IncomingMessage, body: any) => void ) {
+  makeRequest(opts, cb: (err: Error, res: IncomingMessage, body: any) => void) {
     // run the test
     this.logger.trace('Request opts');
     this.logger.trace(opts);

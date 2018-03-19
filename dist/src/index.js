@@ -180,7 +180,9 @@ function initTests(conf) {
                 suiteResults[envResult.suiteID].testSets = suiteResults[envResult.suiteID].testSets.concat(envResult.testSets);
             }
             // mark the suite as failed if it contains atleast 1 env w/ a failure
-            if (_.find(envResult.testSets, function (ts) { return !ts.pass; })) {
+            if (_.find(envResult.testSets, function (ts) {
+                return !ts.pass;
+            })) {
                 suiteResults[envResult.suiteID].pass = false;
             }
             ;

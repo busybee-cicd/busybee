@@ -57,7 +57,9 @@ export class Logger {
   }
 
   write(level, message, pretty) {
-    if (!this.passesLevel(level)) { return; }
+    if (!this.passesLevel(level)) {
+      return;
+    }
 
     if (_.isObject(message)) {
       if (pretty) {

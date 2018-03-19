@@ -106,7 +106,9 @@ export class BusybeeParsedConfig {
     // test suites regardless of mode. However, if we do...for some reason the test suite to be mocked does not include
     // any tests.
     if (mode === 'mock') {
-      let testSuite = _.find(userConf.testSuites, (suite) => { return suite.id == this.cmdOpts.testSuite; });
+      let testSuite = _.find(userConf.testSuites, (suite) => {
+        return suite.id == this.cmdOpts.testSuite;
+      });
       let parsedTestSuite = this.parseTestSuite(testSuite, mode);
       parsedTestSuites.set(parsedTestSuite.suiteID, parsedTestSuite);
     } else {
@@ -114,7 +116,9 @@ export class BusybeeParsedConfig {
         let suiteID = testSuite.id || uuidv1();
         this.logger.trace(`suiteID: ${suiteID}`);
         this.logger.trace(`skipTestSuites: ${JSON.stringify(this.skipTestSuites)}`);
-        if (_.find(this.skipTestSuites, (sID) => { return sID === suiteID; })) {
+        if (_.find(this.skipTestSuites, (sID) => {
+            return sID === suiteID;
+          })) {
           this.logger.trace(`Skipping testSuite: ${suiteID}`);
           return;
         }
@@ -137,7 +141,7 @@ export class BusybeeParsedConfig {
   }
 
   /*
-    Discovers any test files, parses them, and inserts them into the testSuites/envs that they belong
+   Discovers any test files, parses them, and inserts them into the testSuites/envs that they belong
    */
   parseTestFiles(parsedTestSuites: TypedMap<ParsedTestSuite>, mode: string) {
     this.logger.trace(`parseTestFiles`);
@@ -152,13 +156,15 @@ export class BusybeeParsedConfig {
       }
     });
 
-    let files = glob.sync(`{${testFolders.join(',')}}`, {ignore:`${this.filePaths.userConfigFile}`});
+    let files = glob.sync(`{${testFolders.join(',')}}`, {ignore: `${this.filePaths.userConfigFile}`});
 
     // parse json files, compile testSets and add them to the conf.
     this.logger.info("parsing files...");
     files.forEach((file: string) => {
       // support for running specific tests files
-      if (this.testFiles.length > 0 && !_.find(this.testFiles, (fileName) => { return file.endsWith(fileName); })) {
+      if (this.testFiles.length > 0 && !_.find(this.testFiles, (fileName) => {
+          return file.endsWith(fileName);
+        })) {
         this.logger.info(`skipping ${file}`);
         return;
       } else {
@@ -184,7 +190,9 @@ export class BusybeeParsedConfig {
         test = new RESTTest(test);
 
         // run through various business logic scenarios to determine if the current test should be parsed
-        if (test.skip) { return; }
+        if (test.skip) {
+          return;
+        }
 
         if (mode === 'test') {
           if (!test.expect || (!test.expect.status && !test.expect.body && !test.expect.headers)) {
@@ -193,7 +201,7 @@ export class BusybeeParsedConfig {
           }
         }
         if (mode === 'mock') {
-          test.testSet = { id: 'default' }
+          test.testSet = {id: 'default'}
           if (!test.expect && !test.mockResponse) {
             this.logger.warn(`test.expect && test.mockResponse not defined for ${test.id}. Cannot mock!`);
             return;
@@ -247,7 +255,7 @@ export class BusybeeParsedConfig {
             }
 
             // create an array of nulls of the current known maxLength and fill it back in.
-            Array(newArrLength).fill(null).forEach((d,i) => {
+            Array(newArrLength).fill(null).forEach((d, i) => {
               if (i == testSetInfo.index) {
                 parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i] = test;
               } else {
@@ -265,9 +273,9 @@ export class BusybeeParsedConfig {
     });
 
     // zip up any tests/unorderedTests
-    parsedTestSuites.forEach((pts:ParsedTestSuite, ptsId:string) => {
-      pts.testEnvs.forEach((te:ParsedTestEnvConfig, teId:string) => {
-        te.testSets.forEach((ts:ParsedTestSetConfig, tsId:string) => {
+    parsedTestSuites.forEach((pts: ParsedTestSuite, ptsId: string) => {
+      pts.testEnvs.forEach((te: ParsedTestEnvConfig, teId: string) => {
+        te.testSets.forEach((ts: ParsedTestSetConfig, tsId: string) => {
           ts.tests = ts.tests.concat(ts.testsUnordered);
         });
       })

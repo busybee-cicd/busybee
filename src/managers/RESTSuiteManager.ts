@@ -201,7 +201,9 @@ export class RESTSuiteManager {
       if (_.isObject(value) && !_.isArray(value)) {
         obj[propName] = this.replaceVarsInObject(value, variableExports);
       } else if (_.isArray(value)) {
-        obj[propName] = value.map(v => { return this.replaceVarsInObject(v, variableExports); });
+        obj[propName] = value.map(v => {
+          return this.replaceVarsInObject(v, variableExports);
+        });
       } else if (_.isString(value)) {
         obj[propName] = this.replaceVars(value, variableExports);
       }

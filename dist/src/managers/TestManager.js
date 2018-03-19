@@ -153,8 +153,8 @@ var TestManager = /** @class */ (function () {
         };
     };
     /*
-      TODO: use the GenericSuiteManager to kick off tests
-    */
+     TODO: use the GenericSuiteManager to kick off tests
+     */
     TestManager.prototype.buildTestEnvTask = function (suiteID, suiteEnvID) {
         var _this = this;
         this.logger.trace("buildTestEnvTask " + suiteID + " " + suiteEnvID);
@@ -180,14 +180,20 @@ var TestManager = /** @class */ (function () {
                 .then(function (testSetResults) {
                 _this.logger.trace("TEST SET SUCCESS");
                 _this.envManager.stop(generatedEnvID)
-                    .then(function () { cb(null, testSetResults); })
-                    .catch(function (err) { cb(err); });
+                    .then(function () {
+                    cb(null, testSetResults);
+                })
+                    .catch(function (err) {
+                    cb(err);
+                });
             })
                 .catch(function (err) {
                 _this.logger.error("buildTestEnvTask: ERROR CAUGHT WHILE RUNNING TEST SETS");
                 _this.logger.error(err);
                 _this.envManager.stop(generatedEnvID)
-                    .then(function () { cb(err); })
+                    .then(function () {
+                    cb(err);
+                })
                     .catch(function (err2) { return cb(err2); });
             });
         };
