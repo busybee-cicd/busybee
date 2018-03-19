@@ -173,7 +173,10 @@ export class RESTSuiteManager {
             };
         });
     }
-
+    /*
+        Iterates through the request opts and relaces all instances of #{myVar}
+        with properties of the same name on variableExports
+    */
     processRequestOptsForVariableDeclarations(opts: any, variableExports: any) {
         // check url
         opts.url = this.replaceVars(opts.url, variableExports);
@@ -203,13 +206,25 @@ export class RESTSuiteManager {
         return obj;
     }
 
+    /*
+        Parses strings formatted as "#{myVar}"
+    */
     replaceVars(str:string, variableExports: any) {
+        // When the string startsWith #{ and endswith }
+        // we assume its a literal substitution.
+        if (str.startsWith(`#{`) && str.endsWith(`}`)) {
+            let varName = str.substr(2).slice(0,-1);
+            this.logger.trace(`Setting literal ${variableExports[varName]} for '${varName}'`);
+            return variableExports[varName];
+        }
+
         let replaced = str.replace(/#{\w+}/g, (match) => {
-            match = match.substr(2); // remove #{
-            match = match.slice(0,-1); // remove }
+            match = match.substr(2).slice(0,-1); // remove #{}
             this.logger.trace(`Setting ${match} for '${str}'`);
             this.logger.trace(variableExports, true);
             if (_.isObject(variableExports[match])) {
+                // if the matched variable's value is an object
+                // we return a special instruction
                 return `OBJECT-${match}`;
             }
             return variableExports[match];

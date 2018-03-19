@@ -193,6 +193,10 @@ var RESTSuiteManager = /** @class */ (function () {
             }); };
         });
     };
+    /*
+        Iterates through the request opts and relaces all instances of #{myVar}
+        with properties of the same name on variableExports
+    */
     RESTSuiteManager.prototype.processRequestOptsForVariableDeclarations = function (opts, variableExports) {
         var _this = this;
         // check url
@@ -220,14 +224,25 @@ var RESTSuiteManager = /** @class */ (function () {
         });
         return obj;
     };
+    /*
+        Parses strings formatted as "#{myVar}"
+    */
     RESTSuiteManager.prototype.replaceVars = function (str, variableExports) {
         var _this = this;
+        // When the string startsWith #{ and endswith }
+        // we assume its a literal substitution.
+        if (str.startsWith("#{") && str.endsWith("}")) {
+            var varName = str.substr(2).slice(0, -1);
+            this.logger.trace("Setting literal " + variableExports[varName] + " for '" + varName + "'");
+            return variableExports[varName];
+        }
         var replaced = str.replace(/#{\w+}/g, function (match) {
-            match = match.substr(2); // remove #{
-            match = match.slice(0, -1); // remove }
+            match = match.substr(2).slice(0, -1); // remove #{}
             _this.logger.trace("Setting " + match + " for '" + str + "'");
             _this.logger.trace(variableExports, true);
             if (_.isObject(variableExports[match])) {
+                // if the matched variable's value is an object
+                // we return a special instruction
                 return "OBJECT-" + match;
             }
             return variableExports[match];
