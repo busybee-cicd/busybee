@@ -163,6 +163,7 @@ function initTests(conf: BusybeeParsedConfig) {
     let suiteResultsList = [..._.values(suiteResults)];
 
     if (conf.reporters && !_.isEmpty(conf.reporters)) {
+      logger.info('Running Reporters');
       conf.reporters.forEach(r => {
         try {
           if (conf.localMode) {
@@ -183,7 +184,7 @@ function initTests(conf: BusybeeParsedConfig) {
       let scriptPath = conf.onComplete = path.join(conf.filePaths.busybeeDir, conf.onComplete);
 
       try {
-        logger.debug(`Running onComplete: ${scriptPath}`);
+        logger.info(`Running onComplete: ${scriptPath}`);
         require(scriptPath)(err, suiteResultsList);
       } catch (e) {
         console.log(e);

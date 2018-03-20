@@ -83,6 +83,7 @@ export class TestManager {
       let currentEnv: SuiteEnvInfo;
       let restManager: RESTSuiteManager;
       let testSetResults;
+      let _cb = _.once(cb);
 
       let buildEnvFn = async() => {
         generatedEnvID = this.envManager.generateId();
@@ -99,16 +100,16 @@ export class TestManager {
         envResult.testSets = testSetResults;
 
         return envResult;
-      }
+      };
 
       buildEnvFn()
         .then((envResult: EnvResult) => {
           this.envManager.stop(generatedEnvID)
             .then(() => {
-              cb(null, envResult);
+              _cb(null, envResult);
             })
             .catch((err) => {
-              cb(err, null);
+              _cb(err, null);
             });
         })
         .catch((err) => {
@@ -116,10 +117,10 @@ export class TestManager {
           this.logger.error(err);
           this.envManager.stop(generatedEnvID)
             .then(() => {
-              cb(err, null);
+              _cb(err, null);
             })
             .catch((err2) => {
-              cb(err2, null)
+              _cb(err2, null)
             });
         });
     };

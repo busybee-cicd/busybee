@@ -190,6 +190,7 @@ function initTests(conf) {
         // for easier parsing lets return each suite as its own object in a list
         var suiteResultsList = _.values(suiteResults).slice();
         if (conf.reporters && !_.isEmpty(conf.reporters)) {
+            logger.info('Running Reporters');
             conf.reporters.forEach(function (r) {
                 try {
                     if (conf.localMode) {
@@ -208,7 +209,7 @@ function initTests(conf) {
         if (conf.onComplete) {
             var scriptPath = conf.onComplete = path.join(conf.filePaths.busybeeDir, conf.onComplete);
             try {
-                logger.debug("Running onComplete: " + scriptPath);
+                logger.info("Running onComplete: " + scriptPath);
                 require(scriptPath)(err, suiteResultsList);
             }
             catch (e) {

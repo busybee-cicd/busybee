@@ -105,6 +105,7 @@ var TestManager = /** @class */ (function () {
             var currentEnv;
             var restManager;
             var testSetResults;
+            var _cb = _.once(cb);
             var buildEnvFn = function () { return __awaiter(_this, void 0, void 0, function () {
                 var envResult;
                 return __generator(this, function (_a) {
@@ -133,10 +134,10 @@ var TestManager = /** @class */ (function () {
                 .then(function (envResult) {
                 _this.envManager.stop(generatedEnvID)
                     .then(function () {
-                    cb(null, envResult);
+                    _cb(null, envResult);
                 })
                     .catch(function (err) {
-                    cb(err, null);
+                    _cb(err, null);
                 });
             })
                 .catch(function (err) {
@@ -144,10 +145,10 @@ var TestManager = /** @class */ (function () {
                 _this.logger.error(err);
                 _this.envManager.stop(generatedEnvID)
                     .then(function () {
-                    cb(err, null);
+                    _cb(err, null);
                 })
                     .catch(function (err2) {
-                    cb(err2, null);
+                    _cb(err2, null);
                 });
             });
         };
