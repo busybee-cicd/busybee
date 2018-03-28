@@ -107,13 +107,12 @@ var RESTSuiteManager = /** @class */ (function () {
                         var testFns = _this.buildTestTasks(currentEnv, testSet);
                         // run api test functions
                         _this.logger.info("Running Test Set: " + testSet.id);
-                        if (testSet.id == 'asset management') {
-                            _this.logger.debug(testSet.tests, true);
-                        }
                         if (testSet.description) {
                             _this.logger.info("" + testSet.description);
                         }
-                        _async.series(testFns, function (err2, testResults) {
+                        var controlFlow = testSet.controlFlow || "series";
+                        _this.logger.debug(testSet.id + ": controlFlow = " + controlFlow);
+                        _async[controlFlow](testFns, function (err2, testResults) {
                             // see if any tests failed and mark the set according
                             var pass = _.find(testResults, function (tr) {
                                 return tr.pass === false;
@@ -146,51 +145,58 @@ var RESTSuiteManager = /** @class */ (function () {
         return _.map(testsWithARequest, function (test) {
             return function (cb) { return __awaiter(_this, void 0, void 0, function () {
                 var _this = this;
-                var port, opts, testIndex, testSetConf, now;
+                var port, opts, testIndex, testSetConf;
                 return __generator(this, function (_a) {
-                    port = currentEnv.ports[0];
-                    opts = this.restClient.buildRequest(test.request, port);
-                    // filter everything in the request opts for variables that should be set via variableExports
-                    this.logger.trace('opts before processRequestOptsForVariableDeclarations');
-                    this.logger.trace(opts);
-                    opts = this.processRequestOptsForVariableDeclarations(opts, testSet.variableExports);
-                    this.logger.trace('opts after processRequestOptsForVariableDeclarations');
-                    this.logger.trace(opts);
-                    if (_.isUndefined(test.testSet)) {
-                        testIndex = '#';
-                    }
-                    else {
-                        testSetConf = test.testSet;
-                        if (Array.isArray(testSetConf)) {
-                            testSetConf = _.find(testSetConf, function (c) {
-                                return c.id == testSet.id;
+                    switch (_a.label) {
+                        case 0:
+                            port = currentEnv.ports[0];
+                            opts = this.restClient.buildRequest(test.request, port);
+                            // filter everything in the request opts for variables that should be set via variableExports
+                            this.logger.trace('opts before processRequestOptsForVariableDeclarations');
+                            this.logger.trace(opts);
+                            opts = this.processRequestOptsForVariableDeclarations(opts, testSet.variableExports);
+                            this.logger.trace('opts after processRequestOptsForVariableDeclarations');
+                            this.logger.trace(opts);
+                            if (_.isUndefined(test.testSet)) {
+                                testIndex = '#';
+                            }
+                            else {
+                                testSetConf = test.testSet;
+                                if (Array.isArray(testSetConf)) {
+                                    testSetConf = _.find(testSetConf, function (c) {
+                                        return c.id == testSet.id;
+                                    });
+                                }
+                                if (_.isUndefined(testSetConf.index)) {
+                                    testIndex = '#';
+                                }
+                                else {
+                                    testIndex = testSetConf.index;
+                                }
+                                ;
+                            }
+                            this.logger.info(testSet.id + ": " + testIndex + ": " + test.id);
+                            if (!test.delayTestRequest) return [3 /*break*/, 2];
+                            this.logger.info("Delaying request for " + test.delayTestRequest / 1000 + " seconds.");
+                            return [4 /*yield*/, this.wait(test.delayTestRequest)];
+                        case 1:
+                            _a.sent();
+                            _a.label = 2;
+                        case 2:
+                            this.restClient.makeRequest(opts, function (err, res, body) {
+                                if (err) {
+                                    return cb(err);
+                                }
+                                _this.validateTestResult(testSet, test, Object.assign({}, _this.restClient.getDefaultRequestOpts(), opts), res, body, cb);
                             });
-                        }
-                        if (_.isUndefined(testSetConf.index)) {
-                            testIndex = '#';
-                        }
-                        else {
-                            testIndex = testSetConf.index;
-                        }
-                        ;
+                            return [2 /*return*/];
                     }
-                    this.logger.info(testSet.id + ": " + testIndex + ": " + test.id);
-                    if (test.delayTestRequest) {
-                        this.logger.info("Delaying request for " + test.delayTestRequest / 1000 + " seconds.");
-                        now = new Date().getTime();
-                        while (new Date().getTime() < now + test.delayTestRequest) {
-                        }
-                    }
-                    this.restClient.makeRequest(opts, function (err, res, body) {
-                        if (err) {
-                            return cb(err);
-                        }
-                        _this.validateTestResult(testSet, test, Object.assign({}, _this.restClient.getDefaultRequestOpts(), opts), res, body, cb);
-                    });
-                    return [2 /*return*/];
                 });
             }); };
         });
+    };
+    RESTSuiteManager.prototype.wait = function (milliseconds) {
+        return new Promise(function (resolve, reject) { return setTimeout(resolve, milliseconds); });
     };
     /*
      Iterates through the request opts and relaces all instances of #{myVar}

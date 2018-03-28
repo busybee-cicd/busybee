@@ -8,6 +8,7 @@ import {ParsedTestSetConfig} from "./ParsedTestSetConfig";
 import {EnvInstanceConfig} from "../user/EnvInstanceConfig";
 import {TestSetConfig} from "../user/TestSetConfig";
 import {Logger} from "../../../lib/Logger";
+import * as _ from 'lodash';
 
 export class ParsedTestSuite {
   suiteID: string;
@@ -24,7 +25,7 @@ export class ParsedTestSuite {
   testFolder: string;
   private logger: Logger;
 
-  constructor(suite: TestSuiteConfig, mode: string, testSet2EnvMap: TypedMap<string>, env2TestSuiteMap: TypedMap<string>) {
+  constructor(suite: TestSuiteConfig, mode: string, testSet2EnvMap: TypedMap<Array<string>>, env2TestSuiteMap: TypedMap<string>) {
     this.logger = new Logger({logLevel: process.env['BUSYBEE_LOG_LEVEL']}, this);
     this.defaultRequestOpts = suite.defaultRequestOpts;
     this.env = suite.env;
@@ -42,7 +43,7 @@ export class ParsedTestSuite {
     this.parseSuite(suite, mode, testSet2EnvMap, env2TestSuiteMap);
   }
 
-  parseSuite(testSuite: TestSuiteConfig, mode: string, testSet2EnvMap: TypedMap<string>, env2TestSuiteMap: TypedMap<string>) {
+  parseSuite(testSuite: TestSuiteConfig, mode: string, testSet2EnvMap: TypedMap<Array<string>>, env2TestSuiteMap: TypedMap<string>) {
 
     // assign a default env to this TestSuite IF this is a REST TestSuite to cover cases
     // where the user doesn't specify a testEnv
@@ -96,7 +97,11 @@ export class ParsedTestSuite {
           parsedTestEnvConfig.testSets.set(testSetConf.id, parsedTestSetConfig);
 
           // store env lookup for later
-          testSet2EnvMap.set(parsedTestSetConfig.id, parsedTestEnvConfig.suiteEnvID);
+          if (_.isEmpty(testSet2EnvMap.get(parsedTestSetConfig.id))) {
+            testSet2EnvMap.set(parsedTestSetConfig.id, new Array());
+          }
+
+          testSet2EnvMap.get(parsedTestSetConfig.id).push(parsedTestEnvConfig.suiteEnvID);
         });
       }
 

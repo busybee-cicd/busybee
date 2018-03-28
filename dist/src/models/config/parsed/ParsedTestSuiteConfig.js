@@ -6,6 +6,7 @@ var ParsedTestSetConfig_1 = require("./ParsedTestSetConfig");
 var EnvInstanceConfig_1 = require("../user/EnvInstanceConfig");
 var TestSetConfig_1 = require("../user/TestSetConfig");
 var Logger_1 = require("../../../lib/Logger");
+var _ = require("lodash");
 var ParsedTestSuite = /** @class */ (function () {
     function ParsedTestSuite(suite, mode, testSet2EnvMap, env2TestSuiteMap) {
         this.logger = new Logger_1.Logger({ logLevel: process.env['BUSYBEE_LOG_LEVEL'] }, this);
@@ -70,7 +71,10 @@ var ParsedTestSuite = /** @class */ (function () {
                     // add the set to the parsedTestEnvConfig
                     parsedTestEnvConfig.testSets.set(testSetConf.id, parsedTestSetConfig);
                     // store env lookup for later
-                    testSet2EnvMap.set(parsedTestSetConfig.id, parsedTestEnvConfig.suiteEnvID);
+                    if (_.isEmpty(testSet2EnvMap.get(parsedTestSetConfig.id))) {
+                        testSet2EnvMap.set(parsedTestSetConfig.id, new Array());
+                    }
+                    testSet2EnvMap.get(parsedTestSetConfig.id).push(parsedTestEnvConfig.suiteEnvID);
                 });
             }
             _this.testEnvs.set(parsedTestEnvConfig.suiteEnvID, parsedTestEnvConfig);

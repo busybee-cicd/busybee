@@ -81,15 +81,14 @@ export class RESTSuiteManager {
 
       // run api test functions
       this.logger.info(`Running Test Set: ${testSet.id}`);
-      if (testSet.id == 'asset management') {
-        this.logger.debug(testSet.tests, true);
-      }
 
       if (testSet.description) {
         this.logger.info(`${testSet.description}`);
       }
 
-      _async.series(testFns, (err2: Error, testResults: Array<RESTTestResult>) => {
+      let controlFlow = testSet.controlFlow || `series`;
+      this.logger.debug(`${testSet.id}: controlFlow = ${controlFlow}`);
+      _async[controlFlow](testFns, (err2: Error, testResults: Array<RESTTestResult>) => {
         // see if any tests failed and mark the set according
         let pass = _.find(testResults, (tr: any) => {
           return tr.pass === false
@@ -159,9 +158,7 @@ export class RESTSuiteManager {
         this.logger.info(`${testSet.id}: ${testIndex}: ${test.id}`);
         if (test.delayTestRequest) {
           this.logger.info(`Delaying request for ${test.delayTestRequest / 1000} seconds.`);
-          var now = new Date().getTime();
-          while (new Date().getTime() < now + test.delayTestRequest) { /* do nothing */
-          }
+          await this.wait(test.delayTestRequest);
         }
 
         this.restClient.makeRequest(opts, (err: Error, res: IncomingMessage, body: any) => {
@@ -173,6 +170,10 @@ export class RESTSuiteManager {
         });
       };
     });
+  }
+
+  wait(milliseconds) {
+    return new Promise((resolve, reject) => setTimeout(resolve, milliseconds))
   }
 
   /*

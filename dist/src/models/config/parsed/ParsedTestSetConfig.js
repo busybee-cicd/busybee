@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var ParsedTestSetConfig = /** @class */ (function () {
     function ParsedTestSetConfig(testSetConfig) {
         this.id = testSetConfig.id;
+        this.controlFlow = testSetConfig.controlFlow;
         this.description = testSetConfig.description;
         this.data = testSetConfig.data;
         this.tests = [];

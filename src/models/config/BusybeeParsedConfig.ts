@@ -16,7 +16,7 @@ import {ParsedTestSetConfig} from "./parsed/ParsedTestSetConfig";
 
 export class BusybeeParsedConfig {
   private logger: Logger;
-  private testSet2EnvMap = new TypedMap<string>();
+  private testSet2EnvMap = new TypedMap<Array<string>>();
   private env2TestSuiteMap = new TypedMap<string>();
   private testFiles: string[] = [];
   private skipTestSuites: string[] = [];
@@ -85,7 +85,7 @@ export class BusybeeParsedConfig {
     }
   }
 
-  getTestSet2EnvMap(): TypedMap<string> {
+  getTestSet2EnvMap(): TypedMap<Array<string>> {
     return this.testSet2EnvMap;
   }
 
@@ -220,55 +220,52 @@ export class BusybeeParsedConfig {
 
         // iterate each testSet entry for this test (1 test can run in multiple testSets)
         test.testSet.forEach((testSetInfo) => {
-          // lookup the env that this TestSet is a member of
-          if (_.isUndefined(this.testSet2EnvMap.get(testSetInfo.id))) {
-            this.logger.warn(`Unable to identify the Test Environment containing the testSetId '${testSetInfo.id}'.`);
-            return;
-          }
-
           this.logger.trace(`testSetInfo`);
           this.logger.trace(testSetInfo, true);
-          let testEnvId = this.testSet2EnvMap.get(testSetInfo.id);
 
-          // lookup the suite that this env is a member of
-          if (_.isUndefined(this.env2TestSuiteMap.get(testEnvId))) {
-            this.logger.warn(`Unable to identify the Test Suite containing the envId ${testEnvId}.`);
+          // find any environment ids where this TestSet is present
+          let testEnvIds = this.testSet2EnvMap.get(testSetInfo.id); // a TestSet can appear in more than 1 env
+          if (!testEnvIds) {
+            this.logger.warn(`Unable to identify the Test Environment(s) containing the testSetId '${testSetInfo.id}'.`);
             return;
           }
 
-          this.logger.trace(`testEnvId`);
-          this.logger.trace(testEnvId);
-          let suiteID = this.env2TestSuiteMap.get(testEnvId);
-          if (_.isUndefined(testSetInfo.index)) {
-            // push it on the end
-            parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).testsUnordered.push(test);
-            // if (testSetInfo.id === 'asset management') {
-            //   this.logger.debug(parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id), true);
-            // }
-          } else {
-            // insert it at the proper index, fill any empty spots along the way
-            let existingTests = parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests;
-            let newArrLength = testSetInfo.index + 1;
-            if (existingTests && existingTests.length > newArrLength) {
-              // we need to extend the length of the array to add this at the proper index.
-              newArrLength = existingTests.length;
+          // for every testEnv that this testSet exists, update it with this testSet
+          testEnvIds.forEach(testEnvId => {
+            this.logger.trace(`testEnvId`);
+            this.logger.trace(testEnvId);
+            let suiteID = this.env2TestSuiteMap.get(testEnvId);
+            if (_.isUndefined(testSetInfo.index)) {
+              // push it on the end
+              parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).testsUnordered.push(test);
+              // if (testSetInfo.id === 'asset management') {
+              //   this.logger.debug(parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id), true);
+              // }
+            } else {
+              // insert it at the proper index, fill any empty spots along the way
+              let existingTests = parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests;
+              let newArrLength = testSetInfo.index + 1;
+              if (existingTests && existingTests.length > newArrLength) {
+                // we need to extend the length of the array to add this at the proper index.
+                newArrLength = existingTests.length;
+              }
+
+              // create an array of nulls of the current known maxLength and fill it back in.
+              Array(newArrLength).fill(null).forEach((d, i) => {
+                if (i == testSetInfo.index) {
+                  parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i] = test;
+                } else {
+                  if (!existingTests[i]) {
+                    parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i] = null;
+                  }
+                }
+              });
             }
 
-            // create an array of nulls of the current known maxLength and fill it back in.
-            Array(newArrLength).fill(null).forEach((d, i) => {
-              if (i == testSetInfo.index) {
-                parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i] = test;
-              } else {
-                if (!existingTests[i]) {
-                  parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i] = null;
-                }
-              }
-            });
-          }
-
-          // this.logger.trace(`testSet updated`);
-          // this.logger.trace(parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id));
-        });
+            // this.logger.trace(`testSet updated`);
+            // this.logger.trace(parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id));
+          });
+          })
       });
     });
 

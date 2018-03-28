@@ -187,51 +187,49 @@ var BusybeeParsedConfig = /** @class */ (function () {
                 }
                 // iterate each testSet entry for this test (1 test can run in multiple testSets)
                 test.testSet.forEach(function (testSetInfo) {
-                    // lookup the env that this TestSet is a member of
-                    if (_.isUndefined(_this.testSet2EnvMap.get(testSetInfo.id))) {
-                        _this.logger.warn("Unable to identify the Test Environment containing the testSetId '" + testSetInfo.id + "'.");
-                        return;
-                    }
                     _this.logger.trace("testSetInfo");
                     _this.logger.trace(testSetInfo, true);
-                    var testEnvId = _this.testSet2EnvMap.get(testSetInfo.id);
-                    // lookup the suite that this env is a member of
-                    if (_.isUndefined(_this.env2TestSuiteMap.get(testEnvId))) {
-                        _this.logger.warn("Unable to identify the Test Suite containing the envId " + testEnvId + ".");
+                    // find any environment ids where this TestSet is present
+                    var testEnvIds = _this.testSet2EnvMap.get(testSetInfo.id); // a TestSet can appear in more than 1 env
+                    if (!testEnvIds) {
+                        _this.logger.warn("Unable to identify the Test Environment(s) containing the testSetId '" + testSetInfo.id + "'.");
                         return;
                     }
-                    _this.logger.trace("testEnvId");
-                    _this.logger.trace(testEnvId);
-                    var suiteID = _this.env2TestSuiteMap.get(testEnvId);
-                    if (_.isUndefined(testSetInfo.index)) {
-                        // push it on the end
-                        parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).testsUnordered.push(test);
-                        // if (testSetInfo.id === 'asset management') {
-                        //   this.logger.debug(parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id), true);
-                        // }
-                    }
-                    else {
-                        // insert it at the proper index, fill any empty spots along the way
-                        var existingTests_1 = parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests;
-                        var newArrLength = testSetInfo.index + 1;
-                        if (existingTests_1 && existingTests_1.length > newArrLength) {
-                            // we need to extend the length of the array to add this at the proper index.
-                            newArrLength = existingTests_1.length;
+                    // for every testEnv that this testSet exists, update it with this testSet
+                    testEnvIds.forEach(function (testEnvId) {
+                        _this.logger.trace("testEnvId");
+                        _this.logger.trace(testEnvId);
+                        var suiteID = _this.env2TestSuiteMap.get(testEnvId);
+                        if (_.isUndefined(testSetInfo.index)) {
+                            // push it on the end
+                            parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).testsUnordered.push(test);
+                            // if (testSetInfo.id === 'asset management') {
+                            //   this.logger.debug(parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id), true);
+                            // }
                         }
-                        // create an array of nulls of the current known maxLength and fill it back in.
-                        Array(newArrLength).fill(null).forEach(function (d, i) {
-                            if (i == testSetInfo.index) {
-                                parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i] = test;
+                        else {
+                            // insert it at the proper index, fill any empty spots along the way
+                            var existingTests_1 = parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests;
+                            var newArrLength = testSetInfo.index + 1;
+                            if (existingTests_1 && existingTests_1.length > newArrLength) {
+                                // we need to extend the length of the array to add this at the proper index.
+                                newArrLength = existingTests_1.length;
                             }
-                            else {
-                                if (!existingTests_1[i]) {
-                                    parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i] = null;
+                            // create an array of nulls of the current known maxLength and fill it back in.
+                            Array(newArrLength).fill(null).forEach(function (d, i) {
+                                if (i == testSetInfo.index) {
+                                    parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i] = test;
                                 }
-                            }
-                        });
-                    }
-                    // this.logger.trace(`testSet updated`);
-                    // this.logger.trace(parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id));
+                                else {
+                                    if (!existingTests_1[i]) {
+                                        parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i] = null;
+                                    }
+                                }
+                            });
+                        }
+                        // this.logger.trace(`testSet updated`);
+                        // this.logger.trace(parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id));
+                    });
                 });
             });
         });

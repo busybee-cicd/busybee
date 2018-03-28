@@ -3,6 +3,7 @@ import {RESTTest} from "../../RESTTest";
 
 export class ParsedTestSetConfig {
   id: string;
+  controlFlow: string;
   description: string;
   data: any;
   tests: RESTTest[];
@@ -11,6 +12,7 @@ export class ParsedTestSetConfig {
 
   constructor(testSetConfig: TestSetConfig) {
     this.id = testSetConfig.id;
+    this.controlFlow = testSetConfig.controlFlow;
     this.description = testSetConfig.description;
     this.data = testSetConfig.data;
     this.tests = <RESTTest []> [];

@@ -51,7 +51,7 @@ By default, Busybee will look for configuration in busybee/config.json
 - `type`* - String `defaut: REST, allowed: [REST, USER_PROVIDED]`: Dictates how the Test Suite is parsed. Busybee has it's own REST api testing implementation. For all other test suites choose 'USER_PROVIDED'
 - `skip` - Boolean `default:false`: Whether or not to skip this Test Suite
 - `env`* - [Env](#Env)
-- `envInstances`* - [Array:EnvInstance](#TestEnvInstance)
+- `envInstances`* - [Array:EnvInstance](#EnvInstance)
 
 *The following fields are availble IF type == 'REST'*
 
@@ -93,13 +93,14 @@ Not to be confused with [EnvInstance](#EnvInstance). Env represents the base Env
 ---
 #### EnvInstance
 - `id`* - String: a unique id used to identify this TestEnv.
-- `testSets`* - [Array:TestSet](#TestSet): A TestEnv can only have tests added to it via a TestSet and therefore requires at least one TestSet.
+- `testSets`* - [Array:TestSet](#EnvTestSet): A TestEnv can only have tests added to it via a TestSet and therefore requires at least one TestSet.
 
 ---
-#### TestSet
-**IMPORTANT** the `id` field of a TestSet must be unique across environments
+#### EnvTestSet
 - `id`* - String: a unique id used to identify the Test Set.
-
+- `description` - String
+- `data` - Object
+- `controlFlow` - String `allowed: [series, parallel]`: Only applicable when [TestSuite.type](#TestSuite) == 'REST'. Controls how REST tests with-in a TestSet should be executed. [TestSet.index](#TestSet) values set with a [RESTTest.testSet](#RESTTest) will be ignored when 'parallel' is chosen.
 ---
 #### HealthCheck
 - `type`* - String `allowed: [REST]`
@@ -164,7 +165,7 @@ ex)
 Tests can exist in 2 forms, .json and .js. The latter provides a mechanism for creating custom validations via a js method. When using the .js formation it's wise to provide a 'mockResponse' for use by the `busybee mock` command.
 
 ---
-### test.js/json
+### RESTTest
 - `name`* - String: unique name of the test
 - `description` - String: description of what the test is for
 - `testSet`* - [TestSet](#TestSet): list of or single TestSet
