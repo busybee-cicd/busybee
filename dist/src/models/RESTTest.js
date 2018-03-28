@@ -10,7 +10,9 @@ var RESTTest = /** @class */ (function () {
     function RESTTest(data) {
         this.id = data.id;
         this.description = data.description;
-        this.testSet = _.isArray(data.testSet) ? _.map(data.testSet, function (ts) { return new RESTTestSet_1.RESTTestSet(ts); }) : new RESTTestSet_1.RESTTestSet(data.testSet);
+        if (data.testSet) {
+            this.testSet = _.isArray(data.testSet) ? _.map(data.testSet, function (ts) { return new RESTTestSet_1.RESTTestSet(ts); }) : new RESTTestSet_1.RESTTestSet(data.testSet);
+        }
         this.request = json_typescript_mapper_1.deserialize(RequestOptsConfig_1.RequestOptsConfig, data.request);
         if (data.expect) {
             this.expect = new RESTTestExpect_1.RESTTestExpect(data.expect);

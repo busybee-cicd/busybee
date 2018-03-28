@@ -20,7 +20,9 @@ export class RESTTest {
   constructor(data: any) {
     this.id = data.id;
     this.description = data.description;
-    this.testSet = _.isArray(data.testSet) ? _.map(data.testSet, (ts) => { return new RESTTestSet(ts); }) : new RESTTestSet(data.testSet);
+    if (data.testSet) {
+      this.testSet = _.isArray(data.testSet) ? _.map(data.testSet, (ts) => { return new RESTTestSet(ts); }) : new RESTTestSet(data.testSet);
+    }
     this.request = deserialize(RequestOptsConfig, data.request);
     if (data.expect) {
       this.expect = new RESTTestExpect(data.expect);
