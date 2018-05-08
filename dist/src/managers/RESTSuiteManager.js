@@ -192,16 +192,12 @@ var RESTSuiteManager = /** @class */ (function () {
                                     var testResult = new RESTTestResult_1.RESTTestResult(test.id);
                                     testResult.pass = false;
                                     testResult.body.pass = false;
-                                    testResult.body.actual = {};
-                                    testResult.body.expected = test.request.body.expect;
                                     testResult.body.error = {
                                         type: 'error during request',
                                         error: err.message,
                                         stack: err.stack
                                     };
                                     testResult.headers.pass = false;
-                                    testResult.headers.actual = null;
-                                    testResult.headers.expected = null;
                                     testResult.status.pass = false;
                                     return cb(null, testResult);
                                 }
