@@ -90,6 +90,7 @@ export class RESTSuiteManager {
       this.logger.debug(`${testSet.id}: controlFlow = ${controlFlow}`);
       _async[controlFlow](testFns, (err2: Error, testResults: Array<RESTTestResult>) => {
         // see if any tests failed and mark the set according
+        //testResults = _.reject(testResults, _.isNil); // shouldn't have to do this but for some reason undefined results are being added
         let pass = _.find(testResults, (tr: any) => {
           return tr.pass === false
         }) ? false : true;
@@ -116,7 +117,10 @@ export class RESTSuiteManager {
 
     // filter out tests that do not contain .request object (shouldnt be required anymore) TODO: remove?
     let testsWithARequest = _.reject(testSet.tests, (test: RESTTest) => {
-      return test === null;
+      if (_.isNil(test)) {
+        this.logger.trace("TestSet with NULL test detected");
+      }
+      return _.isNil(test);
     });
     return _.map(testsWithARequest, (test: RESTTest) => {
 

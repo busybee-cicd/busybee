@@ -769,6 +769,7 @@ var EnvManager = /** @class */ (function () {
                         }
                         else {
                             _this.logger.debug("Healthcheck returned: " + res.statusCode);
+                            _this.logger.trace(res, true);
                             asyncCb("Healthcheck failed for " + generatedEnvID);
                         }
                     });

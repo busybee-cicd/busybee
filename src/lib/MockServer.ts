@@ -196,7 +196,7 @@ export class MockServer {
     if (this.routeMap[endpoint][method]) {
       if (this.routeMap[endpoint][method][resStatus]) {
         if (_.find(this.routeMap[endpoint][method], (reqInfo) => {
-            reqInfo.hash === hashedReq
+            return reqInfo.hash === hashedReq
           })) {
           // skip this one it exists
           return

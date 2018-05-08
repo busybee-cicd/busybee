@@ -50,6 +50,7 @@ var MockServer_1 = require("./lib/MockServer");
 var Logger_1 = require("./lib/Logger");
 var TestSuiteResult_1 = require("./models/results/TestSuiteResult");
 var logger;
+//process.env.UV_THREADPOOL_SIZE = '128';
 Commander
     .version('0.1.0');
 // TODO: REMOVE protocol and host from cmdOpts...need to be per test suite

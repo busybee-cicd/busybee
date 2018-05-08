@@ -673,6 +673,7 @@ export class EnvManager {
                 asyncCb(null, true);
               } else {
                 this.logger.debug(`Healthcheck returned: ${res.statusCode}`);
+                this.logger.trace(res, true);
                 asyncCb(`Healthcheck failed for ${generatedEnvID}`);
               }
             })

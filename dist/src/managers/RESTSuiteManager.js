@@ -114,6 +114,7 @@ var RESTSuiteManager = /** @class */ (function () {
                         _this.logger.debug(testSet.id + ": controlFlow = " + controlFlow);
                         _async[controlFlow](testFns, function (err2, testResults) {
                             // see if any tests failed and mark the set according
+                            //testResults = _.reject(testResults, _.isNil); // shouldn't have to do this but for some reason undefined results are being added
                             var pass = _.find(testResults, function (tr) {
                                 return tr.pass === false;
                             }) ? false : true;
@@ -140,7 +141,10 @@ var RESTSuiteManager = /** @class */ (function () {
         this.logger.trace(testSet);
         // filter out tests that do not contain .request object (shouldnt be required anymore) TODO: remove?
         var testsWithARequest = _.reject(testSet.tests, function (test) {
-            return test === null;
+            if (_.isNil(test)) {
+                _this.logger.trace("TestSet with NULL test detected");
+            }
+            return _.isNil(test);
         });
         return _.map(testsWithARequest, function (test) {
             return function (cb) { return __awaiter(_this, void 0, void 0, function () {

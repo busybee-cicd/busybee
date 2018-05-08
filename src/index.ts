@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 import {BusybeeParsedConfig} from "./models/config/BusybeeParsedConfig";
 require('source-map-support').install();
 import * as _async from 'async';
@@ -14,7 +15,7 @@ import {Logger} from './lib/Logger';
 import {EnvResult} from "./models/results/EnvResult";
 import {TestSuiteResult} from "./models/results/TestSuiteResult";
 let logger;
-
+//process.env.UV_THREADPOOL_SIZE = '128';
 
 Commander
   .version('0.1.0');
