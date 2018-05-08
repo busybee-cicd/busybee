@@ -90,7 +90,6 @@ export class RESTSuiteManager {
       this.logger.debug(`${testSet.id}: controlFlow = ${controlFlow}`);
       _async[controlFlow](testFns, (err2: Error, testResults: Array<RESTTestResult>) => {
         // see if any tests failed and mark the set according
-        //testResults = _.reject(testResults, _.isNil); // shouldn't have to do this but for some reason undefined results are being added
         let pass = _.find(testResults, (tr: any) => {
           return tr.pass === false
         }) ? false : true;
@@ -167,7 +166,23 @@ export class RESTSuiteManager {
 
         this.restClient.makeRequest(opts, (err: Error, res: IncomingMessage, body: any) => {
           if (err) {
-            return cb(err);
+            this.logger.error(err, true);
+            let testResult = new RESTTestResult(test.id);
+            testResult.pass = false;
+            testResult.body.pass = false;
+            testResult.body.actual = {};
+            testResult.body.expected = test.request.body.expect;
+            testResult.body.error = {
+              type: 'error during request',
+              error: err.message,
+              stack: err.stack
+            }
+
+            testResult.headers.pass = false;
+            testResult.headers.actual = null;
+            testResult.headers.expected = null;
+            testResult.status.pass = false;
+            return cb(null, testResult);
           }
 
           this.validateTestResult(testSet, test, Object.assign({}, this.restClient.getDefaultRequestOpts(), opts), res, body, cb)

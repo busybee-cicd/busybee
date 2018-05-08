@@ -114,7 +114,6 @@ var RESTSuiteManager = /** @class */ (function () {
                         _this.logger.debug(testSet.id + ": controlFlow = " + controlFlow);
                         _async[controlFlow](testFns, function (err2, testResults) {
                             // see if any tests failed and mark the set according
-                            //testResults = _.reject(testResults, _.isNil); // shouldn't have to do this but for some reason undefined results are being added
                             var pass = _.find(testResults, function (tr) {
                                 return tr.pass === false;
                             }) ? false : true;
@@ -189,7 +188,22 @@ var RESTSuiteManager = /** @class */ (function () {
                         case 2:
                             this.restClient.makeRequest(opts, function (err, res, body) {
                                 if (err) {
-                                    return cb(err);
+                                    _this.logger.error(err, true);
+                                    var testResult = new RESTTestResult_1.RESTTestResult(test.id);
+                                    testResult.pass = false;
+                                    testResult.body.pass = false;
+                                    testResult.body.actual = {};
+                                    testResult.body.expected = test.request.body.expect;
+                                    testResult.body.error = {
+                                        type: 'error during request',
+                                        error: err.message,
+                                        stack: err.stack
+                                    };
+                                    testResult.headers.pass = false;
+                                    testResult.headers.actual = null;
+                                    testResult.headers.expected = null;
+                                    testResult.status.pass = false;
+                                    return cb(null, testResult);
                                 }
                                 _this.validateTestResult(testSet, test, Object.assign({}, _this.restClient.getDefaultRequestOpts(), opts), res, body, cb);
                             });
