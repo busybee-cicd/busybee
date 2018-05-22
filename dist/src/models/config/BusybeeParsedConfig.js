@@ -20,11 +20,11 @@ var BusybeeParsedConfig = /** @class */ (function () {
         this.skipEnvProvisioning = [];
         this.localMode = false;
         this.noProxy = false;
-        var _cmdOpts = Object.assign({}, cmdOpts); // TODO make sure nothing references this directly from this point
+        this.cmdOpts = Object.assign({}, cmdOpts); // TODO make sure nothing references this directly from this point
         this.logLevel = this.getLogLevel();
         this.logger = new Logger_1.Logger({ logLevel: this.logLevel }, this);
-        this.parseCmdOpts(_cmdOpts);
-        this.filePaths = new FilePathsConfig_1.FilePathsConfig(_cmdOpts);
+        this.parseCmdOpts();
+        this.filePaths = new FilePathsConfig_1.FilePathsConfig(this.cmdOpts);
         this.onComplete = userConfig.onComplete;
         this.parsedTestSuites = this.parseTestSuites(userConfig, mode);
         this.envResources = userConfig.envResources;
@@ -33,26 +33,26 @@ var BusybeeParsedConfig = /** @class */ (function () {
             this.logger.info("LocalMode detected. Host Configuration will be ignored in favor of 'localhost'");
         }
     }
-    BusybeeParsedConfig.prototype.parseCmdOpts = function (cmdOpts) {
-        if (cmdOpts.skipTestSuite) {
-            this.skipTestSuites = cmdOpts.skipTestSuite.split(',');
+    BusybeeParsedConfig.prototype.parseCmdOpts = function () {
+        if (this.cmdOpts.skipTestSuite) {
+            this.skipTestSuites = this.cmdOpts.skipTestSuite.split(',');
         }
-        if (cmdOpts.skipEnvProvisioning) {
-            this.skipEnvProvisioning = cmdOpts.skipEnvProvisioning.split(',');
+        if (this.cmdOpts.skipEnvProvisioning) {
+            this.skipEnvProvisioning = this.cmdOpts.skipEnvProvisioning.split(',');
         }
-        if (cmdOpts.testFiles) {
-            this.testFiles = cmdOpts.testFiles.split(',');
+        if (this.cmdOpts.testFiles) {
+            this.testFiles = this.cmdOpts.testFiles.split(',');
         }
-        if (cmdOpts.envInstances) {
-            this.envInstancesToRun = cmdOpts.envInstances.split(',');
+        if (this.cmdOpts.envInstances) {
+            this.envInstancesToRun = this.cmdOpts.envInstances.split(',');
         }
-        if (cmdOpts.localMode) {
-            this.localMode = cmdOpts.localMode;
+        if (this.cmdOpts.localMode) {
+            this.localMode = this.cmdOpts.localMode;
         }
-        if (cmdOpts.onComplete) {
-            this.onComplete = cmdOpts.onComplete;
+        if (this.cmdOpts.onComplete) {
+            this.onComplete = this.cmdOpts.onComplete;
         }
-        if (cmdOpts.noProxy) {
+        if (this.cmdOpts.noProxy) {
             this.noProxy = true;
         }
     };

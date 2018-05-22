@@ -5,3 +5,4 @@ busybee/
 .idea/
 busybee.iml
 yarn.lock
+.vscode/
