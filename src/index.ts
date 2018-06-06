@@ -1,24 +1,25 @@
 #!/usr/bin/env node
 
-import {BusybeeParsedConfig} from "./models/config/BusybeeParsedConfig";
+import {BusybeeParsedConfig} from './models/config/BusybeeParsedConfig';
 require('source-map-support').install();
 import * as _async from 'async';
 import * as _ from 'lodash';
 import * as Commander from 'commander';
 import * as fs from 'fs';
 import * as path from 'path';
+const appVersion = require('../../package.json').version;
 import {ConfigParser} from  './lib/ConfigParser';
 import {EnvManager} from './managers/EnvManager';
 import {TestManager} from './managers/TestManager';
 import {MockServer} from './lib/MockServer';
 import {Logger} from './lib/Logger';
-import {EnvResult} from "./models/results/EnvResult";
-import {TestSuiteResult} from "./models/results/TestSuiteResult";
+import {EnvResult} from './models/results/EnvResult';
+import {TestSuiteResult} from './models/results/TestSuiteResult';
 let logger;
 //process.env.UV_THREADPOOL_SIZE = '128';
 
 Commander
-  .version('0.1.0');
+  .version(appVersion);
 
 // TODO: REMOVE protocol and host from cmdOpts...need to be per test suite
 Commander
