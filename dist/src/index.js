@@ -43,6 +43,7 @@ var _ = require("lodash");
 var Commander = require("commander");
 var fs = require("fs");
 var path = require("path");
+var appVersion = require('../../package.json').version;
 var ConfigParser_1 = require("./lib/ConfigParser");
 var EnvManager_1 = require("./managers/EnvManager");
 var TestManager_1 = require("./managers/TestManager");
@@ -52,7 +53,7 @@ var TestSuiteResult_1 = require("./models/results/TestSuiteResult");
 var logger;
 //process.env.UV_THREADPOOL_SIZE = '128';
 Commander
-    .version('0.1.0');
+    .version(appVersion);
 // TODO: REMOVE protocol and host from cmdOpts...need to be per test suite
 Commander
     .command('test')
