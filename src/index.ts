@@ -15,6 +15,9 @@ import {Logger} from './lib/Logger';
 import {EnvResult} from "./models/results/EnvResult";
 import {TestSuiteResult} from "./models/results/TestSuiteResult";
 let logger;
+const ONE_SECOND = 1000;
+const ONE_MINUTE = ONE_SECOND * 60;
+const ONE_HOUR = ONE_MINUTE * 60;
 //process.env.UV_THREADPOOL_SIZE = '128';
 
 Commander
@@ -134,7 +137,9 @@ function initTests(conf: BusybeeParsedConfig) {
     });
   });
 
+  let start = Date.now();
   _async.parallel(envTasks, (err, envResults: Array<EnvResult>) => {
+    let end = Date.now();
     // group the result sets by their Suite
     let suiteResults = {};
 
@@ -192,9 +197,52 @@ function initTests(conf: BusybeeParsedConfig) {
       }
     } else {
       logger.trace(err || suiteResultsList);
-      logger.info('Complete');
+      logger.info(formatElapsed(start, end));
     }
   });
+
+  function formatElapsed(start: number, end: number): string {
+    let elapsed = end - start;
+    let hours = 0;
+    let minutes = 0;
+    let seconds = 0;
+    let ret = `Tests finished in`;
+
+    if (Math.round(elapsed / ONE_HOUR) > 0) {
+      hours = Math.round(elapsed / ONE_HOUR);
+      elapsed = elapsed % ONE_HOUR;
+
+      ret += ` ${hours}`;
+      if (hours > 1) {
+        ret += ` hours`;
+      } else {
+        ret += ` hour`;
+      }
+    }
+    if (Math.round(elapsed / ONE_MINUTE) > 0) {
+      minutes = Math.round(elapsed / ONE_MINUTE);
+      elapsed = elapsed % ONE_MINUTE;
+
+      ret += ` ${minutes}`;
+      if (minutes > 1) {
+        ret += ` minutes`;
+      } else {
+        ret += ` minute`;
+      }
+    }
+    if (Math.round(elapsed / 1000) > 0) {
+      seconds = Math.round(elapsed / ONE_SECOND);
+
+      ret += ` ${seconds}`;
+      if (seconds > 1) {
+        ret += ` seconds`;
+      } else {
+        ret += ` second`;
+      }
+    }
+
+    return ret;
+  }
 
   // run the ui tests
 }

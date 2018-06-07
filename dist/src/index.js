@@ -50,6 +50,9 @@ var MockServer_1 = require("./lib/MockServer");
 var Logger_1 = require("./lib/Logger");
 var TestSuiteResult_1 = require("./models/results/TestSuiteResult");
 var logger;
+var ONE_SECOND = 1000;
+var ONE_MINUTE = ONE_SECOND * 60;
+var ONE_HOUR = ONE_MINUTE * 60;
 //process.env.UV_THREADPOOL_SIZE = '128';
 Commander
     .version('0.1.0');
@@ -164,7 +167,9 @@ function initTests(conf) {
             envTasks.push(envTask);
         });
     });
+    var start = Date.now();
     _async.parallel(envTasks, function (err, envResults) {
+        var end = Date.now();
         // group the result sets by their Suite
         var suiteResults = {};
         envResults.forEach(function (envResult) {
@@ -219,9 +224,49 @@ function initTests(conf) {
         }
         else {
             logger.trace(err || suiteResultsList);
-            logger.info('Complete');
+            logger.info(formatElapsed(start, end));
         }
     });
+    function formatElapsed(start, end) {
+        var elapsed = end - start;
+        var hours = 0;
+        var minutes = 0;
+        var seconds = 0;
+        var ret = "Tests finished in";
+        if (Math.round(elapsed / ONE_HOUR) > 0) {
+            hours = Math.round(elapsed / ONE_HOUR);
+            elapsed = elapsed % ONE_HOUR;
+            ret += " " + hours;
+            if (hours > 1) {
+                ret += " hours";
+            }
+            else {
+                ret += " hour";
+            }
+        }
+        if (Math.round(elapsed / ONE_MINUTE) > 0) {
+            minutes = Math.round(elapsed / ONE_MINUTE);
+            elapsed = elapsed % ONE_MINUTE;
+            ret += " " + minutes;
+            if (minutes > 1) {
+                ret += " minutes";
+            }
+            else {
+                ret += " minute";
+            }
+        }
+        if (Math.round(elapsed / 1000) > 0) {
+            seconds = Math.round(elapsed / ONE_SECOND);
+            ret += " " + seconds;
+            if (seconds > 1) {
+                ret += " seconds";
+            }
+            else {
+                ret += " second";
+            }
+        }
+        return ret;
+    }
     // run the ui tests
 }
 //# sourceMappingURL=index.js.map
