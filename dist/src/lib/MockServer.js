@@ -156,6 +156,8 @@ var MockServer = /** @class */ (function () {
     };
     // build an endpoint that accounts for the root context
     MockServer.prototype.getEndpoint = function (mock) {
+        this.logger.trace("getEndpoint");
+        this.logger.trace(mock, true);
         var endpoint = mock.request.endpoint;
         if (!_.isUndefined(mock.request.root)) {
             if (mock.request.root) {
@@ -170,6 +172,7 @@ var MockServer = /** @class */ (function () {
         else if (this.testSuiteConf.root) {
             endpoint = "" + this.testSuiteConf.root + endpoint;
         }
+        this.logger.trace(endpoint);
         return endpoint;
     };
     MockServer.prototype.updateRouteMap = function (mock) {
