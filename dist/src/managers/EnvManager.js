@@ -758,20 +758,20 @@ var EnvManager = /** @class */ (function () {
                 _async.retry({ times: healthcheckConf.retries || 50, interval: opts_1.timeout }, function (asyncCb) {
                     _this.logger.info("Attempting healthcheck for " + generatedEnvID + " on port " + healthcheckPort_1);
                     _this.logger.debug(opts_1);
-                    restClient_1.makeRequest(opts_1, function (err, res, body) {
-                        if (err) {
-                            asyncCb("failed");
-                            return;
-                        }
-                        if (res && res.statusCode === 200) {
+                    restClient_1.makeRequest(opts_1)
+                        .then(function (response) {
+                        if (response.statusCode === 200) {
                             _this.logger.info("Healthcheck Confirmed for " + generatedEnvID + "!");
                             asyncCb(null, true);
                         }
                         else {
-                            _this.logger.debug("Healthcheck returned: " + res.statusCode);
-                            _this.logger.trace(res, true);
+                            _this.logger.debug("Healthcheck returned: " + response.statusCode);
+                            _this.logger.trace(response, true);
                             asyncCb("Healthcheck failed for " + generatedEnvID);
                         }
+                    })
+                        .catch(function (err) {
+                        asyncCb("failed");
                     });
                 }, function (err, results) {
                     if (err) {

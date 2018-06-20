@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var request = require("request");
+var request = require("request-promise");
 var _ = require("lodash");
 var Logger_1 = require("./Logger");
 var RESTClient = /** @class */ (function () {
@@ -53,7 +53,9 @@ var RESTClient = /** @class */ (function () {
         var req = {
             method: requestConf.method || 'GET',
             url: url,
-            timeout: requestConf.timeout || 30000 // default 30 seconds
+            timeout: requestConf.timeout || 30000,
+            resolveWithFullResponse: true,
+            simple: false // only reject() if the request fails for technical reasons (not status code other than 200).
         };
         if (requestConf.query) {
             req['qs'] = requestConf.query;
@@ -66,11 +68,11 @@ var RESTClient = /** @class */ (function () {
         }
         return req;
     };
-    RESTClient.prototype.makeRequest = function (opts, cb) {
+    RESTClient.prototype.makeRequest = function (opts) {
         // run the test
         this.logger.trace('Request opts');
         this.logger.trace(opts);
-        this.apiRequest(opts, cb);
+        return this.apiRequest(opts);
     };
     return RESTClient;
 }());

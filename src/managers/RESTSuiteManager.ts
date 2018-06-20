@@ -164,24 +164,24 @@ export class RESTSuiteManager {
           await this.wait(test.delayTestRequest);
         }
 
-        this.restClient.makeRequest(opts, (err: Error, res: IncomingMessage, body: any) => {
-          if (err) {
-            this.logger.error(err, true);
-            let testResult = new RESTTestResult(test.id);
-            testResult.pass = false;
-            testResult.body.pass = false;
-            testResult.body.error = {
-              type: 'error during request',
-              error: err.message,
-              stack: err.stack
-            }
-            testResult.headers.pass = false;
-            testResult.status.pass = false;
-            return cb(null, testResult);
+        try {
+          let response = await this.restClient.makeRequest(opts);
+          this.validateTestResult(testSet, test, Object.assign({}, this.restClient.getDefaultRequestOpts(), opts), response, cb);
+        } catch (err) {
+          this.logger.error(err, true);
+          let testResult = new RESTTestResult(test.id);
+          testResult.pass = false;
+          testResult.body.pass = false;
+          testResult.body.error = {
+            type: 'error during request',
+            error: err.message,
+            stack: err.stack
           }
+          testResult.headers.pass = false;
+          testResult.status.pass = false;
 
-          this.validateTestResult(testSet, test, Object.assign({}, this.restClient.getDefaultRequestOpts(), opts), res, body, cb)
-        });
+          return cb(null, testResult);
+        }
       };
     });
   }
@@ -261,7 +261,7 @@ export class RESTSuiteManager {
   }
 
 
-  validateTestResult(testSet: ParsedTestSetConfig, test: RESTTest, reqOpts: any, res: IncomingMessage, body: any, cb: (Error, RESTTestResult?) => {}) {
+  validateTestResult(testSet: ParsedTestSetConfig, test: RESTTest, reqOpts: any, res, cb: (Error, RESTTestResult?) => {}) {
     this.logger.trace(`validateTestResult`);
 
     // validate results
@@ -313,7 +313,7 @@ export class RESTSuiteManager {
       //  Run Assertions
       ///////////////////////////
 
-      let actual = _.cloneDeep(body);
+      let actual = _.cloneDeep(res.body);
       let expected;
       try {
         //  Assertion Modifications
@@ -397,7 +397,7 @@ export class RESTSuiteManager {
       }
     } else {
       // just return the body that was returned and consider it a pass
-      testResult.body.actual = body;
+      testResult.body.actual = _.cloneDeep(res.body);
     }
 
     // attach the request info for reporting purposes

@@ -1,4 +1,4 @@
-import * as request from 'request';
+import * as request from 'request-promise';
 import * as _ from 'lodash';
 import {Logger} from './Logger';
 import {RequestOptsConfig} from "../models/config/common/RequestOptsConfig";
@@ -72,7 +72,9 @@ export class RESTClient {
     let req = {
       method: requestConf.method || 'GET',
       url: url,
-      timeout: requestConf.timeout || 30000 // default 30 seconds
+      timeout: requestConf.timeout || 30000, // default 30 seconds
+      resolveWithFullResponse: true, // don't resolve just the body
+      simple: false // only reject() if the request fails for technical reasons (not status code other than 200).
     };
 
     if (requestConf.query) {
@@ -89,10 +91,10 @@ export class RESTClient {
   }
 
 
-  makeRequest(opts, cb: (err: Error, res: IncomingMessage, body: any) => void) {
+  makeRequest(opts) {
     // run the test
     this.logger.trace('Request opts');
     this.logger.trace(opts);
-    this.apiRequest(opts, cb);
+    return this.apiRequest(opts);
   }
 }

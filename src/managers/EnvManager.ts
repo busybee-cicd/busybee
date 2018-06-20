@@ -662,21 +662,20 @@ export class EnvManager {
           (asyncCb) => {
             this.logger.info(`Attempting healthcheck for ${generatedEnvID} on port ${healthcheckPort}`);
             this.logger.debug(opts);
-            restClient.makeRequest(opts, (err, res, body) => {
-              if (err) {
+            restClient.makeRequest(opts)
+              .then((response) => {
+                if (response.statusCode === 200) {
+                  this.logger.info(`Healthcheck Confirmed for ${generatedEnvID}!`);
+                  asyncCb(null, true);
+                } else {
+                  this.logger.debug(`Healthcheck returned: ${response.statusCode}`);
+                  this.logger.trace(response, true);
+                  asyncCb(`Healthcheck failed for ${generatedEnvID}`);
+                }
+              })
+              .catch((err) => {
                 asyncCb("failed");
-                return;
-              }
-
-              if (res && res.statusCode === 200) {
-                this.logger.info(`Healthcheck Confirmed for ${generatedEnvID}!`);
-                asyncCb(null, true);
-              } else {
-                this.logger.debug(`Healthcheck returned: ${res.statusCode}`);
-                this.logger.trace(res, true);
-                asyncCb(`Healthcheck failed for ${generatedEnvID}`);
-              }
-            })
+              });
           }
           , (err, results) => {
             if (err) {

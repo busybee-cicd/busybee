@@ -147,8 +147,7 @@ var RESTSuiteManager = /** @class */ (function () {
         });
         return _.map(testsWithARequest, function (test) {
             return function (cb) { return __awaiter(_this, void 0, void 0, function () {
-                var _this = this;
-                var port, opts, testIndex, testSetConf;
+                var port, opts, testIndex, testSetConf, response, err_1, testResult;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
@@ -186,24 +185,27 @@ var RESTSuiteManager = /** @class */ (function () {
                             _a.sent();
                             _a.label = 2;
                         case 2:
-                            this.restClient.makeRequest(opts, function (err, res, body) {
-                                if (err) {
-                                    _this.logger.error(err, true);
-                                    var testResult = new RESTTestResult_1.RESTTestResult(test.id);
-                                    testResult.pass = false;
-                                    testResult.body.pass = false;
-                                    testResult.body.error = {
-                                        type: 'error during request',
-                                        error: err.message,
-                                        stack: err.stack
-                                    };
-                                    testResult.headers.pass = false;
-                                    testResult.status.pass = false;
-                                    return cb(null, testResult);
-                                }
-                                _this.validateTestResult(testSet, test, Object.assign({}, _this.restClient.getDefaultRequestOpts(), opts), res, body, cb);
-                            });
-                            return [2 /*return*/];
+                            _a.trys.push([2, 4, , 5]);
+                            return [4 /*yield*/, this.restClient.makeRequest(opts)];
+                        case 3:
+                            response = _a.sent();
+                            this.validateTestResult(testSet, test, Object.assign({}, this.restClient.getDefaultRequestOpts(), opts), response, cb);
+                            return [3 /*break*/, 5];
+                        case 4:
+                            err_1 = _a.sent();
+                            this.logger.error(err_1, true);
+                            testResult = new RESTTestResult_1.RESTTestResult(test.id);
+                            testResult.pass = false;
+                            testResult.body.pass = false;
+                            testResult.body.error = {
+                                type: 'error during request',
+                                error: err_1.message,
+                                stack: err_1.stack
+                            };
+                            testResult.headers.pass = false;
+                            testResult.status.pass = false;
+                            return [2 /*return*/, cb(null, testResult)];
+                        case 5: return [2 /*return*/];
                     }
                 });
             }); };
@@ -277,7 +279,7 @@ var RESTSuiteManager = /** @class */ (function () {
         }
         return replaced;
     };
-    RESTSuiteManager.prototype.validateTestResult = function (testSet, test, reqOpts, res, body, cb) {
+    RESTSuiteManager.prototype.validateTestResult = function (testSet, test, reqOpts, res, cb) {
         this.logger.trace("validateTestResult");
         // validate results
         var testResult = new RESTTestResult_1.RESTTestResult(test.id);
@@ -322,7 +324,7 @@ var RESTSuiteManager = /** @class */ (function () {
             ///////////////////////////
             //  Run Assertions
             ///////////////////////////
-            var actual = _.cloneDeep(body);
+            var actual = _.cloneDeep(res.body);
             var expected = void 0;
             try {
                 //  Assertion Modifications
@@ -403,7 +405,7 @@ var RESTSuiteManager = /** @class */ (function () {
         }
         else {
             // just return the body that was returned and consider it a pass
-            testResult.body.actual = body;
+            testResult.body.actual = _.cloneDeep(res.body);
         }
         // attach the request info for reporting purposes
         testResult.request = reqOpts;
