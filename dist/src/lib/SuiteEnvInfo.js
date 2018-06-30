@@ -15,6 +15,12 @@ var SuiteEnvInfo = /** @class */ (function () {
         this.root = suiteConf.root;
         this.testSets = suiteConf.testEnvs.get(suiteEnvID).testSets;
     }
+    SuiteEnvInfo.prototype.setStartScriptReturnData = function (data) {
+        this.startScriptReturnData = data;
+    };
+    SuiteEnvInfo.prototype.getStartScriptReturnData = function () {
+        return this.startScriptReturnData;
+    };
     return SuiteEnvInfo;
 }());
 exports.SuiteEnvInfo = SuiteEnvInfo;

@@ -163,7 +163,8 @@ export class EnvManager {
         protocol: envInfo.protocol,
         hostName: envInfo.hostName,
         ports: ports,
-        busybeeDir: busybeeDir
+        busybeeDir: busybeeDir,
+        startScriptReturnData: envInfo.getStartScriptReturnData()
       };
 
       let filePath = path.join(busybeeDir, envInfo.stopScript);
@@ -299,7 +300,10 @@ export class EnvManager {
         this.logger.trace('script args');
         this.logger.trace(testSuiteConf.env.startScript);
         this.logger.trace(args);
-        await this.runScript(path.join(busybeeDir, testSuiteConf.env.startScript), [JSON.stringify(args)]);
+        let returnData = await this.runScript(path.join(busybeeDir, testSuiteConf.env.startScript), [JSON.stringify(args)]);
+        if (returnData) {
+          this.currentEnvs.get(generatedEnvID).setStartScriptReturnData(returnData);
+        }
 
         this.logger.info(`${generatedEnvID} created.`);
         resolve(generatedEnvID);
@@ -309,16 +313,15 @@ export class EnvManager {
     });
   }
 
-  runScript(path, args) {
+  runScript(path, args): Promise<string> {
     return new Promise(async(resolve, reject) => {
       this.logger.info(`runScript ${path} <args>`);
       this.logger.debug(args);
       const completeMessage = `${path} completed`;
       let returned = false;
-
       const script = spawn('/bin/bash', [path, args]);
 
-      // listen for errors and reject
+      // listen to stderr for errors and reject
       script.stderr.on('data', (data) => {
         if (returned) {
           return;
@@ -326,44 +329,46 @@ export class EnvManager {
         if (!data) {
           data = "";
         }
-        let output = data.toString();
-        this.logger.debug(output);
+        let dataStr = data.toString();
+        this.logger.debug(dataStr);
 
-        if (output.toUpperCase().includes("BUSYBEE_SH_ERROR")) {
+        if (dataStr.includes("BUSYBEE_ERROR")) {
           returned = true;
-          reject(output);
+          reject(dataStr);
           script.kill('SIGHUP');
         }
       });
 
-      // listen for data and discern if an error has been thrown.
+      // listen to stdout for data
       script.stdout.on('data', (data) => {
         if (returned) {
           return;
         }
-        if (!data) {
+        if (_.isEmpty(data)) {
           return;
         }
-        let origOutput = data.toString();
-        let upperOutput = origOutput.toUpperCase();
-        this.logger.debug(origOutput);
+        let dataStr = data.toString();
+        this.logger.debug(dataStr);
 
-        if (upperOutput.includes("BUSYBEE_SH_ERROR")) {
+        if (dataStr.includes("BUSYBEE_ERROR")) {
           returned = true;
-          this.logger.error(`BUSYBEE_SH_ERROR detected in ${path}`);
-          reject(origOutput);
+          this.logger.error(`BUSYBEE_ERROR detected in ${path}`);
+          reject(dataStr);
           script.kill('SIGHUP');
-        } else if (upperOutput.includes("BUSYBEE_SH_COMPLETE")) {
+        } else if (dataStr.includes("BUSYBEE_RETURN")) {
           returned = true;
-          resolve(completeMessage);
+          // return the captured result
+          resolve(dataStr.substring(15, dataStr.length));
           script.kill('SIGHUP');
-        }
-        ;
+          this.logger.debug(completeMessage);
+        };
       });
 
+      // default return via script exit 0. no return value
       script.on('close', () => {
         if (!returned) {
-          resolve(completeMessage);
+          resolve();
+          this.logger.debug(completeMessage);
         }
       });
     });

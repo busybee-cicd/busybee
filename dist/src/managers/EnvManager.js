@@ -186,7 +186,8 @@ var EnvManager = /** @class */ (function () {
                                         protocol: envInfo.protocol,
                                         hostName: envInfo.hostName,
                                         ports: ports,
-                                        busybeeDir: busybeeDir
+                                        busybeeDir: busybeeDir,
+                                        startScriptReturnData: envInfo.getStartScriptReturnData()
                                     };
                                     filePath = path.join(busybeeDir, envInfo.stopScript);
                                     this.logger.trace(filePath);
@@ -326,7 +327,7 @@ var EnvManager = /** @class */ (function () {
     EnvManager.prototype.provisionEnv = function (generatedEnvID, suiteID, suiteEnvID) {
         var _this = this;
         return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-            var testSuiteConf, hostName, ports, busybeeDir, args, err_1;
+            var testSuiteConf, hostName, ports, busybeeDir, args, returnData, err_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -371,7 +372,10 @@ var EnvManager = /** @class */ (function () {
                         this.logger.trace(args);
                         return [4 /*yield*/, this.runScript(path.join(busybeeDir, testSuiteConf.env.startScript), [JSON.stringify(args)])];
                     case 5:
-                        _a.sent();
+                        returnData = _a.sent();
+                        if (returnData) {
+                            this.currentEnvs.get(generatedEnvID).setStartScriptReturnData(returnData);
+                        }
                         this.logger.info(generatedEnvID + " created.");
                         resolve(generatedEnvID);
                         return [3 /*break*/, 7];
@@ -395,7 +399,7 @@ var EnvManager = /** @class */ (function () {
                 completeMessage = path + " completed";
                 returned = false;
                 script = child_process_1.spawn('/bin/bash', [path, args]);
-                // listen for errors and reject
+                // listen to stderr for errors and reject
                 script.stderr.on('data', function (data) {
                     if (returned) {
                         return;
@@ -403,41 +407,44 @@ var EnvManager = /** @class */ (function () {
                     if (!data) {
                         data = "";
                     }
-                    var output = data.toString();
-                    _this.logger.debug(output);
-                    if (output.toUpperCase().includes("BUSYBEE_SH_ERROR")) {
+                    var dataStr = data.toString();
+                    _this.logger.debug(dataStr);
+                    if (dataStr.includes("BUSYBEE_ERROR")) {
                         returned = true;
-                        reject(output);
+                        reject(dataStr);
                         script.kill('SIGHUP');
                     }
                 });
-                // listen for data and discern if an error has been thrown.
+                // listen to stdout for data
                 script.stdout.on('data', function (data) {
                     if (returned) {
                         return;
                     }
-                    if (!data) {
+                    if (_.isEmpty(data)) {
                         return;
                     }
-                    var origOutput = data.toString();
-                    var upperOutput = origOutput.toUpperCase();
-                    _this.logger.debug(origOutput);
-                    if (upperOutput.includes("BUSYBEE_SH_ERROR")) {
+                    var dataStr = data.toString();
+                    _this.logger.debug(dataStr);
+                    if (dataStr.includes("BUSYBEE_ERROR")) {
                         returned = true;
-                        _this.logger.error("BUSYBEE_SH_ERROR detected in " + path);
-                        reject(origOutput);
+                        _this.logger.error("BUSYBEE_ERROR detected in " + path);
+                        reject(dataStr);
                         script.kill('SIGHUP');
                     }
-                    else if (upperOutput.includes("BUSYBEE_SH_COMPLETE")) {
+                    else if (dataStr.includes("BUSYBEE_RETURN")) {
                         returned = true;
-                        resolve(completeMessage);
+                        // return the captured result
+                        resolve(dataStr.substring(15, dataStr.length));
                         script.kill('SIGHUP');
+                        _this.logger.debug(completeMessage);
                     }
                     ;
                 });
+                // default return via script exit 0. no return value
                 script.on('close', function () {
                     if (!returned) {
-                        resolve(completeMessage);
+                        resolve();
+                        _this.logger.debug(completeMessage);
                     }
                 });
                 return [2 /*return*/];

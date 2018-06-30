@@ -4,6 +4,7 @@ import {RequestOptsConfig} from "../models/config/common/RequestOptsConfig";
 import {TypedMap} from "./TypedMap";
 export class SuiteEnvInfo {
   startScript: string;
+  private startScriptReturnData: string;
   stopScript: string;
   runScript: string;
   healthcheck: any;
@@ -30,5 +31,13 @@ export class SuiteEnvInfo {
     this.defaultRequestOpts = suiteConf.defaultRequestOpts;
     this.root = suiteConf.root;
     this.testSets = suiteConf.testEnvs.get(suiteEnvID).testSets;
+  }
+
+  setStartScriptReturnData(data: string) {
+    this.startScriptReturnData = data;
+  }
+
+  getStartScriptReturnData(): string {
+    return this.startScriptReturnData;
   }
 }

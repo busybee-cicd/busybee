@@ -45,8 +45,8 @@
     "watch": "watch 'npm run build' {src,test}",
     "start": "node ./dist/src/index.js",
     "remoteIT": "node --inspect-brk=9222 ./dist/src/index.js mock -t 'CR Services IT' -d /Users/simontownsend/dev/config-reviewer/config-reviewer-it-api/busybee",
-    "IT": "node ./dist/src/index.js test -d itTests/default -D",
-    "test": "tsc && ava dist/test/**/*.js",
+    "IT": "bash IT/run.sh",
+    "test": "tsc && ava dist/test/**/*.js --verbose",
     "debugSingleTest": "node --interactive --inspect-brk node_modules/ava/profile.js dist/test/**/unorderedCollectionsTest.js"
   },
   "author": "Simon Townsend",

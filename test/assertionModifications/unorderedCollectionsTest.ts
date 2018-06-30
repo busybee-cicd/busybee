@@ -181,8 +181,7 @@ test(`it catches when 2 unorderedCollections are NOT equal at the top-level`, (t
   }
 });
 
-test((t) => {
-    //  it throws an error when collections are ambiguous and there is know way to know if the order is correct
+test(`it throws an error when collections are ambiguous and there is know way to know if the order is correct`, (t) => {
     let expected = [
         {
             subCollection: [

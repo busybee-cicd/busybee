@@ -168,8 +168,7 @@ ava_1.default("it catches when 2 unorderedCollections are NOT equal at the top-l
         t.is(e.message, "The collections at '*' are not equal OR the parent object is a member of an ambiguous collection");
     }
 });
-ava_1.default(function (t) {
-    //  it throws an error when collections are ambiguous and there is know way to know if the order is correct
+ava_1.default("it throws an error when collections are ambiguous and there is know way to know if the order is correct", function (t) {
     var expected = [
         {
             subCollection: [
