@@ -1,5 +1,5 @@
 import test from 'ava';
-import {UnorderedCollections} from "../../src/lib/assertionModifications/UnorderedCollections";
+import {UnorderedCollections} from "../../../src/lib/assertionModifications/UnorderedCollections";
 
 test(`'*' will only check the top-level collection and does not apply to any unordered subCollections`, (t) => {
     let expected = [
