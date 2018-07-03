@@ -45,8 +45,10 @@ var Logger_1 = require("../lib/Logger");
 var RESTClient_1 = require("../lib/RESTClient");
 var TypedMap_1 = require("../lib/TypedMap");
 var SuiteEnvInfo_1 = require("../lib/SuiteEnvInfo");
+var IOHelper_1 = require("../lib/IOHelper");
 var EnvManager = /** @class */ (function () {
     function EnvManager(conf) {
+        this.envStartRetries = {};
         this.conf = _.cloneDeep(conf);
         this.logger = new Logger_1.Logger(conf, this);
         if (conf.getSkipEnvProvisioning().length > 0) {
@@ -187,7 +189,9 @@ var EnvManager = /** @class */ (function () {
                                         hostName: envInfo.hostName,
                                         ports: ports,
                                         busybeeDir: busybeeDir,
-                                        startScriptReturnData: envInfo.getStartScriptReturnData()
+                                        startScriptReturnData: envInfo.getStartScriptReturnData(),
+                                        startScriptErrorData: envInfo.getStartScriptErrorData(),
+                                        stopData: envInfo.stopData
                                     };
                                     filePath = path.join(busybeeDir, envInfo.stopScript);
                                     this.logger.trace(filePath);
@@ -199,15 +203,15 @@ var EnvManager = /** @class */ (function () {
                                     return [4 /*yield*/, this.runScript(filePath, [JSON.stringify(args)])];
                                 case 2:
                                     _a.sent();
-                                    this.currentHosts[envInfo.hostName].load -= envInfo.resourceCost;
-                                    // remove the env from the currentHosts
-                                    delete this.currentHosts[envInfo.hostName].envs[generatedEnvID];
-                                    this.logger.trace('this.currentHosts');
+                                    // remove env info from the host
+                                    this.removeEnvFromHost(envInfo.hostName, envInfo.resourceCost, generatedEnvID);
+                                    this.logger.trace("this.currentHosts after removing " + generatedEnvID);
                                     this.logger.trace(this.currentHosts, true);
                                     resolve();
                                     return [3 /*break*/, 4];
                                 case 3:
                                     e_1 = _a.sent();
+                                    this.logger.debug("Error caught while stopping " + generatedEnvID);
                                     this.logger.info(e_1.message);
                                     // failed, add it back
                                     this.currentEnvs.set(generatedEnvID, envInfo);
@@ -219,6 +223,12 @@ var EnvManager = /** @class */ (function () {
                     }); })];
             });
         });
+    };
+    EnvManager.prototype.removeEnvFromHost = function (hostName, resourceCost, generatedEnvID) {
+        // remove the load from the host
+        this.currentHosts[hostName].load -= resourceCost;
+        // remove the env from the currentHosts
+        delete this.currentHosts[hostName].envs[generatedEnvID];
     };
     EnvManager.prototype.stopAll = function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -278,12 +288,14 @@ var EnvManager = /** @class */ (function () {
                         return [4 /*yield*/, this.provisionEnv(generatedEnvID, suiteID, suiteEnvID)];
                     case 5:
                         _a.sent();
+                        this.logger.trace(generatedEnvID + " provisioned successfully");
+                        this.envsWaitingForProvision.shift();
                         return [3 /*break*/, 7];
                     case 6:
                         e_4 = _a.sent();
-                        throw new Error(generatedEnvID + " failed provision");
-                    case 7:
                         this.envsWaitingForProvision.shift();
+                        throw new Error(generatedEnvID + " failed to provision");
+                    case 7:
                         this.logger.trace("envsWaitingForProvision updated to " + this.envsWaitingForProvision);
                         _a.label = 8;
                     case 8:
@@ -327,7 +339,7 @@ var EnvManager = /** @class */ (function () {
     EnvManager.prototype.provisionEnv = function (generatedEnvID, suiteID, suiteEnvID) {
         var _this = this;
         return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-            var testSuiteConf, hostName, ports, busybeeDir, args, returnData, err_1;
+            var testSuiteConf, hostName, ports, busybeeDir, args, returnData, err_1, err_2;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -342,7 +354,7 @@ var EnvManager = /** @class */ (function () {
                         }
                         _a.label = 1;
                     case 1:
-                        _a.trys.push([1, 6, , 7]);
+                        _a.trys.push([1, 9, , 10]);
                         testSuiteConf = this.conf.parsedTestSuites.get(suiteID);
                         return [4 /*yield*/, this.getAvailableHostName(suiteID, suiteEnvID, generatedEnvID)];
                     case 2:
@@ -365,25 +377,40 @@ var EnvManager = /** @class */ (function () {
                             protocol: testSuiteConf.protocol,
                             hostName: hostName,
                             ports: ports,
-                            busybeeDir: busybeeDir
+                            busybeeDir: busybeeDir,
+                            startData: this.currentEnvs.get(generatedEnvID).startData
                         };
                         this.logger.trace('script args');
                         this.logger.trace(testSuiteConf.env.startScript);
                         this.logger.trace(args);
-                        return [4 /*yield*/, this.runScript(path.join(busybeeDir, testSuiteConf.env.startScript), [JSON.stringify(args)])];
+                        _a.label = 5;
                     case 5:
+                        _a.trys.push([5, 7, , 8]);
+                        return [4 /*yield*/, this.runScript(path.join(busybeeDir, testSuiteConf.env.startScript), [JSON.stringify(args)])];
+                    case 6:
                         returnData = _a.sent();
                         if (returnData) {
                             this.currentEnvs.get(generatedEnvID).setStartScriptReturnData(returnData);
                         }
+                        return [3 /*break*/, 8];
+                    case 7:
+                        err_1 = _a.sent();
+                        /*
+                        set the error information so that it can be used by the stopScript
+                        if necessary but then re-throw the error so that it can be handled by
+                        the orchestrating fns.
+                        */
+                        this.currentEnvs.get(generatedEnvID).setStartScriptErrorData(err_1);
+                        throw new Error(err_1);
+                    case 8:
                         this.logger.info(generatedEnvID + " created.");
                         resolve(generatedEnvID);
-                        return [3 /*break*/, 7];
-                    case 6:
-                        err_1 = _a.sent();
-                        reject(err_1);
-                        return [3 /*break*/, 7];
-                    case 7: return [2 /*return*/];
+                        return [3 /*break*/, 10];
+                    case 9:
+                        err_2 = _a.sent();
+                        reject(err_2);
+                        return [3 /*break*/, 10];
+                    case 10: return [2 /*return*/];
                 }
             });
         }); });
@@ -409,36 +436,37 @@ var EnvManager = /** @class */ (function () {
                     }
                     var dataStr = data.toString();
                     _this.logger.debug(dataStr);
-                    if (dataStr.includes("BUSYBEE_ERROR")) {
+                    if (dataStr.includes(EnvManager.BUSYBEE_ERROR)) {
                         returned = true;
-                        reject(dataStr);
-                        script.kill('SIGHUP');
+                        reject(dataStr.replace(EnvManager.BUSYBEE_ERROR + " ", ''));
+                        script.kill();
                     }
                 });
                 // listen to stdout for data
                 script.stdout.on('data', function (data) {
-                    if (returned) {
+                    if (returned || _.isEmpty(data)) {
                         return;
                     }
-                    if (_.isEmpty(data)) {
-                        return;
-                    }
-                    var dataStr = data.toString();
-                    _this.logger.debug(dataStr);
-                    if (dataStr.includes("BUSYBEE_ERROR")) {
-                        returned = true;
-                        _this.logger.error("BUSYBEE_ERROR detected in " + path);
-                        reject(dataStr);
-                        script.kill('SIGHUP');
-                    }
-                    else if (dataStr.includes("BUSYBEE_RETURN")) {
-                        returned = true;
-                        // return the captured result
-                        resolve(dataStr.substring(15, dataStr.length));
-                        script.kill('SIGHUP');
-                        _this.logger.debug(completeMessage);
-                    }
-                    ;
+                    var lines = IOHelper_1.IOHelper.parseDataBuffer(data);
+                    lines.forEach(function (l) {
+                        _this.logger.debug(l);
+                        if (l.includes(EnvManager.BUSYBEE_ERROR)) {
+                            returned = true;
+                            _this.logger.error(EnvManager.BUSYBEE_ERROR + " detected in " + path);
+                            reject(l.replace(EnvManager.BUSYBEE_ERROR + " ", ''));
+                            script.kill();
+                        }
+                        else if (l.includes(EnvManager.BUSYBEE_RETURN)) {
+                            var returnedData = l.replace(EnvManager.BUSYBEE_RETURN + " ", '');
+                            _this.logger.debug(path + " Returned data:");
+                            _this.logger.debug(returnedData);
+                            returned = true;
+                            resolve(returnedData);
+                            script.kill();
+                            _this.logger.debug(completeMessage);
+                        }
+                        ;
+                    });
                 });
                 // default return via script exit 0. no return value
                 script.on('close', function () {
@@ -798,6 +826,9 @@ var EnvManager = /** @class */ (function () {
     EnvManager.prototype.getCurrentEnv = function (generatedEnvID) {
         return this.currentEnvs.get(generatedEnvID);
     };
+    EnvManager.ENV_START_MAX_RETRIES = 3;
+    EnvManager.BUSYBEE_ERROR = 'BUSYBEE_ERROR';
+    EnvManager.BUSYBEE_RETURN = 'BUSYBEE_RETURN';
     return EnvManager;
 }());
 exports.EnvManager = EnvManager;

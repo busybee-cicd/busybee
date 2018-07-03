@@ -162,8 +162,7 @@ function initTests(conf: BusybeeParsedConfig) {
           return !ts.pass;
         })) {
         suiteResults[envResult.suiteID].pass = false;
-      }
-      ;
+      };
     });
 
     // for easier parsing lets return each suite as its own object in a list

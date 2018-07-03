@@ -1,3 +1,6 @@
+/*
+Models a specific instance of an Environment of a TestSuite.
+*/
 import {ParsedTestSuite} from "../models/config/parsed/ParsedTestSuiteConfig";
 import {ParsedTestSetConfig} from "../models/config/parsed/ParsedTestSetConfig";
 import {RequestOptsConfig} from "../models/config/common/RequestOptsConfig";
@@ -5,6 +8,7 @@ import {TypedMap} from "./TypedMap";
 export class SuiteEnvInfo {
   startScript: string;
   private startScriptReturnData: string;
+  private startScriptErrorData: string;
   stopScript: string;
   runScript: string;
   healthcheck: any;
@@ -17,6 +21,8 @@ export class SuiteEnvInfo {
   hostName: string;
   testSets: TypedMap<ParsedTestSetConfig>;
   ports: number[];
+  startData: any;
+  stopData: any;
 
   constructor(suiteConf: ParsedTestSuite, suiteID: string, suiteEnvID: string, resourceCost: number, hostName: string) {
     this.suiteID = suiteID;
@@ -31,6 +37,8 @@ export class SuiteEnvInfo {
     this.defaultRequestOpts = suiteConf.defaultRequestOpts;
     this.root = suiteConf.root;
     this.testSets = suiteConf.testEnvs.get(suiteEnvID).testSets;
+    this.startData = suiteConf.testEnvs.get(suiteEnvID).startData;
+    this.stopData = suiteConf.testEnvs.get(suiteEnvID).stopData;
   }
 
   setStartScriptReturnData(data: string) {
@@ -39,5 +47,13 @@ export class SuiteEnvInfo {
 
   getStartScriptReturnData(): string {
     return this.startScriptReturnData;
+  }
+
+  setStartScriptErrorData(data: string) {
+    this.startScriptErrorData = data;
+  }
+
+  getStartScriptErrorData(): string {
+    return this.startScriptErrorData;
   }
 }

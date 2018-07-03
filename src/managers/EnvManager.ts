@@ -13,7 +13,7 @@ import {RequestOptsConfig} from "../models/config/common/RequestOptsConfig";
 import {TypedMap} from "../lib/TypedMap";
 import {ParsedTestSuite} from "../models/config/parsed/ParsedTestSuiteConfig";
 import {SuiteEnvInfo} from "../lib/SuiteEnvInfo";
-
+import { IOHelper } from '../lib/IOHelper';
 
 export class EnvManager {
   private conf: BusybeeParsedConfig;
@@ -22,6 +22,10 @@ export class EnvManager {
   private envsWaitingForProvision: string[];
   private currentHosts: any;
   private currentEnvs: TypedMap<SuiteEnvInfo>;
+  private envStartRetries: any = {};
+  private static ENV_START_MAX_RETRIES = 3;
+  private static BUSYBEE_ERROR: string = 'BUSYBEE_ERROR';
+  private static BUSYBEE_RETURN: string = 'BUSYBEE_RETURN';
 
   constructor(conf: BusybeeParsedConfig) {
     this.conf = _.cloneDeep(conf);
@@ -164,7 +168,9 @@ export class EnvManager {
         hostName: envInfo.hostName,
         ports: ports,
         busybeeDir: busybeeDir,
-        startScriptReturnData: envInfo.getStartScriptReturnData()
+        startScriptReturnData: envInfo.getStartScriptReturnData(),
+        startScriptErrorData: envInfo.getStartScriptErrorData(),
+        stopData: envInfo.stopData
       };
 
       let filePath = path.join(busybeeDir, envInfo.stopScript);
@@ -174,17 +180,16 @@ export class EnvManager {
 
       // 1. stop the env
       try {
-
         await this.runScript(filePath, [JSON.stringify(args)]);
 
-        this.currentHosts[envInfo.hostName].load -= envInfo.resourceCost;
-        // remove the env from the currentHosts
-        delete this.currentHosts[envInfo.hostName].envs[generatedEnvID];
+        // remove env info from the host
+        this.removeEnvFromHost(envInfo.hostName, envInfo.resourceCost, generatedEnvID);
 
-        this.logger.trace('this.currentHosts');
+        this.logger.trace(`this.currentHosts after removing ${generatedEnvID}`);
         this.logger.trace(this.currentHosts, true);
         resolve();
       } catch (e) {
+        this.logger.debug(`Error caught while stopping ${generatedEnvID}`);
         this.logger.info(e.message);
         // failed, add it back
         this.currentEnvs.set(generatedEnvID, envInfo);
@@ -193,6 +198,13 @@ export class EnvManager {
       }
     });
 
+  }
+
+  removeEnvFromHost(hostName: string, resourceCost: number, generatedEnvID: string) {
+    // remove the load from the host
+    this.currentHosts[hostName].load -= resourceCost;
+    // remove the env from the currentHosts
+    delete this.currentHosts[hostName].envs[generatedEnvID];
   }
 
   async stopAll() {
@@ -225,12 +237,15 @@ export class EnvManager {
 
     try {
       await this.provisionEnv(generatedEnvID, suiteID, suiteEnvID);
+      this.logger.trace(`${generatedEnvID} provisioned successfully`);
+      this.envsWaitingForProvision.shift();
     } catch (e) {
-      throw new Error(`${generatedEnvID} failed provision`);
+      this.envsWaitingForProvision.shift();
+      throw new Error(`${generatedEnvID} failed to provision`);
     }
 
-    this.envsWaitingForProvision.shift();
     this.logger.trace(`envsWaitingForProvision updated to ${this.envsWaitingForProvision}`);
+
     // should have some if logic here for the future when we support more than just api
 
     try {
@@ -294,15 +309,27 @@ export class EnvManager {
           protocol: testSuiteConf.protocol,
           hostName: hostName,
           ports: ports,
-          busybeeDir: busybeeDir
+          busybeeDir: busybeeDir,
+          startData: this.currentEnvs.get(generatedEnvID).startData
         };
 
         this.logger.trace('script args');
         this.logger.trace(testSuiteConf.env.startScript);
         this.logger.trace(args);
-        let returnData = await this.runScript(path.join(busybeeDir, testSuiteConf.env.startScript), [JSON.stringify(args)]);
-        if (returnData) {
-          this.currentEnvs.get(generatedEnvID).setStartScriptReturnData(returnData);
+        try {
+          let returnData = await this.runScript(path.join(busybeeDir, testSuiteConf.env.startScript), [JSON.stringify(args)]);
+
+          if (returnData) {
+            this.currentEnvs.get(generatedEnvID).setStartScriptReturnData(returnData);
+          }
+        } catch (err) {
+          /*
+          set the error information so that it can be used by the stopScript
+          if necessary but then re-throw the error so that it can be handled by
+          the orchestrating fns.
+          */
+          this.currentEnvs.get(generatedEnvID).setStartScriptErrorData(err);
+          throw new Error(err);
         }
 
         this.logger.info(`${generatedEnvID} created.`);
@@ -332,36 +359,38 @@ export class EnvManager {
         let dataStr = data.toString();
         this.logger.debug(dataStr);
 
-        if (dataStr.includes("BUSYBEE_ERROR")) {
+        if (dataStr.includes(EnvManager.BUSYBEE_ERROR)) {
           returned = true;
-          reject(dataStr);
-          script.kill('SIGHUP');
+          reject(dataStr.replace(`${EnvManager.BUSYBEE_ERROR} `, ''));
+          script.kill();
         }
       });
 
       // listen to stdout for data
       script.stdout.on('data', (data) => {
-        if (returned) {
+        if (returned || _.isEmpty(data)) {
           return;
         }
-        if (_.isEmpty(data)) {
-          return;
-        }
-        let dataStr = data.toString();
-        this.logger.debug(dataStr);
 
-        if (dataStr.includes("BUSYBEE_ERROR")) {
-          returned = true;
-          this.logger.error(`BUSYBEE_ERROR detected in ${path}`);
-          reject(dataStr);
-          script.kill('SIGHUP');
-        } else if (dataStr.includes("BUSYBEE_RETURN")) {
-          returned = true;
-          // return the captured result
-          resolve(dataStr.substring(15, dataStr.length));
-          script.kill('SIGHUP');
-          this.logger.debug(completeMessage);
-        };
+        let lines = IOHelper.parseDataBuffer(data);
+        lines.forEach((l) => {
+          this.logger.debug(l);
+
+          if (l.includes(EnvManager.BUSYBEE_ERROR)) {
+            returned = true;
+            this.logger.error(`${EnvManager.BUSYBEE_ERROR} detected in ${path}`);
+            reject(l.replace(`${EnvManager.BUSYBEE_ERROR} `, ''));
+            script.kill();
+          } else if (l.includes(EnvManager.BUSYBEE_RETURN)) {
+            let returnedData = l.replace(`${EnvManager.BUSYBEE_RETURN} `, '');
+            this.logger.debug(`${path} Returned data:`);
+            this.logger.debug(returnedData);
+            returned = true;
+            resolve(returnedData);
+            script.kill();
+            this.logger.debug(completeMessage);
+          };
+        });
       });
 
       // default return via script exit 0. no return value

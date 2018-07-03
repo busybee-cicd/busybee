@@ -4,6 +4,8 @@ var EnvInstanceConfig = /** @class */ (function () {
     function EnvInstanceConfig() {
         this.id = void 0;
         this.testSets = void 0;
+        this.startData = void 0;
+        this.stopData = void 0;
     }
     return EnvInstanceConfig;
 }());

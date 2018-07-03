@@ -242,3 +242,4 @@ actual = [
   - support testSets with state
   - support a .spec file for documenting endpoints?
 - remove placeholder 'null' entries after building testSets with skipped indexes
+- document startData, stopData, runData
