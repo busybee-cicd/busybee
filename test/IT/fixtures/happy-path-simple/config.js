@@ -6,6 +6,7 @@ module.exports = {
       }
     ]
   }],
+  "onComplete": "onComplete.js",
   "testSuites" : [
     {
       "id": "Happy Path",

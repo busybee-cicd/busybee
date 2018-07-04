@@ -41,14 +41,24 @@ var child_process_1 = require("child_process");
 var path = require("path");
 var Logger_1 = require("../../src/lib/Logger");
 var IOHelper_1 = require("../../src/lib/IOHelper");
+var IgnoreKeys_1 = require("../../src/lib/assertionModifications/IgnoreKeys");
 var busybee = path.join(__dirname, '../../dist/src/index.js');
 var logger = new Logger_1.Logger({}, { constructor: { name: 'IT' } });
 ava_1.default("happy path simple", function (t) {
     return new Promise(function (resolve, reject) {
         var returned = false;
         var testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/happy-path-simple'), '-D']);
+        var expected = [{ "testSets": [{ "pass": true, "id": "ts1", "tests": [{ "pass": true, "id": "body assertion", "status": { "pass": true, "actual": 200 }, "headers": { "pass": true, "actual": [{ "content-type": "application/json" }, { "date": "Wed, 04 Jul 2018 15:15:16 GMT" }, { "connection": "close" }, { "transfer-encoding": "chunked" }], "expected": [] }, "body": { "pass": true, "actual": { "hello": "world", "object": { "1": "2", "arr": [1, 3, 4], "nested": { "im": "nested", "arr": [1, 2, 3, 4] } }, "arr": [1, 2, 3] } }, "request": { "json": true, "method": "GET", "url": "http://localhost:7777/body-assertion", "timeout": 30000, "resolveWithFullResponse": true, "simple": false } }, { "pass": true, "id": "status assertion", "status": { "pass": true, "actual": 404 }, "headers": { "pass": true, "actual": [{ "content-type": "application/json" }, { "date": "Wed, 04 Jul 2018 15:15:16 GMT" }, { "connection": "close" }, { "transfer-encoding": "chunked" }], "expected": [] }, "body": { "pass": true }, "request": { "json": true, "method": "GET", "url": "http://localhost:7777/status-assertion", "timeout": 30000, "resolveWithFullResponse": true, "simple": false } }] }], "pass": true, "type": "REST", "id": "Happy Path" }];
+        var actual;
+        testCmd.stdout.on('data', function (data) {
+            var lines = IOHelper_1.IOHelper.parseDataBuffer(data);
+            lines.forEach(function (l) {
+                if (l.startsWith('RESULTS:')) {
+                    actual = JSON.parse(l.replace('RESULTS: ', ''));
+                }
+            });
+        });
         testCmd.stderr.on('data', function (data) {
-            logger.info(data.toString());
             if (!returned) {
                 returned = true;
                 t.fail();
@@ -59,7 +69,9 @@ ava_1.default("happy path simple", function (t) {
         testCmd.on('close', function () {
             if (!returned) {
                 returned = true;
-                t.pass();
+                // remove the nested 'date' property from actual/expected since this will be different each run
+                IgnoreKeys_1.IgnoreKeys.process(['*.testSets.tests.headers.actual.date'], expected, actual);
+                t.deepEqual(actual, expected);
                 resolve();
             }
         });
@@ -87,6 +99,10 @@ ava_1.default("env start failure", function (t) { return __awaiter(_this, void 0
         }
     });
 }); });
+/*
+  looks for occurrences of strings in a stdout stream of a child process
+  when given an assertions object {stringToFind: numberOfOccurrences}
+*/
 function analyzeOutput(childProcess, assertions) {
     return new Promise(function (resolve, reject) {
         var actual = {};
