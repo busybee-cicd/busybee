@@ -47,7 +47,7 @@ var logger = new Logger_1.Logger({}, { constructor: { name: 'IT' } });
 ava_1.default("happy path simple", function (t) {
     return new Promise(function (resolve, reject) {
         var returned = false;
-        var testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/happy-path-simple'), '-D']);
+        var testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-happy-path-simple')]);
         var expected = [{ "testSets": [{ "pass": true, "id": "ts1", "tests": [{ "pass": true, "id": "body assertion", "status": { "pass": true, "actual": 200 }, "headers": { "pass": true, "actual": [{ "content-type": "application/json" }, { "date": "Wed, 04 Jul 2018 15:15:16 GMT" }, { "connection": "close" }, { "transfer-encoding": "chunked" }], "expected": [] }, "body": { "pass": true, "actual": { "hello": "world", "object": { "1": "2", "arr": [1, 3, 4], "nested": { "im": "nested", "arr": [1, 2, 3, 4] } }, "arr": [1, 2, 3] } }, "request": { "json": true, "method": "GET", "url": "http://localhost:7777/body-assertion", "timeout": 30000, "resolveWithFullResponse": true, "simple": false } }, { "pass": true, "id": "status assertion", "status": { "pass": true, "actual": 404 }, "headers": { "pass": true, "actual": [{ "content-type": "application/json" }, { "date": "Wed, 04 Jul 2018 15:15:16 GMT" }, { "connection": "close" }, { "transfer-encoding": "chunked" }], "expected": [] }, "body": { "pass": true }, "request": { "json": true, "method": "GET", "url": "http://localhost:7777/status-assertion", "timeout": 30000, "resolveWithFullResponse": true, "simple": false } }] }], "pass": true, "type": "REST", "id": "Happy Path" }];
         var actual;
         testCmd.stdout.on('data', function (data) {
@@ -77,12 +77,37 @@ ava_1.default("happy path simple", function (t) {
         });
     });
 });
-ava_1.default("env start failure", function (t) { return __awaiter(_this, void 0, void 0, function () {
-    var assertions, testCmd, actual;
+ava_1.default("test run order", function (t) { return __awaiter(_this, void 0, void 0, function () {
+    var testCmd, expected, result;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                assertions = {
+                testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-test-run-order')]);
+                expected = [
+                    'INFO: Running Test Set: ts1',
+                    'INFO: ts1: 0: test at index: 0',
+                    'INFO: ts1: 1: test at index: 1',
+                    'INFO: ts1: 2: test at index: 2',
+                    'INFO: ts1: 3: test at index: 3',
+                    'INFO: ts1: 4: test at index: 4',
+                    'INFO: ts1: #: implicitly ordered 1',
+                    'INFO: ts1: #: implicitly ordered 2',
+                    'INFO: ts1: #: implicitly ordered 3'
+                ];
+                return [4 /*yield*/, expectInOrder(testCmd, expected, t)];
+            case 1:
+                result = _a.sent();
+                t.is(result.length, 0);
+                return [2 /*return*/];
+        }
+    });
+}); });
+ava_1.default("env start failure", function (t) { return __awaiter(_this, void 0, void 0, function () {
+    var expected, testCmd, actual;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                expected = {
                     'BUSYBEE_ERROR detected': 2,
                     'Stopping Environment: Env That Will Fail To Start (1)': 1,
                     'Stopping Environment: Env That Will Fail To Start (2)': 1,
@@ -91,10 +116,10 @@ ava_1.default("env start failure", function (t) { return __awaiter(_this, void 0
                     'Tests finished in': 1
                 };
                 testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/env-start-failure')]);
-                return [4 /*yield*/, analyzeOutput(testCmd, assertions)];
+                return [4 /*yield*/, analyzeOutputFrequency(testCmd, expected)];
             case 1:
                 actual = _a.sent();
-                t.deepEqual(actual, assertions);
+                t.deepEqual(actual, expected);
                 return [2 /*return*/];
         }
     });
@@ -103,10 +128,10 @@ ava_1.default("env start failure", function (t) { return __awaiter(_this, void 0
   looks for occurrences of strings in a stdout stream of a child process
   when given an assertions object {stringToFind: numberOfOccurrences}
 */
-function analyzeOutput(childProcess, assertions) {
+function analyzeOutputFrequency(childProc, assertions) {
     return new Promise(function (resolve, reject) {
         var actual = {};
-        childProcess.stdout.on('data', function (data) {
+        childProc.stdout.on('data', function (data) {
             var lines = IOHelper_1.IOHelper.parseDataBuffer(data);
             lines.forEach(function (l) {
                 var found = Object.keys(assertions).find(function (k) {
@@ -120,8 +145,40 @@ function analyzeOutput(childProcess, assertions) {
                 }
             });
         });
-        childProcess.on('close', function () {
+        childProc.on('close', function () {
             resolve(actual);
+        });
+    });
+}
+/*
+ reads from stdout and shifts entries out of the provided array as they are encountered.
+ if all items are encountered in the order in which they appear in the stdout stream then the
+ collection should be empty when resolved
+*/
+function expectInOrder(childProc, expect, t) {
+    return new Promise(function (resolve, reject) {
+        var returned = false;
+        childProc.stdout.on('data', function (data) {
+            var lines = IOHelper_1.IOHelper.parseDataBuffer(data);
+            lines.forEach(function (l) {
+                if (l === expect[0]) {
+                    expect.shift();
+                }
+            });
+        });
+        childProc.stderr.on('data', function (data) {
+            if (!returned) {
+                returned = true;
+                t.fail();
+                childProc.kill('SIGHUP');
+                resolve(expect);
+            }
+        });
+        childProc.on('close', function () {
+            if (!returned) {
+                returned = true;
+                resolve(expect);
+            }
         });
     });
 }
