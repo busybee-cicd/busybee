@@ -1,0 +1,325 @@
+{
+  "RequestOptsConfig": {
+    "id": "RequestOptsConfig",
+    "type": "object",
+    "properties": {
+      "headers": {},
+      "query": {},
+      "body": {},
+      "json": {
+        "type": "boolean"
+      },
+      "endpoint": {
+        "type": "string"
+      },
+      "timeout": {
+        "type": "number"
+      },
+      "port": {
+        "type": "number"
+      },
+      "method": {
+        "type": "string"
+      },
+      "root": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "headers",
+      "query",
+      "body",
+      "json",
+      "endpoint",
+      "timeout",
+      "port",
+      "method",
+      "root"
+    ],
+    "additionalProperties": false
+  },
+  "HostConfig": {
+    "id": "HostConfig",
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string"
+      },
+      "capacity": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "name",
+      "capacity"
+    ],
+    "additionalProperties": false
+  },
+  "EnvResourceConfig": {
+    "id": "EnvResourceConfig",
+    "type": "object",
+    "properties": {
+      "hosts": {
+        "type": "array",
+        "items": {
+          "$ref": "HostConfig"
+        }
+      }
+    },
+    "required": [
+      "hosts"
+    ],
+    "additionalProperties": false
+  },
+  "TestSetConfig": {
+    "id": "TestSetConfig",
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "controlFlow": {
+        "type": "string"
+      },
+      "runData": {},
+      "description": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "id",
+      "controlFlow",
+      "runData",
+      "description"
+    ],
+    "additionalProperties": false
+  },
+  "EnvInstanceConfig": {
+    "id": "EnvInstanceConfig",
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "testSets": {
+        "type": "array",
+        "items": {
+          "$ref": "TestSetConfig"
+        }
+      },
+      "suiteEnvID": {
+        "type": "string"
+      },
+      "startData": {},
+      "stopData": {}
+    },
+    "required": [
+      "id",
+      "testSets",
+      "suiteEnvID",
+      "startData",
+      "stopData"
+    ],
+    "additionalProperties": false
+  },
+  "ProxyConfig": {
+    "id": "ProxyConfig",
+    "type": "object",
+    "properties": {
+      "protocol": {
+        "type": "string"
+      },
+      "host": {
+        "type": "string"
+      },
+      "port": {
+        "type": "number"
+      }
+    },
+    "required": [
+      "protocol",
+      "host",
+      "port"
+    ],
+    "additionalProperties": false
+  },
+  "MockServerConfig": {
+    "id": "MockServerConfig",
+    "type": "object",
+    "properties": {
+      "port": {
+        "type": "number"
+      },
+      "root": {
+        "type": "string"
+      },
+      "proxy": {
+        "$ref": "ProxyConfig"
+      },
+      "cors": {
+        "type": "boolean"
+      },
+      "injectedRequestOpts": {
+        "$ref": "RequestOptsConfig"
+      }
+    },
+    "required": [
+      "port",
+      "root",
+      "proxy",
+      "cors",
+      "injectedRequestOpts"
+    ],
+    "additionalProperties": false
+  },
+  "HealthCheckConfig": {
+    "id": "HealthCheckConfig",
+    "type": "object",
+    "properties": {
+      "type": {
+        "type": "string"
+      },
+      "retries": {
+        "type": "number"
+      },
+      "request": {
+        "$ref": "RequestOptsConfig"
+      }
+    },
+    "required": [
+      "type",
+      "retries",
+      "request"
+    ],
+    "additionalProperties": false
+  },
+  "EnvConfig": {
+    "id": "EnvConfig",
+    "type": "object",
+    "properties": {
+      "parallel": {
+        "type": "boolean"
+      },
+      "resourceCost": {
+        "type": "number"
+      },
+      "startScript": {
+        "type": "string"
+      },
+      "stopScript": {
+        "type": "string"
+      },
+      "runScript": {
+        "type": "string"
+      },
+      "healthcheck": {
+        "$ref": "HealthCheckConfig"
+      }
+    },
+    "required": [
+      "parallel",
+      "resourceCost",
+      "startScript",
+      "stopScript",
+      "runScript",
+      "healthcheck"
+    ],
+    "additionalProperties": false
+  },
+  "TestSuiteConfig": {
+    "id": "TestSuiteConfig",
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "type": {
+        "type": "string"
+      },
+      "skip": {
+        "type": "boolean"
+      },
+      "env": {
+        "$ref": "EnvConfig"
+      },
+      "envInstances": {
+        "type": "array",
+        "items": {
+          "$ref": "EnvInstanceConfig"
+        }
+      },
+      "protocol": {
+        "description": "REST-type-specific",
+        "type": "string"
+      },
+      "host": {
+        "type": "string"
+      },
+      "ports": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      },
+      "root": {
+        "type": "string"
+      },
+      "testFolder": {
+        "type": "string"
+      },
+      "defaultRequestOpts": {
+        "$ref": "RequestOptsConfig"
+      },
+      "mockServer": {
+        "$ref": "MockServerConfig"
+      }
+    },
+    "required": [
+      "id",
+      "type",
+      "skip",
+      "env",
+      "envInstances",
+      "protocol",
+      "host",
+      "ports",
+      "root",
+      "testFolder",
+      "defaultRequestOpts",
+      "mockServer"
+    ],
+    "additionalProperties": false
+  },
+  "BusybeeUserConfig": {
+    "id": "BusybeeUserConfig",
+    "type": "object",
+    "properties": {
+      "envResources": {
+        "type": "array",
+        "items": {
+          "$ref": "EnvResourceConfig"
+        }
+      },
+      "onComplete": {
+        "type": "string"
+      },
+      "testSuites": {
+        "type": "array",
+        "items": {
+          "$ref": "TestSuiteConfig"
+        }
+      },
+      "reporters": {
+        "type": "array",
+        "items": {}
+      }
+    },
+    "required": [
+      "envResources",
+      "onComplete",
+      "testSuites",
+      "reporters"
+    ],
+    "additionalProperties": false
+  }
+}
