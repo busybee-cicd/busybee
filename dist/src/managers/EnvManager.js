@@ -76,7 +76,7 @@ var EnvManager = /** @class */ (function () {
      'type': 'REST',
      'retries': 30,
      'request': {
-     'endpoint': '/healthcheck',
+     'path': '/healthcheck',
      'timeout': 5000
      }
      }
@@ -624,13 +624,13 @@ var EnvManager = /** @class */ (function () {
      Recursively check for available ports
   
      IF (parallelMode)
-     IF (portsTaken)
-     increment ports and try again
+      IF (portsTaken)
+        increment ports and try again
+      ELSE
+        we've identified available ports, return
      ELSE
-     we've identified available ports, return
-     ELSE
-     IF (portsTaken)
-     do not increment ports, try again
+      IF (portsTaken)
+        do not increment ports, try again
      */
     EnvManager.prototype.identifyPorts = function (generatedEnvID, hostName, portsInUse, nextPorts, portOffset, parallelMode) {
         return __awaiter(this, void 0, void 0, function () {
@@ -782,13 +782,13 @@ var EnvManager = /** @class */ (function () {
                     healthcheckPort_1 = requestConf.port;
                 }
                 else {
-                    healthcheckPort_1 = suiteEnvConf.ports[0]; // default to restapi endpoint
+                    healthcheckPort_1 = suiteEnvConf.ports[0]; // default to restapi path
                 }
                 // 2. get the port offset, apply.
                 var portOffset = _this.currentHosts[suiteEnvConf.hostName].envs[generatedEnvID].portOffset;
                 healthcheckPort_1 += portOffset;
                 var opts_1 = restClient_1.buildRequest(requestConf, healthcheckPort_1);
-                // retries the healthcheck endpoint every 3 seconds up to 20 times
+                // retries the healthcheck path every 3 seconds up to 20 times
                 // when successful calls the cb passed to confirmHealthcheck()
                 _async.retry({ times: healthcheckConf.retries || 50, interval: opts_1.timeout }, function (asyncCb) {
                     _this.logger.info("Attempting healthcheck for " + generatedEnvID + " on port " + healthcheckPort_1);

@@ -127,8 +127,8 @@ export class MockServer {
     })
 
     // iterate the routeMap and register each route to the server
-    _.each(this.routeMap, (reqMethodMap, endpoint) => {
-      this.addRoute(endpoint, reqMethodMap);
+    _.each(this.routeMap, (reqMethodMap, path) => {
+      this.addRoute(path, reqMethodMap);
     });
 
     // add a special catchall route for the proxy if necessary
@@ -143,26 +143,26 @@ export class MockServer {
     }
   }
 
-  // build an endpoint that accounts for the root context
+  // build an path that accounts for the root context
   getEndpoint(mock: RESTTest) {
     this.logger.trace(`getEndpoint`);
     this.logger.trace(mock, true);
 
-    let endpoint = mock.request.endpoint;
+    let path = mock.request.path;
     if (!_.isUndefined(mock.request.root)) {
       if (mock.request.root) { // allow users to set request.root to override mockServer.root && testSuiteConf.root when mocking
-        endpoint = `${mock.request.root}${endpoint}`;
+        path = `${mock.request.root}${path}`;
       } // else they passed null or false and we should not prepend a root (effectively overwriting mockServer.root or testSuiteConf.root
     } else if (!_.isUndefined(this.testSuiteConf.mockServer.root)) {
       if (this.testSuiteConf.mockServer.root != null) { // allow users to set mockServer.root to false to override testSuiteConf.root when mocking
-        endpoint = `${this.testSuiteConf.mockServer.root}${endpoint}`;
+        path = `${this.testSuiteConf.mockServer.root}${path}`;
       }
     } else if (this.testSuiteConf.root) {
-      endpoint = `${this.testSuiteConf.root}${endpoint}`;
+      path = `${this.testSuiteConf.root}${path}`;
     }
 
-    this.logger.trace(endpoint);
-    return endpoint;
+    this.logger.trace(path);
+    return path;
   }
 
   updateRouteMap(mock: RESTTest) {
@@ -172,10 +172,10 @@ export class MockServer {
     //   mockResponse.request = Object.assign({}, this.testSuiteConf.mockServer.injectedRequestOpts, mockResponse.request);
     // }
 
-    // build an endpoint that accounts for the root context
-    let endpoint = this.getEndpoint(mock);
-    if (!this.routeMap[endpoint]) {
-      this.routeMap[endpoint] = {
+    // build an path that accounts for the root context
+    let path = this.getEndpoint(mock);
+    if (!this.routeMap[path]) {
+      this.routeMap[path] = {
         get: {200: []},
         post: {200: []},
         put: {200: []},
@@ -193,20 +193,20 @@ export class MockServer {
     }
 
     let hashedReq = hash(requestOpts);
-    // 1a. search the this.routeMap[test.request.endpoint] for it using the hash
+    // 1a. search the this.routeMap[test.request.path] for it using the hash
     let method = request.method.toLocaleLowerCase();
     let resStatus = mock.mockResponse ? mock.mockResponse.status : mock.expect.status; // default to mockResponse
 
-    if (this.routeMap[endpoint][method]) {
-      if (this.routeMap[endpoint][method][resStatus]) {
-        if (_.find(this.routeMap[endpoint][method], (reqInfo) => {
+    if (this.routeMap[path][method]) {
+      if (this.routeMap[path][method][resStatus]) {
+        if (_.find(this.routeMap[path][method], (reqInfo) => {
             return reqInfo.hash === hashedReq
           })) {
           // skip this one it exists
           return
         }
       } else {
-        this.routeMap[endpoint][method][resStatus] = []
+        this.routeMap[path][method][resStatus] = []
       }
     } else {
       this.logger.info(`The method ${method} is not currently support for mocks`);
@@ -214,11 +214,11 @@ export class MockServer {
     }
 
     // 2. register the request info for this route
-    this.routeMap[endpoint][method][resStatus].push(Object.assign({}, mock, {hash: hashedReq}, {matcherOpts: requestOpts}));
+    this.routeMap[path][method][resStatus].push(Object.assign({}, mock, {hash: hashedReq}, {matcherOpts: requestOpts}));
   }
 
-  addRoute(endpoint, reqMethodMap) {
-    this.logger.debug(`addRoute ${endpoint}, ${JSON.stringify(reqMethodMap)}`);
+  addRoute(path, reqMethodMap) {
+    this.logger.debug(`addRoute ${path}, ${JSON.stringify(reqMethodMap)}`);
 
     _.forEach(reqMethodMap, (statusMap, methodName) => {
       // 1. build a controller
@@ -360,8 +360,8 @@ export class MockServer {
       } // end ctrl
 
       // 2. register the route/method and ctrl
-      this.logger.info(`Registering endpoint ${endpoint} : ${methodName}`);
-      server[methodName](endpoint, ctrl);
+      this.logger.info(`Registering path ${path} : ${methodName}`);
+      server[methodName](path, ctrl);
     });
   }
 

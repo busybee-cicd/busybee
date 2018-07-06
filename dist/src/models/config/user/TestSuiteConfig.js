@@ -1,5 +1,22 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * The top-level of a
+ *
+ * {<br>
+ *   id: 'API test suite',<br>
+ *   type: 'REST',<br>
+ *   skip: false,<br>
+ *   env: EnvConfig,<br>
+ *   envInstances: EnvInstanceConfig[],<br>
+ *   protocol: 'http',<br>
+ *   ports: [8080],<br>
+ *   root: '/v1'<br>
+ *   testFolder: 'api-tests',<br>
+ *   defaultRequestOpts: RequestOptsConfig,<br>
+ *   mockServer: MockServerConfig<br>
+ * }
+ */
 var TestSuiteConfig = /** @class */ (function () {
     function TestSuiteConfig() {
         this.id = void 0;

@@ -1,5 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * {<br>
+ *   parallel: true,<br>
+ *   resourceCost: 100,<br>
+ *   startScript: 'start.sh',<br>
+ *   stopScript: 'stop.sh',<br>
+ *   runScript: 'run.sh',<br>
+ *   healthCheck: HealthCheckConfig<br>
+ * }
+ */
 var EnvConfig = /** @class */ (function () {
     function EnvConfig() {
         this.parallel = void 0;

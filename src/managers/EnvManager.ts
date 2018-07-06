@@ -57,7 +57,7 @@ export class EnvManager {
    'type': 'REST',
    'retries': 30,
    'request': {
-   'endpoint': '/healthcheck',
+   'path': '/healthcheck',
    'timeout': 5000
    }
    }
@@ -541,13 +541,13 @@ export class EnvManager {
    Recursively check for available ports
 
    IF (parallelMode)
-   IF (portsTaken)
-   increment ports and try again
+    IF (portsTaken)
+      increment ports and try again
+    ELSE
+      we've identified available ports, return
    ELSE
-   we've identified available ports, return
-   ELSE
-   IF (portsTaken)
-   do not increment ports, try again
+    IF (portsTaken)
+      do not increment ports, try again
    */
   async identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset, parallelMode) {
     this.logger.trace(`identifyPorts: ${generatedEnvID} ${hostName}, ${portsInUse}, ${nextPorts}, ${portOffset}, ${parallelMode}`);
@@ -683,14 +683,14 @@ export class EnvManager {
         if (requestConf.port) {
           healthcheckPort = requestConf.port;
         } else {
-          healthcheckPort = suiteEnvConf.ports[0]; // default to restapi endpoint
+          healthcheckPort = suiteEnvConf.ports[0]; // default to restapi path
         }
         // 2. get the port offset, apply.
         let portOffset = this.currentHosts[suiteEnvConf.hostName].envs[generatedEnvID].portOffset
         healthcheckPort += portOffset;
         let opts = restClient.buildRequest(requestConf, healthcheckPort);
 
-        // retries the healthcheck endpoint every 3 seconds up to 20 times
+        // retries the healthcheck path every 3 seconds up to 20 times
         // when successful calls the cb passed to confirmHealthcheck()
         _async.retry({times: healthcheckConf.retries || 50, interval: opts.timeout},
           (asyncCb) => {

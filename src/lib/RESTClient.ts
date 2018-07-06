@@ -61,11 +61,11 @@ export class RESTClient {
     this.logger.trace(requestConf);
 
     let url = this.buildBaseUrl(requestConf, port);
-    if (requestConf.endpoint) {
-      if (requestConf.endpoint.startsWith("/")) {
-        url += requestConf.endpoint;
+    if (requestConf.path) {
+      if (requestConf.path.startsWith("/")) {
+        url += requestConf.path;
       } else {
-        url += `/${requestConf.endpoint}`;
+        url += `/${requestConf.path}`;
       }
     }
 

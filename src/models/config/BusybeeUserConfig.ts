@@ -1,10 +1,35 @@
 import {TestSuiteConfig} from "./user/TestSuiteConfig";
 import {EnvResourceConfig} from "./common/EnvResourceConfig";
-
+/**
+ * Busybee Configuration. Mapped to Typescript from user-provided config.js/json. The top-level
+ * of configuration, the fields in the BusybeeUserConfig are responsible for defining the resources available
+ * for environment provisioning, TestSuites that will be run with-in environments and registering reporters for result analysis
+ *
+ * {<br>
+ * &nbsp; envResources: EnvResourceConfig[],<br>
+ * &nbsp; onComplete: 'onComplete.js',<br>
+ * &nbsp; testSuites: TestSuiteConfig[],<br>
+ * &nbsp; reporters: []<br>
+ * }
+ */
 export class BusybeeUserConfig {
+  /**
+   * Describes the available resources that environments can be deployed to
+   */
   envResources: EnvResourceConfig[];
+  /**
+   * The name of a .js file to call on completion of all Test Suites.
+   * Must export a single function with the signature (errors, results).
+   */
   onComplete: string;
+  /**
+   * <span style="color:red">**Required**</span> <br>
+   * A collection of TestSuites to run via `busybee test`
+   */
   testSuites: TestSuiteConfig[];
+  /**
+   * A collection of reporters that will be called at the completion of a TestSuite
+   */
   reporters: Array<any>;
 
   constructor() {

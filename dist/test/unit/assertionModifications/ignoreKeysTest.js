@@ -96,7 +96,7 @@ ava_1.default("keys are successfully removed from an object using object syntax"
     ], actual, expected);
     t.deepEqual(actual, expected);
 });
-ava_1.default("keys are successfully removed from a collection of objects using object syntax", function (t) {
+ava_1.default.skip("keys are successfully removed from a collection of objects using object syntax", function (t) {
     var actual = [
         {
             hello: 1,

@@ -111,7 +111,7 @@ test(`keys are successfully removed from an object using object syntax`, (t) => 
   t.deepEqual(actual, expected);
 });
 
-test(`keys are successfully removed from a collection of objects using object syntax`, (t) => {
+test.skip(`keys are successfully removed from a collection of objects using object syntax`, (t) => {
   let actual = [
     {
       hello: 1,
