@@ -1,9 +1,9 @@
-export class IOHelper {
+export class IOUtil {
   constructor() {}
 
   static parseDataBuffer(dataBuffer: string | Buffer) {
     let dataStr = dataBuffer.toString();
-    dataStr = IOHelper.trimChars(dataStr, '\n');
+    dataStr = IOUtil.trimChars(dataStr, '\n');
 
     return dataStr.split('\n');
   }

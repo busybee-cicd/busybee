@@ -45,7 +45,7 @@ var Logger_1 = require("../lib/Logger");
 var RESTClient_1 = require("../lib/RESTClient");
 var TypedMap_1 = require("../lib/TypedMap");
 var SuiteEnvInfo_1 = require("../lib/SuiteEnvInfo");
-var IOHelper_1 = require("../lib/IOHelper");
+var IOUtil_1 = require("../lib/IOUtil");
 var EnvManager = /** @class */ (function () {
     function EnvManager(conf) {
         this.envStartRetries = {};
@@ -447,7 +447,7 @@ var EnvManager = /** @class */ (function () {
                     if (returned || _.isEmpty(data)) {
                         return;
                     }
-                    var lines = IOHelper_1.IOHelper.parseDataBuffer(data);
+                    var lines = IOUtil_1.IOUtil.parseDataBuffer(data);
                     lines.forEach(function (l) {
                         _this.logger.debug(l);
                         if (l.includes(EnvManager.BUSYBEE_ERROR)) {

@@ -1,21 +1,21 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var IOHelper = /** @class */ (function () {
-    function IOHelper() {
+var IOUtil = /** @class */ (function () {
+    function IOUtil() {
     }
-    IOHelper.parseDataBuffer = function (dataBuffer) {
+    IOUtil.parseDataBuffer = function (dataBuffer) {
         var dataStr = dataBuffer.toString();
-        dataStr = IOHelper.trimChars(dataStr, '\n');
+        dataStr = IOUtil.trimChars(dataStr, '\n');
         return dataStr.split('\n');
     };
-    IOHelper.trimChars = function (s, c) {
+    IOUtil.trimChars = function (s, c) {
         if (c === "]")
             c = "\\]";
         if (c === "\\")
             c = "\\\\";
         return s.replace(new RegExp("^[" + c + "]+|[" + c + "]+$", "g"), "");
     };
-    return IOHelper;
+    return IOUtil;
 }());
-exports.IOHelper = IOHelper;
-//# sourceMappingURL=IOHelper.js.map
+exports.IOUtil = IOUtil;
+//# sourceMappingURL=IOUtil.js.map

@@ -8,10 +8,10 @@ module.exports = {
   }],
   "testSuites" : [
     {
-      "id": "Env Start Failure",
+      "id": "Ports In Use",
       "skip": false,
       "protocol": "http",
-      "ports": [7777],
+      "ports": [7777, 7778],
       "testFolder": "test",
       "env": {
         "parallel": true,
@@ -30,10 +30,7 @@ module.exports = {
       },
       "envInstances": [
         {
-          "id": "Env That Will Fail To Start (1)",
-          "startData": {
-            "fail": true
-          },
+          "id": "Env 1",
           "testSets": [
             {
               "id": "ts1",
@@ -41,32 +38,7 @@ module.exports = {
           ]
         },
         {
-          "id": "Env That Starts Successfully (1)",
-          "startData": {
-            "fail": false
-          },
-          "testSets": [
-            {
-              "id": "ts1",
-            }
-          ]
-        },
-        {
-          "id": "Env That Will Fail To Start (2)",
-          "startData": {
-            "fail": true
-          },
-          "testSets": [
-            {
-              "id": "ts1",
-            }
-          ]
-        },
-        {
-          "id": "Env That Starts Successfully (2)",
-          "startData": {
-            "fail": false
-          },
+          "id": "Env 2",
           "testSets": [
             {
               "id": "ts1",

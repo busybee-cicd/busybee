@@ -39,19 +39,23 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var ava_1 = require("ava");
 var child_process_1 = require("child_process");
 var path = require("path");
-var Logger_1 = require("../../src/lib/Logger");
-var IOHelper_1 = require("../../src/lib/IOHelper");
+var IOUtil_1 = require("../../src/lib/IOUtil");
 var IgnoreKeys_1 = require("../../src/lib/assertionModifications/IgnoreKeys");
+var ITUtil_1 = require("./ITUtil");
+var http = require("http");
 var busybee = path.join(__dirname, '../../dist/src/index.js');
-var logger = new Logger_1.Logger({}, { constructor: { name: 'IT' } });
-ava_1.default("happy path simple", function (t) {
+/**
+ * .serial modifier will force this test to run by itself. need this since we check for specific ports to be used
+ * in the response.
+ */
+ava_1.default.serial("happy path simple", function (t) {
     return new Promise(function (resolve, reject) {
         var returned = false;
         var testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-happy-path-simple')]);
         var expected = [{ "testSets": [{ "pass": true, "id": "ts1", "tests": [{ "pass": true, "id": "body assertion", "status": { "pass": true, "actual": 200 }, "headers": { "pass": true, "actual": [{ "content-type": "application/json" }, { "date": "Wed, 04 Jul 2018 15:15:16 GMT" }, { "connection": "close" }, { "transfer-encoding": "chunked" }], "expected": [] }, "body": { "pass": true, "actual": { "hello": "world", "object": { "1": "2", "arr": [1, 3, 4], "nested": { "im": "nested", "arr": [1, 2, 3, 4] } }, "arr": [1, 2, 3] } }, "request": { "json": true, "method": "GET", "url": "http://localhost:7777/body-assertion", "timeout": 30000, "resolveWithFullResponse": true, "simple": false } }, { "pass": true, "id": "status assertion", "status": { "pass": true, "actual": 404 }, "headers": { "pass": true, "actual": [{ "content-type": "application/json" }, { "date": "Wed, 04 Jul 2018 15:15:16 GMT" }, { "connection": "close" }, { "transfer-encoding": "chunked" }], "expected": [] }, "body": { "pass": true }, "request": { "json": true, "method": "GET", "url": "http://localhost:7777/status-assertion", "timeout": 30000, "resolveWithFullResponse": true, "simple": false } }] }], "pass": true, "type": "REST", "id": "Happy Path" }];
         var actual;
         testCmd.stdout.on('data', function (data) {
-            var lines = IOHelper_1.IOHelper.parseDataBuffer(data);
+            var lines = IOUtil_1.IOUtil.parseDataBuffer(data);
             lines.forEach(function (l) {
                 if (l.startsWith('RESULTS:')) {
                     actual = JSON.parse(l.replace('RESULTS: ', ''));
@@ -77,12 +81,12 @@ ava_1.default("happy path simple", function (t) {
         });
     });
 });
-ava_1.default("test run order", function (t) { return __awaiter(_this, void 0, void 0, function () {
+ava_1.default("tests run in order", function (t) { return __awaiter(_this, void 0, void 0, function () {
     var testCmd, expected, result;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-test-run-order')]);
+                testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-tests-run-in-order')]);
                 expected = [
                     'INFO: Running Test Set: ts1',
                     'INFO: ts1: 0: test at index: 0',
@@ -94,7 +98,7 @@ ava_1.default("test run order", function (t) { return __awaiter(_this, void 0, v
                     'INFO: ts1: #: implicitly ordered 2',
                     'INFO: ts1: #: implicitly ordered 3'
                 ];
-                return [4 /*yield*/, expectInOrder(testCmd, expected, t)];
+                return [4 /*yield*/, ITUtil_1.ITUtil.expectInOrder(testCmd, expected, t)];
             case 1:
                 result = _a.sent();
                 t.is(result.length, 0);
@@ -116,7 +120,7 @@ ava_1.default("env start failure", function (t) { return __awaiter(_this, void 0
                     'Tests finished in': 1
                 };
                 testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/env-start-failure')]);
-                return [4 /*yield*/, analyzeOutputFrequency(testCmd, expected)];
+                return [4 /*yield*/, ITUtil_1.ITUtil.analyzeOutputFrequency(testCmd, expected)];
             case 1:
                 actual = _a.sent();
                 t.deepEqual(actual, expected);
@@ -124,62 +128,67 @@ ava_1.default("env start failure", function (t) { return __awaiter(_this, void 0
         }
     });
 }); });
-/*
-  looks for occurrences of strings in a stdout stream of a child process
-  when given an assertions object {stringToFind: numberOfOccurrences}
-*/
-function analyzeOutputFrequency(childProc, assertions) {
-    return new Promise(function (resolve, reject) {
-        var actual = {};
-        childProc.stdout.on('data', function (data) {
-            var lines = IOHelper_1.IOHelper.parseDataBuffer(data);
-            lines.forEach(function (l) {
-                var found = Object.keys(assertions).find(function (k) {
-                    return l.includes(k);
-                });
-                if (found) {
-                    if (!actual[found]) {
-                        actual[found] = 0;
-                    }
-                    actual[found] += 1;
-                }
-            });
-        });
-        childProc.on('close', function () {
-            resolve(actual);
-        });
+/**
+ * .serial modifier will force this test to run by itself to ensure ports aren't being reserved. need this since
+ * we're asserting specific ports
+ */
+ava_1.default("ports in use", function (t) { return __awaiter(_this, void 0, void 0, function () {
+    var _this = this;
+    var server, childEnv, testCmd, expected, actual;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                server = http.createServer();
+                server.listen(7777);
+                // wait for service to begin listening
+                return [4 /*yield*/, new Promise(function (resolve, reject) {
+                        server.on('listening', function () { return __awaiter(_this, void 0, void 0, function () {
+                            return __generator(this, function (_a) {
+                                resolve();
+                                return [2 /*return*/];
+                            });
+                        }); });
+                        server.on('error', function (err) {
+                            reject(err);
+                        });
+                    })];
+            case 1:
+                // wait for service to begin listening
+                _a.sent();
+                childEnv = Object.assign({}, process.env, { BUSYBEE_LOG_LEVEL: 'TRACE' });
+                testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/ports-in-use')], { env: childEnv });
+                expected = {
+                    'TRACE:EnvManager: arePortsInUseByBusybee  | 7777,7778': 1,
+                    'TRACE:EnvManager: 7778 is available': 2,
+                    'TRACE:EnvManager: 7777 is in use': 1,
+                    'TRACE:EnvManager: ports identified: {"ports":[7778,7779],"portOffset":1}': 1,
+                    'TRACE:EnvManager: ports identified: {"ports":[7780,7781],"portOffset":3}': 1,
+                    'INFO:Object: Tests finished in': 1
+                };
+                return [4 /*yield*/, ITUtil_1.ITUtil.analyzeOutputFrequency(testCmd, expected)];
+            case 2:
+                actual = _a.sent();
+                t.deepEqual(actual, expected);
+                // shut down server holding 7777
+                return [4 /*yield*/, new Promise(function (resolve, reject) {
+                        server.close(function (err) {
+                            if (err) {
+                                reject(err);
+                            }
+                            else {
+                                resolve();
+                            }
+                        });
+                    })];
+            case 3:
+                // shut down server holding 7777
+                _a.sent();
+                return [2 /*return*/];
+        }
     });
-}
-/*
- reads from stdout and shifts entries out of the provided array as they are encountered.
- if all items are encountered in the order in which they appear in the stdout stream then the
- collection should be empty when resolved
-*/
-function expectInOrder(childProc, expect, t) {
-    return new Promise(function (resolve, reject) {
-        var returned = false;
-        childProc.stdout.on('data', function (data) {
-            var lines = IOHelper_1.IOHelper.parseDataBuffer(data);
-            lines.forEach(function (l) {
-                if (l === expect[0]) {
-                    expect.shift();
-                }
-            });
-        });
-        childProc.stderr.on('data', function (data) {
-            if (!returned) {
-                returned = true;
-                t.fail();
-                childProc.kill('SIGHUP');
-                resolve(expect);
-            }
-        });
-        childProc.on('close', function () {
-            if (!returned) {
-                returned = true;
-                resolve(expect);
-            }
-        });
-    });
+}); });
+function sleep(ms) {
+    if (ms === void 0) { ms = 0; }
+    return new Promise(function (r) { return setTimeout(r, ms); });
 }
 //# sourceMappingURL=index.js.map

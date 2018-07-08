@@ -13,7 +13,7 @@ import {RequestOptsConfig} from "../models/config/common/RequestOptsConfig";
 import {TypedMap} from "../lib/TypedMap";
 import {ParsedTestSuite} from "../models/config/parsed/ParsedTestSuiteConfig";
 import {SuiteEnvInfo} from "../lib/SuiteEnvInfo";
-import { IOHelper } from '../lib/IOHelper';
+import { IOUtil } from "../lib/IOUtil";
 
 export class EnvManager {
   private conf: BusybeeParsedConfig;
@@ -372,7 +372,7 @@ export class EnvManager {
           return;
         }
 
-        let lines = IOHelper.parseDataBuffer(data);
+        let lines = IOUtil.parseDataBuffer(data);
         lines.forEach((l) => {
           this.logger.debug(l);
 

@@ -1,13 +1,18 @@
 import test, { GenericTestContext, Context } from 'ava';
-import { spawn, ChildProcess } from 'child_process';
+import { spawn, ChildProcess, SpawnOptions } from 'child_process';
 import * as path from 'path';
-import { Logger } from '../../src/lib/Logger';
-import { IOHelper } from '../../src/lib/IOHelper';
+import { IOUtil } from '../../src/lib/IOUtil';
 import { IgnoreKeys } from '../../src/lib/assertionModifications/IgnoreKeys';
+import { ITUtil } from './ITUtil';
+import * as http from 'http';
+import { resolve } from 'url';
 const busybee = path.join(__dirname, '../../dist/src/index.js');
-const logger = new Logger({}, {constructor : {name: 'IT'}});
 
-test(`happy path simple`, (t) => {
+/**
+ * .serial modifier will force this test to run by itself. need this since we check for specific ports to be used
+ * in the response.
+ */
+test.serial(`happy path simple`, (t) => {
   return new Promise((resolve, reject) => {
     let returned = false;
     const testCmd = spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-happy-path-simple')]);
@@ -15,7 +20,7 @@ test(`happy path simple`, (t) => {
     let actual;
 
     testCmd.stdout.on('data', (data) => {
-      let lines = IOHelper.parseDataBuffer(data);
+      let lines = IOUtil.parseDataBuffer(data);
       lines.forEach((l) => {
         if (l.startsWith('RESULTS:')) {
           actual = JSON.parse(l.replace('RESULTS: ', ''));
@@ -44,8 +49,8 @@ test(`happy path simple`, (t) => {
   })
 });
 
-test(`test run order`, async (t) => {
-  const testCmd = spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-test-run-order')]);
+test(`tests run in order`, async (t) => {
+  const testCmd = spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-tests-run-in-order')]);
   const expected = [
     'INFO: Running Test Set: ts1',
     'INFO: ts1: 0: test at index: 0',
@@ -58,7 +63,7 @@ test(`test run order`, async (t) => {
     'INFO: ts1: #: implicitly ordered 3'
   ];
 
-  let result = await expectInOrder(testCmd, expected, t);
+  let result = await ITUtil.expectInOrder(testCmd, expected, t);
   t.is(result.length, 0);
 });
 
@@ -74,71 +79,58 @@ test(`env start failure`, async (t) => {
 
   const testCmd = spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/env-start-failure')]);
 
-  let actual = await analyzeOutputFrequency(testCmd, expected);
+  let actual = await ITUtil.analyzeOutputFrequency(testCmd, expected);
   t.deepEqual(actual, expected);
 });
 
-/*
-  looks for occurrences of strings in a stdout stream of a child process
-  when given an assertions object {stringToFind: numberOfOccurrences}
-*/
-function analyzeOutputFrequency(childProc: ChildProcess, assertions: any): Promise<any> {
-  return new Promise((resolve, reject) => {
-    let actual = {};
+/**
+ * .serial modifier will force this test to run by itself to ensure ports aren't being reserved. need this since
+ * we're asserting specific ports
+ */
+test(`ports in use`, async (t) => {
+  // spin up a service on 7777 to block the port
+  const server = http.createServer();
+  server.listen(7777);
 
-    childProc.stdout.on('data', (data) => {
-      let lines = IOHelper.parseDataBuffer(data);
-      lines.forEach((l) => {
-        let found = Object.keys(assertions).find((k) => {
-          return l.includes(k);
-        });
-
-        if (found) {
-          if (!actual[found]) {
-            actual[found] = 0;
-          }
-
-          actual[found] += 1;
-        }
-      });
+  // wait for service to begin listening
+  await new Promise((resolve, reject) => {
+    server.on('listening', async () => {
+      resolve();
     });
 
-    childProc.on('close', () => {
-      resolve(actual);
+    server.on('error', (err) => {
+      reject(err);
     });
   });
-}
-/*
- reads from stdout and shifts entries out of the provided array as they are encountered.
- if all items are encountered in the order in which they appear in the stdout stream then the
- collection should be empty when resolved
-*/
-function expectInOrder(childProc: ChildProcess, expect: Array<string>, t: GenericTestContext<Context<any>>): Promise<Array<string>> {
-  return new Promise((resolve, reject) => {
-    let returned = false;
-    childProc.stdout.on('data', (data) => {
-      let lines = IOHelper.parseDataBuffer(data);
-      lines.forEach((l) => {
-        if (l === expect[0]) {
-          expect.shift();
-        }
-      })
-    });
 
-    childProc.stderr.on('data', (data) => {
-      if (!returned) {
-        returned = true;
-        t.fail();
-        childProc.kill('SIGHUP');
-        resolve(expect);
-      }
-    });
+  // spin up busybee and assert output
+  const childEnv = Object.assign({}, process.env, {BUSYBEE_LOG_LEVEL: 'TRACE'});
+  const testCmd = spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/ports-in-use')], {env: childEnv});
+  const expected = {
+    'TRACE:EnvManager: arePortsInUseByBusybee  | 7777,7778' : 1,
+    'TRACE:EnvManager: 7778 is available': 2,
+    'TRACE:EnvManager: 7777 is in use': 1,
+    'TRACE:EnvManager: ports identified: {"ports":[7778,7779],"portOffset":1}': 1,
+    'TRACE:EnvManager: ports identified: {"ports":[7780,7781],"portOffset":3}': 1,
+    'INFO:Object: Tests finished in': 1
+  };
 
-    childProc.on('close', () => {
-      if (!returned) {
-        returned = true;
-        resolve(expect);
+  let actual = await ITUtil.analyzeOutputFrequency(testCmd, expected);
+  t.deepEqual(actual, expected);
+
+  // shut down server holding 7777
+  await new Promise((resolve, reject) => {
+    server.close((err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
       }
-    });
+    })
   });
+});
+
+
+function sleep(ms = 0) {
+  return new Promise(r => setTimeout(r, ms));
 }
