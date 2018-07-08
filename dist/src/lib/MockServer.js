@@ -125,16 +125,19 @@ var MockServer = /** @class */ (function () {
         this.logger.trace(this.testSuiteConf.testEnvs, true);
         this.testSuiteConf.testEnvs.forEach(function (testEnv, envId) {
             testEnv.testSets.forEach(function (testSet, testSetName) {
-                testSet.tests.forEach(function (mock) {
+                testSet.tests.forEach(function (test) {
                     var pass = false;
-                    if (mock.expect && mock.expect.status && !_.isFunction(mock.expect.body)) {
+                    if (test.expect && test.expect.status && !_.isFunction(test.expect.body)) {
                         pass = true;
                     }
-                    else if (mock.mockResponse && mock.mockResponse.status && mock.mockResponse.body) {
+                    else if (test.mock
+                        && test.mock.response
+                        && test.mock.response.status
+                        && test.mock.response.body) {
                         pass = true;
                     }
                     if (pass) {
-                        _this.updateRouteMap(mock);
+                        _this.updateRouteMap(test);
                     }
                 });
             });
@@ -203,7 +206,7 @@ var MockServer = /** @class */ (function () {
         var hashedReq = hash(requestOpts);
         // 1a. search the this.routeMap[test.request.path] for it using the hash
         var method = request.method.toLocaleLowerCase();
-        var resStatus = mock.mockResponse ? mock.mockResponse.status : mock.expect.status; // default to mockResponse
+        var resStatus = (mock.mock && mock.mock.response) ? mock.mock.response.status : mock.expect.status; // default to mockResponse
         if (this.routeMap[path][method]) {
             if (this.routeMap[path][method][resStatus]) {
                 if (_.find(this.routeMap[path][method], function (reqInfo) {
@@ -264,7 +267,7 @@ var MockServer = /** @class */ (function () {
                                 return [2 /*return*/];
                             }
                             mocksWithoutHeaders = [];
-                            mocksWithHeaders = [];
+                            mocksWithHeaders = new Array();
                             matchingMocks.forEach(function (m) {
                                 _this.logger.trace('checking mock');
                                 // mocks that don't have headers defined don't need to match. IF this array only has 1 item
@@ -333,7 +336,9 @@ var MockServer = /** @class */ (function () {
                             }
                             // set headers
                             res.append('busybee-mock', true);
-                            mockResponse = mockToReturn.mockResponse || mockToReturn.expect;
+                            mockResponse = (mockToReturn.mock && mockToReturn.mock.response) // default to test.mock.response and then attempt 'expect'
+                                ? mockToReturn.mock.response
+                                : mockToReturn.expect;
                             if (mockResponse) {
                                 resHeaders = Object.assign({}, resHeaders, mockResponse);
                             }
@@ -345,8 +350,8 @@ var MockServer = /** @class */ (function () {
                                     res.append(k, v);
                                 });
                             }
-                            if (!mockToReturn.delayMockedResponse) return [3 /*break*/, 2];
-                            return [4 /*yield*/, this.sleep(mockToReturn.delayMockedResponse)];
+                            if (!(mockToReturn.mock && mockToReturn.mock.lag)) return [3 /*break*/, 2];
+                            return [4 /*yield*/, this.sleep(mockToReturn.mock.lag)];
                         case 1:
                             _a.sent();
                             _a.label = 2;

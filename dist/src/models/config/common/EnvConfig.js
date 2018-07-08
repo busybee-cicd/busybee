@@ -2,12 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * {<br>
- *   parallel: true,<br>
- *   resourceCost: 100,<br>
- *   startScript: 'start.sh',<br>
- *   stopScript: 'stop.sh',<br>
- *   runScript: 'run.sh',<br>
- *   healthCheck: HealthCheckConfig<br>
+ * &nbsp parallel: true,<br>
+ * &nbsp resourceCost: 100,<br>
+ * &nbsp startScript: 'start.sh',<br>
+ * &nbsp stopScript: 'stop.sh',<br>
+ * &nbsp runScript: 'run.sh',<br>
+ * &nbsp healthCheck: HealthCheckConfig<br>
  * }
  */
 var EnvConfig = /** @class */ (function () {

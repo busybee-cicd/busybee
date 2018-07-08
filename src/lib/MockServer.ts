@@ -111,16 +111,19 @@ export class MockServer {
     this.logger.trace(this.testSuiteConf.testEnvs, true);
     this.testSuiteConf.testEnvs.forEach((testEnv: ParsedTestEnvConfig, envId: string) => {
       testEnv.testSets.forEach((testSet: ParsedTestSetConfig, testSetName: string) => {
-        testSet.tests.forEach((mock: RESTTest) => {
+        testSet.tests.forEach((test: RESTTest) => {
           let pass = false;
-          if (mock.expect && mock.expect.status && !_.isFunction(mock.expect.body)) {
+          if (test.expect && test.expect.status && !_.isFunction(test.expect.body)) {
             pass = true;
-          } else if (mock.mockResponse && mock.mockResponse.status && mock.mockResponse.body) {
-            pass = true;
+          } else if (test.mock
+            && test.mock.response
+            && test.mock.response.status
+            && test.mock.response.body) {
+              pass = true;
           }
 
           if (pass) {
-            this.updateRouteMap(mock);
+            this.updateRouteMap(test);
           }
         });
       });
@@ -195,7 +198,7 @@ export class MockServer {
     let hashedReq = hash(requestOpts);
     // 1a. search the this.routeMap[test.request.path] for it using the hash
     let method = request.method.toLocaleLowerCase();
-    let resStatus = mock.mockResponse ? mock.mockResponse.status : mock.expect.status; // default to mockResponse
+    let resStatus = (mock.mock && mock.mock.response) ? mock.mock.response.status : mock.expect.status; // default to mockResponse
 
     if (this.routeMap[path][method]) {
       if (this.routeMap[path][method][resStatus]) {
@@ -264,7 +267,7 @@ export class MockServer {
          mentioned in the mockResponse.
          */
         let mocksWithoutHeaders = [];
-        let mocksWithHeaders = [];
+        let mocksWithHeaders = new Array<RESTTest>();
         matchingMocks.forEach((m) => {
           this.logger.trace('checking mock');
           // mocks that don't have headers defined don't need to match. IF this array only has 1 item
@@ -337,7 +340,9 @@ export class MockServer {
         // set headers
         res.append('busybee-mock', true);
         let resHeaders;
-        let mockResponse = mockToReturn.mockResponse || mockToReturn.expect; // default to mockResponse and then attempt 'expect'
+        let mockResponse = (mockToReturn.mock && mockToReturn.mock.response) // default to test.mock.response and then attempt 'expect'
+          ? mockToReturn.mock.response
+          : mockToReturn.expect;
         if (mockResponse) {
           resHeaders = Object.assign({}, resHeaders, mockResponse);
         }
@@ -351,8 +356,8 @@ export class MockServer {
         }
 
         // check for a delay
-        if (mockToReturn.delayMockedResponse) {
-          await this.sleep(mockToReturn.delayMockedResponse);
+        if (mockToReturn.mock && mockToReturn.mock.lag) {
+          await this.sleep(mockToReturn.mock.lag);
         }
 
         let bodyToReturn = mockResponse.body;

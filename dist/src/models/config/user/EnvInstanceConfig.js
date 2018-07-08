@@ -4,14 +4,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * Defines how an instance of a TestSuite environment should be provisioned
  *
  * {<br>
- *   id: 'read-only env',<br>
- *   testSets: TestSetConfig[],<br>
- *   startData: {<br>
- *     retries: 5<br>
- *   },<br>
- *   stopData: {<br>
- *     signal: 'SIGTERM,<br>
- *   }<br>
+ * &nbsp; id: 'read-only env',<br>
+ * &nbsp; testSets: TestSetConfig[],<br>
+ * &nbsp; startData: {<br>
+ * &nbsp; &nbsp; retries: 5<br>
+ * &nbsp; },<br>
+ * &nbsp; stopData: {<br>
+ * &nbsp; &nbsp; signal: 'SIGTERM,<br>
+ * &nbsp; }<br>
  * }
  */
 var EnvInstanceConfig = /** @class */ (function () {

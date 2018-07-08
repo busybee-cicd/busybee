@@ -8,7 +8,7 @@ module.exports = {
     ],
     "request": {
         "method": "GET",
-        "endpoint": "/status-assertion"
+        "path": "/status-assertion"
     },
     "expect": {
         "status": 404

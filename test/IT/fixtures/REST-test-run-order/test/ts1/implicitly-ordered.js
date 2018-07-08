@@ -8,7 +8,7 @@ module.exports = [
     ],
     "request": {
         "method": "GET",
-        "endpoint": "/body-assertion"
+        "path": "/body-assertion"
     },
     "expect": {
         "body": {
@@ -34,7 +34,7 @@ module.exports = [
     ],
     "request": {
         "method": "GET",
-        "endpoint": "/body-assertion"
+        "path": "/body-assertion"
     },
     "expect": {
         "body": {
@@ -60,7 +60,7 @@ module.exports = [
     ],
     "request": {
         "method": "GET",
-        "endpoint": "/body-assertion"
+        "path": "/body-assertion"
     },
     "expect": {
         "body": {

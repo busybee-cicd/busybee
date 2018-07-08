@@ -23,7 +23,7 @@ module.exports = {
           "type": "REST",
           "retries": 30,
           "request": {
-            "endpoint": "/200",
+            "path": "/200",
             "port": 7777,
             "timeout": 5000
           }

@@ -6,10 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * for environment provisioning, TestSuites that will be run with-in environments and registering reporters for result analysis
  *
  * {<br>
- *   envResources: EnvResourceConfig[],<br>
- *   onComplete: 'onComplete.js',<br>
- *   testSuites: TestSuiteConfig[],<br>
- *   reporters: []<br>
+ * &nbsp; envResources: EnvResourceConfig[],<br>
+ * &nbsp; onComplete: 'onComplete.js',<br>
+ * &nbsp; testSuites: TestSuiteConfig[],<br>
+ * &nbsp; reporters: []<br>
  * }
  */
 var BusybeeUserConfig = /** @class */ (function () {
