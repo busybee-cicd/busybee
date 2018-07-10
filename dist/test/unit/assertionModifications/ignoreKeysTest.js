@@ -11,7 +11,7 @@ ava_1.default("keys are successfully removed from a basic object", function (t) 
         hello: 1,
         world: 3
     };
-    IgnoreKeys_1.IgnoreKeys.process(['wrld'], actual, expected);
+    IgnoreKeys_1.IgnoreKeys.process(['world'], actual, expected);
     t.deepEqual(actual, expected);
 });
 ava_1.default("keys are successfully removed from a collection of objects", function (t) {
