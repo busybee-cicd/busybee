@@ -45,10 +45,10 @@
     "build": "tsc && tsc -p test/IT",
     "watch": "npm-watch build",
     "start": "node ./dist/src/index.js",
-    "docs": "typedoc --module commonjs --readme README.md --out docs/ src/models/config/BusybeeUserConfig.ts",
+    "docs": "typedoc --module commonjs --readme configuration.md --out docs/ src/models/config/BusybeeUserConfig.ts",
     "remoteIT": "node --inspect-brk=9222 ./dist/src/index.js mock -t 'CR Services IT' -d /Users/simontownsend/dev/config-reviewer/config-reviewer-it-api/busybee",
-    "IT": "tsc && ava test/IT/index.js --verbose",
-    "test": "tsc && ava dist/test/**/*.js --verbose",
+    "IT": "npm run build && ava test/IT/index.js --verbose",
+    "test": "npm run build && ava dist/test/**/*.js --verbose",
     "debugSingleTest": "node --interactive --inspect-brk node_modules/ava/profile.js dist/test/**/unorderedCollectionsTest.js"
   },
   "watch": {

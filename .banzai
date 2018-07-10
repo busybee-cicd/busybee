@@ -1,0 +1,12 @@
+banzai {
+    appName = 'busybee'
+    sshCreds = ['sweeney-git-ssh']
+    gitCredId = 'sweeney-git'
+    gitAccount = 'Busybee'
+    build = true
+    buildBranches = /master/
+    buildScriptFile = 'banzai-build.sh'
+    publish = true
+    publishBranches = /master/
+    publishScriptFile = 'banzai-publish.sh'
+}
