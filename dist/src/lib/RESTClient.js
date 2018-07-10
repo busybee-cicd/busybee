@@ -42,12 +42,12 @@ var RESTClient = /** @class */ (function () {
         this.logger.trace("buildRequestUrl <requestConf> " + port);
         this.logger.trace(requestConf);
         var url = this.buildBaseUrl(requestConf, port);
-        if (requestConf.endpoint) {
-            if (requestConf.endpoint.startsWith("/")) {
-                url += requestConf.endpoint;
+        if (requestConf.path) {
+            if (requestConf.path.startsWith("/")) {
+                url += requestConf.path;
             }
             else {
-                url += "/" + requestConf.endpoint;
+                url += "/" + requestConf.path;
             }
         }
         var req = {

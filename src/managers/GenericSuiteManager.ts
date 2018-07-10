@@ -73,7 +73,7 @@ export class GenericSuiteManager {
       hostName: this.suiteEnvConf.hostName,
       ports: this.suiteEnvConf.ports,
       busybeeDir: busybeeDir,
-      data: testSet.data
+      runData: testSet.runData
     };
 
     return this.envManager.runScript(scriptPath, [JSON.stringify(args)]);

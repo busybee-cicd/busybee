@@ -14,7 +14,21 @@ var SuiteEnvInfo = /** @class */ (function () {
         this.defaultRequestOpts = suiteConf.defaultRequestOpts;
         this.root = suiteConf.root;
         this.testSets = suiteConf.testEnvs.get(suiteEnvID).testSets;
+        this.startData = suiteConf.testEnvs.get(suiteEnvID).startData;
+        this.stopData = suiteConf.testEnvs.get(suiteEnvID).stopData;
     }
+    SuiteEnvInfo.prototype.setStartScriptReturnData = function (data) {
+        this.startScriptReturnData = data;
+    };
+    SuiteEnvInfo.prototype.getStartScriptReturnData = function () {
+        return this.startScriptReturnData;
+    };
+    SuiteEnvInfo.prototype.setStartScriptErrorData = function (data) {
+        this.startScriptErrorData = data;
+    };
+    SuiteEnvInfo.prototype.getStartScriptErrorData = function () {
+        return this.startScriptErrorData;
+    };
     return SuiteEnvInfo;
 }());
 exports.SuiteEnvInfo = SuiteEnvInfo;

@@ -105,7 +105,7 @@ var TestManager = /** @class */ (function () {
             var currentEnv;
             var restManager;
             var testSetResults;
-            var _cb = _.once(cb);
+            var _cb = _.once(cb); // ensure cb is only called once
             var buildEnvFn = function () { return __awaiter(_this, void 0, void 0, function () {
                 var envResult;
                 return __generator(this, function (_a) {
@@ -121,34 +121,41 @@ var TestManager = /** @class */ (function () {
                             return [4 /*yield*/, restManager.runRESTApiTestSets(currentEnv)];
                         case 2:
                             testSetResults = _a.sent(); // returns an array of testSets
-                            envResult = new EnvResult_1.EnvResult();
-                            envResult.type = 'REST';
-                            envResult.suiteID = suiteID;
-                            envResult.env = suiteEnvID;
+                            envResult = EnvResult_1.EnvResult.new('REST', suiteID, suiteEnvID);
                             envResult.testSets = testSetResults;
                             return [2 /*return*/, envResult];
                     }
                 });
             }); };
+            // we never want to call the err cb from here. If the Test Env has a failure we will report it
             buildEnvFn()
                 .then(function (envResult) {
                 _this.envManager.stop(generatedEnvID)
                     .then(function () {
                     _cb(null, envResult);
                 })
-                    .catch(function (err) {
-                    _cb(err, null);
+                    .catch(function (err2) {
+                    _this.logger.error("buildRESTTestEnvTask: Error Encountered While Stopping " + generatedEnvID);
+                    _this.logger.error(err2);
+                    envResult.error = err2;
+                    _cb(null, envResult);
                 });
             })
-                .catch(function (err) {
-                _this.logger.error("buildRESTTestEnvTask: Error Encountered While Running Tests");
-                _this.logger.error(err);
+                .catch(function (err2) {
+                _this.logger.error("buildRESTTestEnvTask: Error Encountered While Running Tests for " + generatedEnvID);
+                _this.logger.error(err2);
+                var envResult = EnvResult_1.EnvResult.new('REST', suiteID, suiteEnvID);
+                envResult.testSets = [];
+                envResult.error = err2;
                 _this.envManager.stop(generatedEnvID)
                     .then(function () {
-                    _cb(err, null);
+                    _cb(null, envResult);
                 })
-                    .catch(function (err2) {
-                    _cb(err2, null);
+                    .catch(function (err3) {
+                    _this.logger.error("buildRESTTestEnvTask: Error Encountered While Stopping " + generatedEnvID);
+                    _this.logger.error(err3);
+                    envResult.error = err3;
+                    _cb(null, envResult);
                 });
             });
         };

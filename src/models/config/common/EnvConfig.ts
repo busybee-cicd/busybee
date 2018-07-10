@@ -1,9 +1,47 @@
 import {HealthCheckConfig} from "../user/HealthCheckConfig";
+
+/**
+ * {<br>
+ * &nbsp parallel: true,<br>
+ * &nbsp resourceCost: 100,<br>
+ * &nbsp startScript: 'start.sh',<br>
+ * &nbsp stopScript: 'stop.sh',<br>
+ * &nbsp runScript: 'run.sh',<br>
+ * &nbsp healthCheck: HealthCheckConfig<br>
+ * }
+ */
 export class EnvConfig {
+  /**
+   * **Default** `false`
+   * Dictates whether or not this Test Suite is allowed to run multiple instances on a single resource simultaneously
+   */
   parallel: boolean;
+  /**
+   * **Default** `100` <br>
+   * **Allowed** A number between `0` and `100` <br>
+   * A measurement of how many 'resource units' 1 instance of this env will consume while running. See HostConfig.capacity
+   */
   resourceCost: number;
+  /**
+   * <span style="color:red">**Required**</span> <br>
+   * **Example** `scripts/startScript.sh` <br>
+   * A shell script expected to start your environment. The value can be relative to the busybee directory or absolute
+   * Receives the following arguments `generatedEnvID` `hostName` `port` `testDirectoryPath` <br>
+   */
   startScript: string;
+  /**
+   * <span style="color:red">**Required**</span> <br>
+   * **Example** `scripts/stopScript.sh` <br>
+   * A shell script expected to stop your environment. The value can be relative to the busybee directory or absolute.
+   * Receives the following arguments `generatedEnvID` `hostName` `port` `testDirectoryPath`
+   */
   stopScript: string;
+  /**
+   * <span style="color:magenta">Required if `TestSuiteConfig.type` == 'USER_PROVIDED'</span> <br>
+   * **Example** `scripts/stopScript.sh` <br>
+   * A shell script expected to stop your environment. The value can be relative to the busybee directory or absolute.
+   * Receives the following arguments `generatedEnvID` `hostName` `port` `testDirectoryPath`
+   */
   runScript: string;
   healthcheck: HealthCheckConfig;
 

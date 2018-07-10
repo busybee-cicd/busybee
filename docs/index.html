@@ -1,7 +1,444 @@
-<html>
-  <body style="background: cornsilk">
-    <script src="widget.js" 
-        data-schema="https://github.build.ge.com/pages/Busybee/busybee/BusybeeUserConfigSchema.json">      
-    </script>
-  </body>
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>busybee</title>
+	<meta name="description" content="">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="assets/js/search.js" data-base=".">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="index.html" class="title">busybee</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+							<input type="checkbox" id="tsd-filter-only-exported" />
+							<label class="tsd-widget" for="tsd-filter-only-exported">Only exported</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<ul class="tsd-breadcrumb">
+				<li>
+					<a href="globals.html">Globals</a>
+				</li>
+			</ul>
+			<h1> busybee</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<div class="tsd-panel tsd-typography">
+				<p><img alt="busybee" src="https://github.build.ge.com/212589146/busybee/blob/master/img/busybee7.png" width="300" /></p>
+				<h1 id="busybee">busybee</h1>
+				<ul>
+					<li><a href="#Requirements">Requirements</a></li>
+					<li><a href="#quickstart">Quickstart</a></li>
+					<li><a href="#about">About</a><ul>
+							<li><a href="#what-it-is">What it is</a></li>
+							<li><a href="#what-it-isnt">What it isn&#39;t</a></li>
+						</ul>
+					</li>
+					<li><a href="#configuration">Configuration</a></li>
+					<li><a href="#todo">Todo</a></li>
+				</ul>
+				<h2 id="requirements">Requirements</h2>
+				<ul>
+					<li>Node.js 8 or higher. The library relies on async/await syntax only supported in the lastest NodeJS version. However, I plan to transpile the library to support older NodeJS versions.</li>
+				</ul>
+				<h2 id="quickstart">Quickstart</h2>
+				<pre><code><span class="hljs-symbol">npm</span> install -g git+https://github.<span class="hljs-keyword">build.ge.com/Busybee/busybee.git
+</span><span class="hljs-keyword">busybee </span>init
+<span class="hljs-keyword">busybee </span>--help
+</code></pre><h2 id="about">About</h2>
+				<h3 id="what-it-is">What it is</h3>
+				<p>Busybee will coordinate the steps necessary to run your Functional Tests. It is unopinionated
+				when it comes to deciding how your environments are started, when they&#39;re ready, what technologies are used, etc. Busybee is only concerned with the following:  </p>
+				<ol>
+					<li>Figure out how many <a href="#TestSuite">Test Suites</a> we&#39;re dealing with.</li>
+					<li>Figure out how many <a href="#Env">Environments</a> are required for each <a href="#TestSuite">Test Suite</a></li>
+					<li>Figure out how many <a href="#TestSet">Test Sets</a> to run against each <a href="#Env">Environment</a>.</li>
+					<li>Spin up each <a href="#Env">Environment</a></li>
+					<li>Run the <a href="#TestSet">Test Sets</a></li>
+					<li>Spin down each <a href="#Env">Environment</a>.</li>
+					<li>Report results.</li>
+				</ol>
+				<h3 id="what-it-isn-t">What it isn&#39;t</h3>
+				<p>It is not a magic bullet. You still have to write tests. You still have to provide &#39;start&#39; and &#39;stop&#39; scripts detailing how start/stop your environments. If your <a href="#TestSuite">Test Suite</a> is not a REST <a href="#TestSuite">Test Suite</a> then you will also need to provide a &#39;run&#39; script that actually runs your tests once the environment as been provisioned.</p>
+				<h2 id="busbyee-configuration">Busbyee Configuration</h2>
+				<p>By default, Busybee will look for configuration in busybee/config.json</p>
+				<h3 id="config-json">config.json</h3>
+				<ul>
+					<li><code>envResources</code> - <a href="#EnvResource">Array:EnvResource</a></li>
+					<li><code>onComplete</code> - String: The name of a .js file to call on completion of all Test Suites. Must export a single function with the signature (errors, results).</li>
+					<li><code>testSuites</code>* - <a href="#TestSuite">Array:TestSuite</a></li>
+				</ul>
+				<hr>
+				<h4 id="testsuite">TestSuite</h4>
+				<ul>
+					<li><code>id</code>* - String: A unique id for this Test Suite</li>
+					<li><code>type</code>* - String <code>defaut: REST, allowed: [REST, USER_PROVIDED]</code>: Dictates how the Test Suite is parsed. Busybee has it&#39;s own REST api testing implementation. For all other test suites choose &#39;USER_PROVIDED&#39;</li>
+					<li><code>skip</code> - Boolean <code>default:false</code>: Whether or not to skip this Test Suite</li>
+					<li><code>env</code>* - <a href="#Env">Env</a></li>
+					<li><code>envInstances</code>* - <a href="#EnvInstance">Array:EnvInstance</a></li>
+				</ul>
+				<p><em>The following fields are availble IF type == &#39;REST&#39;</em></p>
+				<h5 id="rest">REST</h5>
+				<ul>
+					<li><code>protocol</code>* - String: rest api protocol</li>
+					<li><code>host</code> - String: optional host. Only required if --skipEnvProvisioning is enabled.</li>
+					<li><code>ports</code>* - Array:Number: Ports required by this suite. By default the first port supplied will be used for your healthcheck port if not specific in the <a href="#HealthCheck">HealthCheck</a></li>
+					<li><code>root</code> - String: root context of all api calls ie) /v1.</li>
+					<li><code>defaultRequestOpts</code> - <a href="#DefaultRequestOpts">DefaultRequestOpts</a>: an object representing request params to be sent by default on
+					each api request. defaultRequestOpts can be overridden with-in individual tests.</li>
+					<li><code>mockServer</code> - <a href="#MockServer">MockServer</a></li>
+				</ul>
+				<hr>
+				<h4 id="defaultrequestopts">DefaultRequestOpts</h4>
+				<p>Options sent by on each request by default  </p>
+				<ul>
+					<li><code>headers</code> - Object: request headers as key/value pairs. ie) {&#39;my-header&#39;: &#39;my-header-value&#39;}</li>
+					<li><code>query</code> - Object: request query params as key/value pairs ie) {&#39;my-query-param&#39;: &#39;my-query-value&#39;}</li>
+					<li><code>body</code> - Object: request body as key/value pairs ie) {&#39;my-body-prop&#39;: &#39;my-body-prop-value&#39;}</li>
+				</ul>
+				<hr>
+				<h4 id="envresource">EnvResource</h4>
+				<p>Configuration opts for provisioning Test Set Environments</p>
+				<ul>
+					<li><code>hosts</code>* - <a href="#Host">Array:Host</a></li>
+				</ul>
+				<hr>
+				<h4 id="host">Host</h4>
+				<ul>
+					<li><code>name</code>* - String: hostName of an available resource.</li>
+					<li><code>capacity</code> - Integer: A crude measurement of the total resources available at this host. By default, 100. 100. In this scenario, a <a href="#TestSuite">TestSuite.env</a> with a <code>resourceCost</code> of 50 would be able to run 2 instances on this host simultaneously. When an instance of a Test Suite is added to a host its resourceCost is added to the <code>load</code> of that host. If an instance&#39;s (resourceCost + host.currentLoad) &gt; capacity then the instance will wait until instances are removed from the host.</li>
+				</ul>
+				<hr>
+				<h4 id="env">Env</h4>
+				<p>Not to be confused with <a href="#EnvInstance">EnvInstance</a>. Env represents the base Environment configuration that will be shared by all instances of your Test Suite environment.</p>
+				<ul>
+					<li><code>parallel</code> - Boolean: Dictates whether or not this Test Suite is allowed to run multiple instances on a single resource simultaneously</li>
+					<li><code>resourceCost</code> - A measurement of how many &#39;resource units&#39; 1 instance of this env will consume while running. See <a href="#Host">Host.capacity</a></li>
+					<li><code>startScript</code>* - String: A shell script expected to start your environment. Receives the following arguments <code>generatedEnvID</code>, <code>hostName</code>, <code>port</code>, <code>testDirectoryPath</code></li>
+					<li><code>stopScript</code>* - String: A shell script expected to stop your environment. Receives the following arguments <code>generatedEnvID</code>, <code>hostName</code>, <code>port</code>, <code>testDirectoryPath</code></li>
+					<li><code>healthcheck</code>* - <a href="#HealthCheck">HealthCheck</a></li>
+				</ul>
+				<hr>
+				<h4 id="envinstance">EnvInstance</h4>
+				<ul>
+					<li><code>id</code>* - String: a unique id used to identify this TestEnv.</li>
+					<li><code>testSets</code>* - <a href="#EnvTestSet">Array:TestSet</a>: A TestEnv can only have tests added to it via a TestSet and therefore requires at least one TestSet.</li>
+				</ul>
+				<hr>
+				<h4 id="envtestset">EnvTestSet</h4>
+				<ul>
+					<li><code>id</code>* - String: a unique id used to identify the Test Set.</li>
+					<li><code>description</code> - String</li>
+					<li><code>data</code> - Object</li>
+					<li><code>controlFlow</code> - String <code>allowed: [series, parallel]</code>: Only applicable when <a href="#TestSuite">TestSuite.type</a> == &#39;REST&#39;. Controls how REST tests with-in a TestSet should be executed. <a href="#TestSet">TestSet.index</a> values set with a <a href="#RESTTest">RESTTest.testSet</a> will be ignored when &#39;parallel&#39; is chosen.</li>
+				</ul>
+				<hr>
+				<h4 id="healthcheck">HealthCheck</h4>
+				<ul>
+					<li><code>type</code>* - String <code>allowed: [REST]</code></li>
+					<li><code>retries</code> - Number</li>
+				</ul>
+				<p><em>The following fields are availble IF <a href="#TestSuite">TestSuite.type</a> == &#39;REST&#39;</em></p>
+				<h5 id="rest">REST</h5>
+				<ul>
+					<li><code>request</code>* - Object<pre><code>  <span class="hljs-string">"request"</span>: {
+    <span class="hljs-string">"endpoint"</span>: <span class="hljs-string">"/privileges"</span>,
+    <span class="hljs-string">"timeout"</span>: <span class="hljs-number">1500</span>,
+    <span class="hljs-string">"port"</span>: <span class="hljs-number">3000</span>
+  }
+</code></pre></li>
+				</ul>
+				<hr>
+				<h4 id="requestoptsconfig">RequestOptsConfig</h4>
+				<ul>
+					<li><code>headers</code> - Object:</li>
+					<li><code>query</code> - Object:</li>
+					<li><code>body</code> - Object:</li>
+					<li><code>json</code> - Boolean: passes &#39;application/json&#39; header and parses returned body as json.</li>
+					<li><code>endpoint</code> - String:</li>
+					<li><code>timeout</code> - Integer: timeout in seconds</li>
+					<li><code>port</code> -</li>
+					<li><code>method</code> - String: <code>allowed: [GET, PUT, POST, DELETE]</code></li>
+				</ul>
+				<hr>
+				<h4 id="mockserver">MockServer</h4>
+				<p>A MockServer configuration allows for REST-based tests to be parsed and have their responses served when the defined request is made to the mock server. This effectively allows for you to define a test (request/response) prior to implementing the feature and have a server ready to server this response for UI developers.</p>
+				<ul>
+					<li><code>port</code> - String: port to run the mock server on. defaults to the port defined in the <a href="#TestSuite">TestSuite</a> being mocked.</li>
+					<li><code>root</code> - String: a root context that should be prepended to paths defined in a Test Suite and/or Test.</li>
+					<li><code>proxy</code> - <a href="#MockProxy">Array:MockProxy</a></li>
+					<li><code>injectedRequestOpts</code> - <a href="#RequestOpts">RequestOpts</a> - allows UI developers to mimic an intermediate service which may decorate the request with additional headers, params, body, etc. Opts specified in this section will be merged into the request once it arrives at the Mock Server but before attempting to match a mocked test.</li>
+				</ul>
+				<hr>
+				<h4 id="mockproxy">MockProxy</h4>
+				<p>A MockProxy defines a actual server running a full-implemented api. When running a MockServer if a route is not matched the request will be proxied to this server allowing for partial mocking.</p>
+				<ul>
+					<li><code>protocol</code>* - String <code>allowed: [http, https]</code>: protocol of the target server</li>
+					<li><code>host</code>* - String: hostName of the target server</li>
+					<li><code>port</code>* - Number: port of the target server</li>
+				</ul>
+				<hr>
+				<h4 id="requestopts">RequestOpts</h4>
+				<pre><code>ex)
+<span class="hljs-string">"headers"</span>: {
+  <span class="hljs-string">"my-header"</span>: <span class="hljs-string">"myHeaderValue"</span>
+},
+<span class="hljs-string">"query"</span>: {
+  <span class="hljs-string">"myQueryParam"</span>: <span class="hljs-string">"myQueryValue"</span>
+},
+<span class="hljs-string">"body"</span>: {
+  <span class="hljs-string">"myBodyKey"</span>: <span class="hljs-string">"myBodyValue"</span>
+}
+</code></pre><hr>
+				<h2 id="json-rest-api-test-configuration">JSON REST-API Test Configuration</h2>
+				<p>Tests can exist in 2 forms, .json and .js. The latter provides a mechanism for creating custom validations via a js method. When using the .js formation it&#39;s wise to provide a &#39;mockResponse&#39; for use by the <code>busybee mock</code> command.</p>
+				<hr>
+				<h3 id="resttest">RESTTest</h3>
+				<ul>
+					<li><code>name</code>* - String: unique name of the test</li>
+					<li><code>description</code> - String: description of what the test is for</li>
+					<li><code>testSet</code>* - <a href="#TestSet">TestSet</a>: list of or single TestSet</li>
+					<li><code>request</code>* - <a href="#RequestOpts">RequestOpts</a>: list of or single TestSet</li>
+					<li><code>expect</code> - <a href="#Expect">Expect</a></li>
+					<li><code>mockResponse</code> - <a href="#Response">Response</a></li>
+					<li><code>skip</code> - Boolean: whether or not to skip this test</li>
+					<li><code>delayTestRequest</code> - Number: number of milliseconds to wait before making a test request</li>
+					<li><code>delayMockedResponse</code> - Number: nmber or milliseconds to wait before returning a response when running in <code>mock</code> mode</li>
+				</ul>
+				<hr>
+				<h3 id="testset">TestSet</h3>
+				<ul>
+					<li><code>id</code>* - unique id (name) assigned to the testSet</li>
+					<li><code>index</code>* - this index that this test should run with-in the specified testSet</li>
+				</ul>
+				<hr>
+				<h3 id="expect">Expect</h3>
+				<ul>
+					<li><code>status</code> - Number: the Http status code to expect</li>
+					<li><code>headers</code> - Object: a &lt;String,String&gt; object containing header key&#39;s and their values to check for in the response</li>
+					<li><code>body</code> - Function|Object: when a Function is provided, it should have the signature of (body, variableExports) =&gt; {}. If the function returns false or throws an error it will be considered a failure. In the instance that an Object is provided Busybee will attempt to assert the response.body with the provided Object.</li>
+					<li><code>assertionModifications</code> - <a href="#AssertionModifications">AssertionModifications</a></li>
+				</ul>
+				<hr>
+				<h3 id="response">Response</h3>
+				<ul>
+					<li><code>status</code> - Number: Http status</li>
+					<li><code>headers</code> - Object: a &lt;String,String&gt; object containing header key&#39;s and their values</li>
+					<li><code>body</code> - Object</li>
+				</ul>
+				<hr>
+				<h3 id="assertionmodifications">AssertionModifications</h3>
+				<p>// TODO</p>
+				<ul>
+					<li>when using unorderedCollections make sure that you specific the outter-most collection. ie)
+					<code>`</code></li>
+				</ul>
+				<p>expected = [
+					{
+					subCollection: [
+					1,2,3,4
+					]
+					},
+					{
+					&quot;key&quot;: &quot;value&quot;,
+					subCollection: [
+					5,6,7,8
+					]
+					}
+				];</p>
+				<p>actual = [
+					{
+					subCollection: [
+					4,3,2,1
+					]
+					},
+					{
+					&quot;key&quot;: &quot;value&quot;,
+					subCollection: [
+					8,6,7,5
+					]
+					}
+				];</p>
+				<h1 id="though-it-is-the-subcollection-that-is-out-of-order-and-not-the-root-collection-the-root-collection">though it is the &#39;subCollection&#39; that is out-of-order and not the root collection. The root collection</h1>
+				<p><code>`</code></p>
+				<h2 id="todo">Todo</h2>
+				<ul>
+					<li>test adapters<ul>
+							<li>support <a href="https://github.com/postmanlabs/newman#using-newman-as-a-nodejs-module">https://github.com/postmanlabs/newman#using-newman-as-a-nodejs-module</a> ?<ul>
+									<li>may just want a commandline opt for running postman tests and another for converting them to Busybee formay since Busybee supports additional features like sets and indexes.</li>
+								</ul>
+							</li>
+						</ul>
+					</li>
+					<li>support healthcheck script</li>
+					<li>transpile to support older versions of node</li>
+					<li>Mock Server<ul>
+							<li>support testSets with state</li>
+							<li>support a .spec file for documenting endpoints?</li>
+						</ul>
+					</li>
+					<li>remove placeholder &#39;null&#39; entries after building testSets with skipped indexes</li>
+				</ul>
+			</div>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class="globals  ">
+						<a href="globals.html"><em>Globals</em></a>
+					</li>
+					<li class="label tsd-is-external">
+						<span>Internals</span>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_busybeeuserconfig_.html">"<wbr>Busybee<wbr>User<wbr>Config"</a>
+					</li>
+					<li class="label tsd-is-external">
+						<span>Externals</span>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="modules/_common_envconfig_.html">"common/<wbr>Env<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="modules/_common_envresourceconfig_.html">"common/<wbr>Env<wbr>Resource<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="modules/_common_mockserverconfig_.html">"common/<wbr>Mock<wbr>Server<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="modules/_common_requestoptsconfig_.html">"common/<wbr>Request<wbr>Opts<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="modules/_user_envinstanceconfig_.html">"user/<wbr>Env<wbr>Instance<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="modules/_user_healthcheckconfig_.html">"user/<wbr>Health<wbr>Check<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="modules/_user_hostconfig_.html">"user/<wbr>Host<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="modules/_user_proxyconfig_.html">"user/<wbr>Proxy<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="modules/_user_testsetconfig_.html">"user/<wbr>Test<wbr>Set<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="modules/_user_testsuiteconfig_.html">"user/<wbr>Test<wbr>Suite<wbr>Config"</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-module"><span class="tsd-kind-icon">Module</span></li>
+				<li class="tsd-kind-object-literal"><span class="tsd-kind-icon">Object literal</span></li>
+				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
+				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
+				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
+				<li class="tsd-kind-index-signature"><span class="tsd-kind-icon">Index signature</span></li>
+				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
+				<li class="tsd-kind-enum-member"><span class="tsd-kind-icon">Enumeration member</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-enum"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-enum"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
+				<li class="tsd-kind-interface tsd-has-type-parameter"><span class="tsd-kind-icon">Interface with type parameter</span></li>
+				<li class="tsd-kind-constructor tsd-parent-kind-interface"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
+				<li class="tsd-kind-index-signature tsd-parent-kind-interface"><span class="tsd-kind-icon">Index signature</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
+				<li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li>
+				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li>
+				<li class="tsd-kind-index-signature tsd-parent-kind-class"><span class="tsd-kind-icon">Index signature</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
+				<li class="tsd-kind-call-signature tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="http://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="assets/js/main.js"></script>
+<script>if (location.protocol == 'file:') document.write('<script src="assets/js/search.js"><' + '/script>');</script>
+</body>
 </html>

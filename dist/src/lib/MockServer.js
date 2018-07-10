@@ -125,23 +125,26 @@ var MockServer = /** @class */ (function () {
         this.logger.trace(this.testSuiteConf.testEnvs, true);
         this.testSuiteConf.testEnvs.forEach(function (testEnv, envId) {
             testEnv.testSets.forEach(function (testSet, testSetName) {
-                testSet.tests.forEach(function (mock) {
+                testSet.tests.forEach(function (test) {
                     var pass = false;
-                    if (mock.expect && mock.expect.status && !_.isFunction(mock.expect.body)) {
+                    if (test.expect && test.expect.status && !_.isFunction(test.expect.body)) {
                         pass = true;
                     }
-                    else if (mock.mockResponse && mock.mockResponse.status && mock.mockResponse.body) {
+                    else if (test.mock
+                        && test.mock.response
+                        && test.mock.response.status
+                        && test.mock.response.body) {
                         pass = true;
                     }
                     if (pass) {
-                        _this.updateRouteMap(mock);
+                        _this.updateRouteMap(test);
                     }
                 });
             });
         });
         // iterate the routeMap and register each route to the server
-        _.each(this.routeMap, function (reqMethodMap, endpoint) {
-            _this.addRoute(endpoint, reqMethodMap);
+        _.each(this.routeMap, function (reqMethodMap, path) {
+            _this.addRoute(path, reqMethodMap);
         });
         // add a special catchall route for the proxy if necessary
         if (this.proxy) {
@@ -154,26 +157,26 @@ var MockServer = /** @class */ (function () {
             });
         }
     };
-    // build an endpoint that accounts for the root context
+    // build an path that accounts for the root context
     MockServer.prototype.getEndpoint = function (mock) {
         this.logger.trace("getEndpoint");
         this.logger.trace(mock, true);
-        var endpoint = mock.request.endpoint;
+        var path = mock.request.path;
         if (!_.isUndefined(mock.request.root)) {
             if (mock.request.root) {
-                endpoint = "" + mock.request.root + endpoint;
+                path = "" + mock.request.root + path;
             } // else they passed null or false and we should not prepend a root (effectively overwriting mockServer.root or testSuiteConf.root
         }
         else if (!_.isUndefined(this.testSuiteConf.mockServer.root)) {
             if (this.testSuiteConf.mockServer.root != null) {
-                endpoint = "" + this.testSuiteConf.mockServer.root + endpoint;
+                path = "" + this.testSuiteConf.mockServer.root + path;
             }
         }
         else if (this.testSuiteConf.root) {
-            endpoint = "" + this.testSuiteConf.root + endpoint;
+            path = "" + this.testSuiteConf.root + path;
         }
-        this.logger.trace(endpoint);
-        return endpoint;
+        this.logger.trace(path);
+        return path;
     };
     MockServer.prototype.updateRouteMap = function (mock) {
         // // update the mockResponse with the globally applied headers according to the conf. (if any)
@@ -181,10 +184,10 @@ var MockServer = /** @class */ (function () {
         //   delete this.testSuiteConf.mockServer.injectedRequestOpts['description'];
         //   mockResponse.request = Object.assign({}, this.testSuiteConf.mockServer.injectedRequestOpts, mockResponse.request);
         // }
-        // build an endpoint that accounts for the root context
-        var endpoint = this.getEndpoint(mock);
-        if (!this.routeMap[endpoint]) {
-            this.routeMap[endpoint] = {
+        // build an path that accounts for the root context
+        var path = this.getEndpoint(mock);
+        if (!this.routeMap[path]) {
+            this.routeMap[path] = {
                 get: { 200: [] },
                 post: { 200: [] },
                 put: { 200: [] },
@@ -201,12 +204,12 @@ var MockServer = /** @class */ (function () {
             requestOpts.query = this.convertObjValuesToStrings(requestOpts.query);
         }
         var hashedReq = hash(requestOpts);
-        // 1a. search the this.routeMap[test.request.endpoint] for it using the hash
+        // 1a. search the this.routeMap[test.request.path] for it using the hash
         var method = request.method.toLocaleLowerCase();
-        var resStatus = mock.mockResponse ? mock.mockResponse.status : mock.expect.status; // default to mockResponse
-        if (this.routeMap[endpoint][method]) {
-            if (this.routeMap[endpoint][method][resStatus]) {
-                if (_.find(this.routeMap[endpoint][method], function (reqInfo) {
+        var resStatus = (mock.mock && mock.mock.response) ? mock.mock.response.status : mock.expect.status; // default to mockResponse
+        if (this.routeMap[path][method]) {
+            if (this.routeMap[path][method][resStatus]) {
+                if (_.find(this.routeMap[path][method], function (reqInfo) {
                     return reqInfo.hash === hashedReq;
                 })) {
                     // skip this one it exists
@@ -214,7 +217,7 @@ var MockServer = /** @class */ (function () {
                 }
             }
             else {
-                this.routeMap[endpoint][method][resStatus] = [];
+                this.routeMap[path][method][resStatus] = [];
             }
         }
         else {
@@ -222,11 +225,11 @@ var MockServer = /** @class */ (function () {
             return;
         }
         // 2. register the request info for this route
-        this.routeMap[endpoint][method][resStatus].push(Object.assign({}, mock, { hash: hashedReq }, { matcherOpts: requestOpts }));
+        this.routeMap[path][method][resStatus].push(Object.assign({}, mock, { hash: hashedReq }, { matcherOpts: requestOpts }));
     };
-    MockServer.prototype.addRoute = function (endpoint, reqMethodMap) {
+    MockServer.prototype.addRoute = function (path, reqMethodMap) {
         var _this = this;
-        this.logger.debug("addRoute " + endpoint + ", " + JSON.stringify(reqMethodMap));
+        this.logger.debug("addRoute " + path + ", " + JSON.stringify(reqMethodMap));
         _.forEach(reqMethodMap, function (statusMap, methodName) {
             // 1. build a controller
             var ctrl = function (req, res) { return __awaiter(_this, void 0, void 0, function () {
@@ -264,7 +267,7 @@ var MockServer = /** @class */ (function () {
                                 return [2 /*return*/];
                             }
                             mocksWithoutHeaders = [];
-                            mocksWithHeaders = [];
+                            mocksWithHeaders = new Array();
                             matchingMocks.forEach(function (m) {
                                 _this.logger.trace('checking mock');
                                 // mocks that don't have headers defined don't need to match. IF this array only has 1 item
@@ -333,7 +336,9 @@ var MockServer = /** @class */ (function () {
                             }
                             // set headers
                             res.append('busybee-mock', true);
-                            mockResponse = mockToReturn.mockResponse || mockToReturn.expect;
+                            mockResponse = (mockToReturn.mock && mockToReturn.mock.response) // default to test.mock.response and then attempt 'expect'
+                                ? mockToReturn.mock.response
+                                : mockToReturn.expect;
                             if (mockResponse) {
                                 resHeaders = Object.assign({}, resHeaders, mockResponse);
                             }
@@ -345,8 +350,8 @@ var MockServer = /** @class */ (function () {
                                     res.append(k, v);
                                 });
                             }
-                            if (!mockToReturn.delayMockedResponse) return [3 /*break*/, 2];
-                            return [4 /*yield*/, this.sleep(mockToReturn.delayMockedResponse)];
+                            if (!(mockToReturn.mock && mockToReturn.mock.lag)) return [3 /*break*/, 2];
+                            return [4 /*yield*/, this.sleep(mockToReturn.mock.lag)];
                         case 1:
                             _a.sent();
                             _a.label = 2;
@@ -357,8 +362,8 @@ var MockServer = /** @class */ (function () {
                 });
             }); }; // end ctrl
             // 2. register the route/method and ctrl
-            _this.logger.info("Registering endpoint " + endpoint + " : " + methodName);
-            server[methodName](endpoint, ctrl);
+            _this.logger.info("Registering path " + path + " : " + methodName);
+            server[methodName](path, ctrl);
         });
     };
     MockServer.prototype.buildReqOpts = function (req) {

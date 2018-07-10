@@ -30,7 +30,7 @@
           "type": "REST",
           "retries": 30,
           "request": {
-            "endpoint": "/healthcheck",
+            "path": "/healthcheck",
             "query": {
               "myQueryParam": "myQueryValue"
             },

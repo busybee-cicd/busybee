@@ -48,7 +48,7 @@ export class ParsedTestSuite {
     // assign a default env to this TestSuite IF this is a REST TestSuite to cover cases
     // where the user doesn't specify a testEnv
     if (!testSuite.type || (testSuite.type && testSuite.type.toUpperCase() === 'REST')) {
-      let defaultParsedTestEnv = new ParsedTestEnvConfig();
+      let defaultParsedTestEnv = new ParsedTestEnvConfig(null);
       let tsc = new TestSetConfig();
       tsc.id = 'default';
       let defaultParsedTestSet = new ParsedTestSetConfig(tsc);
@@ -77,8 +77,7 @@ export class ParsedTestSuite {
       this.logger.trace('testEnvConf');
       this.logger.trace(JSON.stringify(testEnvConf));
 
-      let parsedTestEnvConfig = new ParsedTestEnvConfig();
-      parsedTestEnvConfig.suiteEnvID = testEnvConf.id;
+      let parsedTestEnvConfig = new ParsedTestEnvConfig(testEnvConf);
       env2TestSuiteMap.set(parsedTestEnvConfig.suiteEnvID, this.suiteID);
 
       if (testEnvConf.testSets) {

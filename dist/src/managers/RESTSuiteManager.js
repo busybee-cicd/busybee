@@ -178,9 +178,9 @@ var RESTSuiteManager = /** @class */ (function () {
                                 ;
                             }
                             this.logger.info(testSet.id + ": " + testIndex + ": " + test.id);
-                            if (!test.delayTestRequest) return [3 /*break*/, 2];
-                            this.logger.info("Delaying request for " + test.delayTestRequest / 1000 + " seconds.");
-                            return [4 /*yield*/, this.wait(test.delayTestRequest)];
+                            if (!test.delayRequest) return [3 /*break*/, 2];
+                            this.logger.info("Delaying request for " + test.delayRequest / 1000 + " seconds.");
+                            return [4 /*yield*/, this.wait(test.delayRequest)];
                         case 1:
                             _a.sent();
                             _a.label = 2;

@@ -83,44 +83,52 @@ export class TestManager {
       let currentEnv: SuiteEnvInfo;
       let restManager: RESTSuiteManager;
       let testSetResults;
-      let _cb = _.once(cb);
+      let _cb = _.once(cb); // ensure cb is only called once
 
-      let buildEnvFn = async() => {
+      let buildEnvFn = async () => {
         generatedEnvID = this.envManager.generateId();
+
         await this.envManager.start(generatedEnvID, suiteID, suiteEnvID);
         currentEnv = this.envManager.getCurrentEnv(generatedEnvID);
         // create a restmanager to handle these tests
         restManager = new RESTSuiteManager(this.conf, currentEnv);
         testSetResults = await restManager.runRESTApiTestSets(currentEnv); // returns an array of testSets
 
-        let envResult = new EnvResult();
-        envResult.type = 'REST';
-        envResult.suiteID = suiteID;
-        envResult.env = suiteEnvID;
+        let envResult = EnvResult.new('REST', suiteID, suiteEnvID);
         envResult.testSets = testSetResults;
 
         return envResult;
       };
 
+      // we never want to call the err cb from here. If the Test Env has a failure we will report it
       buildEnvFn()
         .then((envResult: EnvResult) => {
           this.envManager.stop(generatedEnvID)
             .then(() => {
               _cb(null, envResult);
             })
-            .catch((err) => {
-              _cb(err, null);
+            .catch((err2) => {
+              this.logger.error(`buildRESTTestEnvTask: Error Encountered While Stopping ${generatedEnvID}`);
+              this.logger.error(err2);
+              envResult.error = err2;
+              _cb(null, envResult);
             });
         })
-        .catch((err) => {
-          this.logger.error("buildRESTTestEnvTask: Error Encountered While Running Tests");
-          this.logger.error(err);
+        .catch((err2) => {
+          this.logger.error(`buildRESTTestEnvTask: Error Encountered While Running Tests for ${generatedEnvID}`);
+          this.logger.error(err2);
+          let envResult = EnvResult.new('REST', suiteID, suiteEnvID);
+          envResult.testSets = [];
+          envResult.error = err2;
           this.envManager.stop(generatedEnvID)
             .then(() => {
-              _cb(err, null);
+              _cb(null, envResult);
             })
-            .catch((err2) => {
-              _cb(err2, null)
+            .catch((err3) => {
+              this.logger.error(`buildRESTTestEnvTask: Error Encountered While Stopping ${generatedEnvID}`);
+              this.logger.error(err3);
+              envResult.error = err3;
+              _cb(null, envResult)
             });
         });
     };

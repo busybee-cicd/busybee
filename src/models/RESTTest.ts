@@ -1,21 +1,20 @@
 import {RequestOptsConfig} from "./config/common/RequestOptsConfig";
 import {deserialize} from 'json-typescript-mapper';
-import {ResponseBody} from "./ResponseBody";
 import {RESTTestExpect} from "./RESTTestExpect";
 import {RESTTestSet} from './RESTTestSet';
 
 import * as _ from 'lodash';
+import { RESTMock } from "./RESTMock";
 
 export class RESTTest {
   id: string;
   description: string;
   testSet: Array<RESTTestSet> | RESTTestSet;
+  delayRequest: number;
   request: RequestOptsConfig;
   expect: RESTTestExpect;
   skip: boolean;
-  mockResponse: ResponseBody;
-  delayTestRequest: number;
-  delayMockedResponse: number;
+  mock: RESTMock;
 
   constructor(data: any) {
     this.id = data.id;
@@ -28,8 +27,7 @@ export class RESTTest {
       this.expect = new RESTTestExpect(data.expect);
     }
     this.skip = data.skip;
-    this.mockResponse = deserialize(ResponseBody, data.mockResponse);
-    this.delayTestRequest = data.delayTestRequest;
-    this.delayMockedResponse = data.mockResponseDelay;
+    this.mock = new RESTMock(data.mock);
+    this.delayRequest = data.delayRequest;
   }
 }

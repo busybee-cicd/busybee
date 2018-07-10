@@ -159,9 +159,9 @@ export class RESTSuiteManager {
 
 
         this.logger.info(`${testSet.id}: ${testIndex}: ${test.id}`);
-        if (test.delayTestRequest) {
-          this.logger.info(`Delaying request for ${test.delayTestRequest / 1000} seconds.`);
-          await this.wait(test.delayTestRequest);
+        if (test.delayRequest) {
+          this.logger.info(`Delaying request for ${test.delayRequest / 1000} seconds.`);
+          await this.wait(test.delayRequest);
         }
 
         try {

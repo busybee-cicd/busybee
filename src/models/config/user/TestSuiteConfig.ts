@@ -2,19 +2,89 @@ import {RequestOptsConfig} from "../common/RequestOptsConfig";
 import {EnvConfig} from "../common/EnvConfig";
 import {EnvInstanceConfig} from "./EnvInstanceConfig";
 import {MockServerConfig} from "../common/MockServerConfig";
+
+/**
+ *
+ * {<br>
+ * &nbsp; id: 'API test suite',<br>
+ * &nbsp; type: 'REST',<br>
+ * &nbsp; skip: false,<br>
+ * &nbsp; env: EnvConfig,<br>
+ * &nbsp; envInstances: EnvInstanceConfig[],<br>
+ * &nbsp; protocol: 'http',<br>
+ * &nbsp; ports: [8080],<br>
+ * &nbsp; root: '/v1'<br>
+ * &nbsp; testFolder: 'api-tests',<br>
+ * &nbsp; defaultRequestOpts: RequestOptsConfig,<br>
+ * &nbsp; mockServer: MockServerConfig<br>
+ * }
+ */
 export class TestSuiteConfig {
+  /**
+   * <span style="color:red">**Required**</span> <br>
+   * A unique id for this Test Suite <br>
+   * **Example** `user test suite`
+   */
   id: string;
+  /**
+   * <span style="color:red">**Required**</span> <br>
+   * **Defaut** `REST` <br>
+   * **Allowed** `REST` `USER_PROVIDED` <br>
+   * Dictates how the Test Suite is parsed. Busybee has it's own REST api testing implementation. For all other test suites choose 'USER_PROVIDED'
+   */
   type: string;
+  /**
+   * <span style="color:red">**Required**</span> <br>
+   * Whether or not to skip this Test Suite
+   */
   skip: boolean;
+  /**
+   * Provides properties for describing how to provision an environment for this TestSuite
+   */
   env: EnvConfig;
+  /**
+   * Configuration for creating instances of this TestSuite's Environment. Allows the user to provide
+   * env-specific parameters to modify how TestSet(s) are run.
+   */
   envInstances: EnvInstanceConfig[];
-  // REST-type-specific
+  /**
+   * *<span style="color:magenta">**Required** if `TestSuiteConfig.type` == `REST`</span>* <br>
+   * **Allowed** `http` `https`
+   */
   protocol: string;
+  /**
+   * *<span style="color:magenta">**Required** if `--skipEnvProvisioning` is enabled</span>* <br>
+   * **Example** `myhost` <br>
+   * Provide a host when you plan to run tests against an already running environment.
+   */
   host: string;
+  /**
+   * *<span style="color:magenta">**Required** if `TestSuiteConfig.type` == `REST`</span>* <br>
+   * Ports required by this suite. By default the first port supplied will be used for your
+   * healthcheck port if not specific in the HealthCheck
+   */
   ports: number[];
+  /**
+   * *<span style="color:magenta">Available if `TestSuiteConfig.type` == `REST`</span>* <br>
+   * **Example** `/v1` <br>
+   * root context of all api calls
+   */
   root: string;
+  /**
+   * *<span style="color:magenta">Available if `TestSuiteConfig.type` == `REST`</span>* <br>
+   * **Example** `apiTests/` <br>
+   * The directory containing your REST .js/.json test definitions.
+   */
   testFolder: string;
+  /**
+   * *<span style="color:magenta">Available if `TestSuiteConfig.type` == `REST`</span>* <br>
+   * Request params to be sent by default on each api request. defaultRequestOpts can be overridden with-in individual tests.
+   */
   defaultRequestOpts: RequestOptsConfig;
+  /**
+   * *<span style="color:magenta">Available if `TestSuiteConfig.type` == `REST`</span>* <br>
+   * Provide a configuration for running your REST TestSuite in 'mock' mode
+   */
   mockServer: MockServerConfig;
 
   constructor() {

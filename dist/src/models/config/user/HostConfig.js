@@ -1,5 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * Properties of an available host that test environments can be deployed to
+ *
+ * {<br>
+ * &nbsp; name: 'localhost',<br>
+ * &nbsp; capacity: 200<br>
+ * }
+ */
 var HostConfig = /** @class */ (function () {
     function HostConfig() {
         this.name = void 0;

@@ -13,7 +13,7 @@ import {RequestOptsConfig} from "../models/config/common/RequestOptsConfig";
 import {TypedMap} from "../lib/TypedMap";
 import {ParsedTestSuite} from "../models/config/parsed/ParsedTestSuiteConfig";
 import {SuiteEnvInfo} from "../lib/SuiteEnvInfo";
-
+import { IOUtil } from "../lib/IOUtil";
 
 export class EnvManager {
   private conf: BusybeeParsedConfig;
@@ -22,6 +22,10 @@ export class EnvManager {
   private envsWaitingForProvision: string[];
   private currentHosts: any;
   private currentEnvs: TypedMap<SuiteEnvInfo>;
+  private envStartRetries: any = {};
+  private static ENV_START_MAX_RETRIES = 3;
+  private static BUSYBEE_ERROR: string = 'BUSYBEE_ERROR';
+  private static BUSYBEE_RETURN: string = 'BUSYBEE_RETURN';
 
   constructor(conf: BusybeeParsedConfig) {
     this.conf = _.cloneDeep(conf);
@@ -53,7 +57,7 @@ export class EnvManager {
    'type': 'REST',
    'retries': 30,
    'request': {
-   'endpoint': '/healthcheck',
+   'path': '/healthcheck',
    'timeout': 5000
    }
    }
@@ -163,7 +167,10 @@ export class EnvManager {
         protocol: envInfo.protocol,
         hostName: envInfo.hostName,
         ports: ports,
-        busybeeDir: busybeeDir
+        busybeeDir: busybeeDir,
+        startScriptReturnData: envInfo.getStartScriptReturnData(),
+        startScriptErrorData: envInfo.getStartScriptErrorData(),
+        stopData: envInfo.stopData
       };
 
       let filePath = path.join(busybeeDir, envInfo.stopScript);
@@ -173,17 +180,16 @@ export class EnvManager {
 
       // 1. stop the env
       try {
-
         await this.runScript(filePath, [JSON.stringify(args)]);
 
-        this.currentHosts[envInfo.hostName].load -= envInfo.resourceCost;
-        // remove the env from the currentHosts
-        delete this.currentHosts[envInfo.hostName].envs[generatedEnvID];
+        // remove env info from the host
+        this.removeEnvFromHost(envInfo.hostName, envInfo.resourceCost, generatedEnvID);
 
-        this.logger.trace('this.currentHosts');
+        this.logger.trace(`this.currentHosts after removing ${generatedEnvID}`);
         this.logger.trace(this.currentHosts, true);
         resolve();
       } catch (e) {
+        this.logger.debug(`Error caught while stopping ${generatedEnvID}`);
         this.logger.info(e.message);
         // failed, add it back
         this.currentEnvs.set(generatedEnvID, envInfo);
@@ -192,6 +198,13 @@ export class EnvManager {
       }
     });
 
+  }
+
+  removeEnvFromHost(hostName: string, resourceCost: number, generatedEnvID: string) {
+    // remove the load from the host
+    this.currentHosts[hostName].load -= resourceCost;
+    // remove the env from the currentHosts
+    delete this.currentHosts[hostName].envs[generatedEnvID];
   }
 
   async stopAll() {
@@ -224,12 +237,15 @@ export class EnvManager {
 
     try {
       await this.provisionEnv(generatedEnvID, suiteID, suiteEnvID);
+      this.logger.trace(`${generatedEnvID} provisioned successfully`);
+      this.envsWaitingForProvision.shift();
     } catch (e) {
-      throw new Error(`${generatedEnvID} failed provision`);
+      this.envsWaitingForProvision.shift();
+      throw new Error(`${generatedEnvID} failed to provision`);
     }
 
-    this.envsWaitingForProvision.shift();
     this.logger.trace(`envsWaitingForProvision updated to ${this.envsWaitingForProvision}`);
+
     // should have some if logic here for the future when we support more than just api
 
     try {
@@ -293,13 +309,28 @@ export class EnvManager {
           protocol: testSuiteConf.protocol,
           hostName: hostName,
           ports: ports,
-          busybeeDir: busybeeDir
+          busybeeDir: busybeeDir,
+          startData: this.currentEnvs.get(generatedEnvID).startData
         };
 
         this.logger.trace('script args');
         this.logger.trace(testSuiteConf.env.startScript);
         this.logger.trace(args);
-        await this.runScript(path.join(busybeeDir, testSuiteConf.env.startScript), [JSON.stringify(args)]);
+        try {
+          let returnData = await this.runScript(path.join(busybeeDir, testSuiteConf.env.startScript), [JSON.stringify(args)]);
+
+          if (returnData) {
+            this.currentEnvs.get(generatedEnvID).setStartScriptReturnData(returnData);
+          }
+        } catch (err) {
+          /*
+          set the error information so that it can be used by the stopScript
+          if necessary but then re-throw the error so that it can be handled by
+          the orchestrating fns.
+          */
+          this.currentEnvs.get(generatedEnvID).setStartScriptErrorData(err);
+          throw new Error(err);
+        }
 
         this.logger.info(`${generatedEnvID} created.`);
         resolve(generatedEnvID);
@@ -309,16 +340,15 @@ export class EnvManager {
     });
   }
 
-  runScript(path, args) {
+  runScript(path, args): Promise<string> {
     return new Promise(async(resolve, reject) => {
       this.logger.info(`runScript ${path} <args>`);
       this.logger.debug(args);
       const completeMessage = `${path} completed`;
       let returned = false;
-
       const script = spawn('/bin/bash', [path, args]);
 
-      // listen for errors and reject
+      // listen to stderr for errors and reject
       script.stderr.on('data', (data) => {
         if (returned) {
           return;
@@ -326,44 +356,48 @@ export class EnvManager {
         if (!data) {
           data = "";
         }
-        let output = data.toString();
-        this.logger.debug(output);
+        let dataStr = data.toString();
+        this.logger.debug(dataStr);
 
-        if (output.toUpperCase().includes("BUSYBEE_SH_ERROR")) {
+        if (dataStr.includes(EnvManager.BUSYBEE_ERROR)) {
           returned = true;
-          reject(output);
-          script.kill('SIGHUP');
+          reject(dataStr.replace(`${EnvManager.BUSYBEE_ERROR} `, ''));
+          script.kill();
         }
       });
 
-      // listen for data and discern if an error has been thrown.
+      // listen to stdout for data
       script.stdout.on('data', (data) => {
-        if (returned) {
+        if (returned || _.isEmpty(data)) {
           return;
         }
-        if (!data) {
-          return;
-        }
-        let origOutput = data.toString();
-        let upperOutput = origOutput.toUpperCase();
-        this.logger.debug(origOutput);
 
-        if (upperOutput.includes("BUSYBEE_SH_ERROR")) {
-          returned = true;
-          this.logger.error(`BUSYBEE_SH_ERROR detected in ${path}`);
-          reject(origOutput);
-          script.kill('SIGHUP');
-        } else if (upperOutput.includes("BUSYBEE_SH_COMPLETE")) {
-          returned = true;
-          resolve(completeMessage);
-          script.kill('SIGHUP');
-        }
-        ;
+        let lines = IOUtil.parseDataBuffer(data);
+        lines.forEach((l) => {
+          this.logger.debug(l);
+
+          if (l.includes(EnvManager.BUSYBEE_ERROR)) {
+            returned = true;
+            this.logger.error(`${EnvManager.BUSYBEE_ERROR} detected in ${path}`);
+            reject(l.replace(`${EnvManager.BUSYBEE_ERROR} `, ''));
+            script.kill();
+          } else if (l.includes(EnvManager.BUSYBEE_RETURN)) {
+            let returnedData = l.replace(`${EnvManager.BUSYBEE_RETURN} `, '');
+            this.logger.debug(`${path} Returned data:`);
+            this.logger.debug(returnedData);
+            returned = true;
+            resolve(returnedData);
+            script.kill();
+            this.logger.debug(completeMessage);
+          };
+        });
       });
 
+      // default return via script exit 0. no return value
       script.on('close', () => {
         if (!returned) {
-          resolve(completeMessage);
+          resolve();
+          this.logger.debug(completeMessage);
         }
       });
     });
@@ -507,13 +541,13 @@ export class EnvManager {
    Recursively check for available ports
 
    IF (parallelMode)
-   IF (portsTaken)
-   increment ports and try again
+    IF (portsTaken)
+      increment ports and try again
+    ELSE
+      we've identified available ports, return
    ELSE
-   we've identified available ports, return
-   ELSE
-   IF (portsTaken)
-   do not increment ports, try again
+    IF (portsTaken)
+      do not increment ports, try again
    */
   async identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset, parallelMode) {
     this.logger.trace(`identifyPorts: ${generatedEnvID} ${hostName}, ${portsInUse}, ${nextPorts}, ${portOffset}, ${parallelMode}`);
@@ -649,14 +683,14 @@ export class EnvManager {
         if (requestConf.port) {
           healthcheckPort = requestConf.port;
         } else {
-          healthcheckPort = suiteEnvConf.ports[0]; // default to restapi endpoint
+          healthcheckPort = suiteEnvConf.ports[0]; // default to restapi path
         }
         // 2. get the port offset, apply.
         let portOffset = this.currentHosts[suiteEnvConf.hostName].envs[generatedEnvID].portOffset
         healthcheckPort += portOffset;
         let opts = restClient.buildRequest(requestConf, healthcheckPort);
 
-        // retries the healthcheck endpoint every 3 seconds up to 20 times
+        // retries the healthcheck path every 3 seconds up to 20 times
         // when successful calls the cb passed to confirmHealthcheck()
         _async.retry({times: healthcheckConf.retries || 50, interval: opts.timeout},
           (asyncCb) => {
