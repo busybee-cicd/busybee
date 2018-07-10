@@ -4,7 +4,7 @@ banzai {
     gitCredId = 'sweeney-git'
     gitAccount = 'Busybee'
     build = true
-    buildBranches = /master/
+    buildBranches = /PR-*/
     buildScriptFile = 'banzai-build.sh'
     publish = true
     publishBranches = /master/
