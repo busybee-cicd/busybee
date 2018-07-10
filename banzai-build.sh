@@ -11,9 +11,14 @@ command -v yarn >/dev/null 2>&1 || {
     npm install -g yarn;
 }
 
+command -v mockserver >/dev/null 2>&1 || {
+    echo "Installing mockserver..."
+    yarn global add mockserver;
+}
+
 echo "Installing Dependencies"
 yarn install
 echo "Running Unit Tests" 
 npm test
 echo "Running IT"
-npm run IT
+NO_PROXY=localhost npm run IT
