@@ -12,6 +12,7 @@ git fetch origin
 #git checkout gh-pages origin/gh-pages
 git checkout gh-pages
 git merge master
+rm -rf docs
 mkdir docs
 npm run docs
 git add .
