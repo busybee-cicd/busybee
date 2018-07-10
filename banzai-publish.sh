@@ -2,7 +2,7 @@
 
 echo "building documentation"
 git fetch origin
-git checkout gh-pages
+git checkout -b gh-pages origin/gh-pages
 git merge master
 npm run docs
 git add .
