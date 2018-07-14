@@ -1,14 +1,16 @@
 import {HealthCheckConfig} from "../user/HealthCheckConfig";
 
 /**
- * {<br>
- * &nbsp parallel: true,<br>
- * &nbsp resourceCost: 100,<br>
- * &nbsp startScript: 'start.sh',<br>
- * &nbsp stopScript: 'stop.sh',<br>
- * &nbsp runScript: 'run.sh',<br>
- * &nbsp healthCheck: HealthCheckConfig<br>
+ * ```
+ * {
+ *   parallel: true,
+ *   resourceCost: 100,
+ *   startScript: 'start.sh',
+ *   stopScript: 'stop.sh',
+ *   runScript: 'run.sh',
+ *   healthCheck: HealthCheckConfig
  * }
+ * ```
  */
 export class EnvConfig {
   /**

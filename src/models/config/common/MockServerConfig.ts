@@ -3,13 +3,14 @@ import {RequestOptsConfig} from "./RequestOptsConfig";
 
 /**
  * Provide a configuration for running your REST TestSuite in 'mock' mode
- *
- * {<br>
- * &nbsp port: 8180,<br>
- * &nbsp root: '/my-service-context',<br>
- * &nbsp proxy: ProxyConfig,<br>
- * &nbsp injectedRequestOpts: RequestOptsConfig<br>
+ * ```
+ * {
+ *   port: 8180,
+ *   root: '/my-service-context',
+ *   proxy: ProxyConfig,
+ *   injectedRequestOpts: RequestOptsConfig
  * }
+ * ```
  */
 export class MockServerConfig {
   /**

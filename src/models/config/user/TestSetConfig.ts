@@ -1,15 +1,16 @@
 /**
  * A TestSet is a logical grouping of tests. One or more TestSets can be assigned to an environment instance.
  * Tests can be run in a specific order with-in a TestSet (see RESTTest.testSet)
- *
- * {<br>
- * &nbsp; id: 'users',<br>
- * &nbsp; controlFlow: 'parallel',<br>
- * &nbsp; runData: {<br>
- * &nbsp; &nbsp; user: 'admin',<br>
- * &nbsp; },<br>
- * &nbsp; description: 'runs all User CRUD tests'<br>
+ * ```
+ * {
+ *   id: 'users',
+ *   controlFlow: 'parallel',
+ *   runData: {
+ *     user: 'admin',
+ *   },
+ *   description: 'runs all User CRUD tests'
  * }
+ * ```
  */
 export class TestSetConfig {
   /**
