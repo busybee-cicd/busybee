@@ -6,7 +6,4 @@ banzai {
     build = true
     buildBranches = /PR\-(.*)/
     buildScriptFile = 'banzai-build.sh'
-    publish = true
-    publishBranches = /master/
-    publishScriptFile = 'banzai-publish.sh'
 }
