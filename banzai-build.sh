@@ -21,4 +21,6 @@ yarn install
 echo "Running Unit Tests" 
 npm test
 echo "Running IT"
-NO_PROXY=localhost npm run IT
+export NO_PROXY=localhost
+npm run IT
+unset NO_PROXY
