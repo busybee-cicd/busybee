@@ -17,4 +17,4 @@ mkdir docs
 npm run docs
 git add .
 git commit -m 'documentation updated'
-git push origin gh-pages
+git push origin gh-pages -f
