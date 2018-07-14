@@ -8,7 +8,6 @@ busybee
 * [About](#about)
     * [What it is](#what-it-is)
     * [What it isn't](#what-it-isnt)
-* [Configuration](#configuration)
 * [Todo](#todo)
 
 ## Requirements
@@ -20,6 +19,8 @@ npm install -g git+https://github.build.ge.com/Busybee/busybee.git
 busybee init
 busybee --help
 ```
+
+See [The Configuration Docs](https://github.build.ge.com/pages/Busybee/busybee/) for detailed information on config file properties.
 
 ## About
 
