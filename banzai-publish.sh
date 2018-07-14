@@ -15,6 +15,8 @@ git merge master
 rm -rf docs
 mkdir docs
 npm run docs
+# add a .nojekyll file to turn off jekyll
+touch .nojekyll
 git add .
 git commit -m 'documentation updated'
 git push origin gh-pages -f
