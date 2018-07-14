@@ -73,17 +73,18 @@
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
 						<p>Defines how an instance of a TestSuite environment should be provisioned</p>
+						<pre><code>{
+  <span class="hljs-attribute">id</span>: <span class="hljs-string">'read-only env'</span>,
+  <span class="hljs-attribute">testSets</span>: TestSetConfig[],
+  <span class="hljs-attribute">startData</span>: {
+    <span class="hljs-attribute">retries</span>: <span class="hljs-number">5</span>
+  },
+  <span class="hljs-attribute">stopData</span>: {
+    <span class="hljs-attribute">signal</span>: 'SIGTERM,
+  }
+}
+</code></pre>
 					</div>
-					<p>{<br>
-						&nbsp; id: &#39;read-only env&#39;,<br>
-						&nbsp; testSets: TestSetConfig[],<br>
-						&nbsp; startData: {<br>
-						&nbsp; &nbsp; retries: 5<br>
-						&nbsp; },<br>
-						&nbsp; stopData: {<br>
-						&nbsp; &nbsp; signal: &#39;SIGTERM,<br>
-						&nbsp; }<br>
-					}</p>
 				</div>
 			</section>
 			<section class="tsd-panel tsd-hierarchy">
@@ -128,7 +129,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in user/EnvInstanceConfig.ts:36</li>
+									<li>Defined in user/EnvInstanceConfig.ts:37</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="_user_envinstanceconfig_.envinstanceconfig.html" class="tsd-signature-type">EnvInstanceConfig</a></h4>
@@ -144,7 +145,7 @@
 					<div class="tsd-signature tsd-kind-icon">id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in user/EnvInstanceConfig.ts:22</li>
+							<li>Defined in user/EnvInstanceConfig.ts:23</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -161,7 +162,7 @@
 					<div class="tsd-signature tsd-kind-icon">start<wbr>Data<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in user/EnvInstanceConfig.ts:32</li>
+							<li>Defined in user/EnvInstanceConfig.ts:33</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -176,7 +177,7 @@
 					<div class="tsd-signature tsd-kind-icon">stop<wbr>Data<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in user/EnvInstanceConfig.ts:36</li>
+							<li>Defined in user/EnvInstanceConfig.ts:37</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -191,7 +192,7 @@
 					<div class="tsd-signature tsd-kind-icon">test<wbr>Sets<span class="tsd-signature-symbol">:</span> <a href="_user_testsetconfig_.testsetconfig.html" class="tsd-signature-type">TestSetConfig</a><span class="tsd-signature-symbol">[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in user/EnvInstanceConfig.ts:28</li>
+							<li>Defined in user/EnvInstanceConfig.ts:29</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">

@@ -74,15 +74,16 @@
 					<div class="lead">
 						<p>A TestSet is a logical grouping of tests. One or more TestSets can be assigned to an environment instance.
 						Tests can be run in a specific order with-in a TestSet (see RESTTest.testSet)</p>
+						<pre><code>{
+  <span class="hljs-attribute">id</span>: <span class="hljs-string">'users'</span>,
+  <span class="hljs-attribute">controlFlow</span>: <span class="hljs-string">'parallel'</span>,
+  <span class="hljs-attribute">runData</span>: {
+    <span class="hljs-attribute">user</span>: <span class="hljs-string">'admin'</span>,
+  },
+  <span class="hljs-attribute">description</span>: <span class="hljs-string">'runs all User CRUD tests'</span>
+}
+</code></pre>
 					</div>
-					<p>{<br>
-						&nbsp; id: &#39;users&#39;,<br>
-						&nbsp; controlFlow: &#39;parallel&#39;,<br>
-						&nbsp; runData: {<br>
-						&nbsp; &nbsp; user: &#39;admin&#39;,<br>
-						&nbsp; },<br>
-						&nbsp; description: &#39;runs all User CRUD tests&#39;<br>
-					}</p>
 				</div>
 			</section>
 			<section class="tsd-panel tsd-hierarchy">
@@ -127,7 +128,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in user/TestSetConfig.ts:30</li>
+									<li>Defined in user/TestSetConfig.ts:31</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="_user_testsetconfig_.testsetconfig.html" class="tsd-signature-type">TestSetConfig</a></h4>
@@ -143,7 +144,7 @@
 					<div class="tsd-signature tsd-kind-icon">control<wbr>Flow<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in user/TestSetConfig.ts:24</li>
+							<li>Defined in user/TestSetConfig.ts:25</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -158,7 +159,7 @@
 					<div class="tsd-signature tsd-kind-icon">description<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in user/TestSetConfig.ts:30</li>
+							<li>Defined in user/TestSetConfig.ts:31</li>
 						</ul>
 					</aside>
 				</section>
@@ -168,7 +169,7 @@
 					<div class="tsd-signature tsd-kind-icon">id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in user/TestSetConfig.ts:20</li>
+							<li>Defined in user/TestSetConfig.ts:21</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -185,7 +186,7 @@
 					<div class="tsd-signature tsd-kind-icon">run<wbr>Data<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in user/TestSetConfig.ts:29</li>
+							<li>Defined in user/TestSetConfig.ts:30</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">

@@ -2,10 +2,11 @@ import {HostConfig} from "../user/HostConfig";
 
 /**
  * Configuration opts for provisioning Test Set Environments
- *
- * {<br>
- * &nbsp; hosts: HostConfig[]<br>
+ * ```
+ * {
+ *   hosts: HostConfig[]
  * }
+ * ```
  */
 export class EnvResourceConfig {
   /**

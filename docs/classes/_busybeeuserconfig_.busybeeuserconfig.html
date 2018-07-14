@@ -75,13 +75,14 @@
 						<p>Busybee Configuration. Mapped to Typescript from user-provided config.js/json. The top-level
 							of configuration, the fields in the BusybeeUserConfig are responsible for defining the resources available
 						for environment provisioning, TestSuites that will be run with-in environments and registering reporters for result analysis</p>
+						<pre><code>{
+  <span class="hljs-attribute">envResources</span>: EnvResourceConfig[],
+  onComplete: <span class="hljs-string">'onComplete.js'</span>,
+  testSuites: TestSuiteConfig[],
+  reporters: []
+}
+</code></pre>
 					</div>
-					<p>{<br>
-						&nbsp; envResources: EnvResourceConfig[],<br>
-						&nbsp; onComplete: &#39;onComplete.js&#39;,<br>
-						&nbsp; testSuites: TestSuiteConfig[],<br>
-						&nbsp; reporters: []<br>
-					}</p>
 				</div>
 			</section>
 			<section class="tsd-panel tsd-hierarchy">
@@ -126,7 +127,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in BusybeeUserConfig.ts:33</li>
+									<li>Defined in BusybeeUserConfig.ts:34</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="_busybeeuserconfig_.busybeeuserconfig.html" class="tsd-signature-type">BusybeeUserConfig</a></h4>
@@ -142,7 +143,7 @@
 					<div class="tsd-signature tsd-kind-icon">env<wbr>Resources<span class="tsd-signature-symbol">:</span> <a href="_common_envresourceconfig_.envresourceconfig.html" class="tsd-signature-type">EnvResourceConfig</a><span class="tsd-signature-symbol">[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in BusybeeUserConfig.ts:19</li>
+							<li>Defined in BusybeeUserConfig.ts:20</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -157,7 +158,7 @@
 					<div class="tsd-signature tsd-kind-icon">on<wbr>Complete<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in BusybeeUserConfig.ts:24</li>
+							<li>Defined in BusybeeUserConfig.ts:25</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -173,7 +174,7 @@
 					<div class="tsd-signature tsd-kind-icon">reporters<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in BusybeeUserConfig.ts:33</li>
+							<li>Defined in BusybeeUserConfig.ts:34</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -188,7 +189,7 @@
 					<div class="tsd-signature tsd-kind-icon">test<wbr>Suites<span class="tsd-signature-symbol">:</span> <a href="_user_testsuiteconfig_.testsuiteconfig.html" class="tsd-signature-type">TestSuiteConfig</a><span class="tsd-signature-symbol">[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in BusybeeUserConfig.ts:29</li>
+							<li>Defined in BusybeeUserConfig.ts:30</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
