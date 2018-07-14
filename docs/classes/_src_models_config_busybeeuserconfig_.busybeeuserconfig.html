@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>EnvInstanceConfig | busybee</title>
+	<title>BusybeeUserConfig | busybee</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -56,13 +56,13 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="../modules/_user_envinstanceconfig_.html">&quot;user/EnvInstanceConfig&quot;</a>
+					<a href="../modules/_src_models_config_busybeeuserconfig_.html">&quot;src/models/config/BusybeeUserConfig&quot;</a>
 				</li>
 				<li>
-					<a href="_user_envinstanceconfig_.envinstanceconfig.html">EnvInstanceConfig</a>
+					<a href="_src_models_config_busybeeuserconfig_.busybeeuserconfig.html">BusybeeUserConfig</a>
 				</li>
 			</ul>
-			<h1>Class EnvInstanceConfig</h1>
+			<h1>Class BusybeeUserConfig</h1>
 		</div>
 	</div>
 </header>
@@ -72,16 +72,14 @@
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>Defines how an instance of a TestSuite environment should be provisioned</p>
+						<p>Busybee Configuration. Mapped to Typescript from user-provided config.js/json. The top-level
+							of configuration, the fields in the BusybeeUserConfig are responsible for defining the resources available
+						for environment provisioning, TestSuites that will be run with-in environments and registering reporters for result analysis</p>
 						<pre><code>{
-  <span class="hljs-attribute">id</span>: <span class="hljs-string">'read-only env'</span>,
-  <span class="hljs-attribute">testSets</span>: TestSetConfig[],
-  <span class="hljs-attribute">startData</span>: {
-    <span class="hljs-attribute">retries</span>: <span class="hljs-number">5</span>
-  },
-  <span class="hljs-attribute">stopData</span>: {
-    <span class="hljs-attribute">signal</span>: 'SIGTERM,
-  }
+  <span class="hljs-attribute">envResources</span>: EnvResourceConfig[],
+  onComplete: <span class="hljs-string">'onComplete.js'</span>,
+  testSuites: TestSuiteConfig[],
+  reporters: []
 }
 </code></pre>
 					</div>
@@ -91,7 +89,7 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">EnvInstanceConfig</span>
+						<span class="target">BusybeeUserConfig</span>
 					</li>
 				</ul>
 			</section>
@@ -99,107 +97,105 @@
 				<h2>Index</h2>
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
-						<section class="tsd-index-section tsd-is-external">
+						<section class="tsd-index-section ">
 							<h3>Constructors</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-external"><a href="_user_envinstanceconfig_.envinstanceconfig.html#constructor" class="tsd-kind-icon">constructor</a></li>
+								<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="_src_models_config_busybeeuserconfig_.busybeeuserconfig.html#constructor" class="tsd-kind-icon">constructor</a></li>
 							</ul>
 						</section>
-						<section class="tsd-index-section tsd-is-external">
+						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_user_envinstanceconfig_.envinstanceconfig.html#id" class="tsd-kind-icon">id</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_user_envinstanceconfig_.envinstanceconfig.html#startdata" class="tsd-kind-icon">start<wbr>Data</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_user_envinstanceconfig_.envinstanceconfig.html#stopdata" class="tsd-kind-icon">stop<wbr>Data</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_user_envinstanceconfig_.envinstanceconfig.html#testsets" class="tsd-kind-icon">test<wbr>Sets</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_src_models_config_busybeeuserconfig_.busybeeuserconfig.html#envresources" class="tsd-kind-icon">env<wbr>Resources</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_src_models_config_busybeeuserconfig_.busybeeuserconfig.html#oncomplete" class="tsd-kind-icon">on<wbr>Complete</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_src_models_config_busybeeuserconfig_.busybeeuserconfig.html#reporters" class="tsd-kind-icon">reporters</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_src_models_config_busybeeuserconfig_.busybeeuserconfig.html#testsuites" class="tsd-kind-icon">test<wbr>Suites</a></li>
 							</ul>
 						</section>
 					</div>
 				</section>
 			</section>
-			<section class="tsd-panel-group tsd-member-group tsd-is-external">
+			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Constructors</h2>
-				<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class tsd-is-external">
+				<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class">
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
-					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-external">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>Env<wbr>Instance<wbr>Config<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_user_envinstanceconfig_.envinstanceconfig.html" class="tsd-signature-type">EnvInstanceConfig</a></li>
+					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Busybee<wbr>User<wbr>Config<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_src_models_config_busybeeuserconfig_.busybeeuserconfig.html" class="tsd-signature-type">BusybeeUserConfig</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in user/EnvInstanceConfig.ts:37</li>
+									<li>Defined in src/models/config/BusybeeUserConfig.ts:34</li>
 								</ul>
 							</aside>
-							<h4 class="tsd-returns-title">Returns <a href="_user_envinstanceconfig_.envinstanceconfig.html" class="tsd-signature-type">EnvInstanceConfig</a></h4>
+							<h4 class="tsd-returns-title">Returns <a href="_src_models_config_busybeeuserconfig_.busybeeuserconfig.html" class="tsd-signature-type">BusybeeUserConfig</a></h4>
 						</li>
 					</ul>
 				</section>
 			</section>
-			<section class="tsd-panel-group tsd-member-group tsd-is-external">
+			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external">
-					<a name="id" class="tsd-anchor"></a>
-					<h3>id</h3>
-					<div class="tsd-signature tsd-kind-icon">id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="envresources" class="tsd-anchor"></a>
+					<h3>env<wbr>Resources</h3>
+					<div class="tsd-signature tsd-kind-icon">env<wbr>Resources<span class="tsd-signature-symbol">:</span> <a href="_src_models_config_common_envresourceconfig_.envresourceconfig.html" class="tsd-signature-type">EnvResourceConfig</a><span class="tsd-signature-symbol">[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in user/EnvInstanceConfig.ts:23</li>
+							<li>Defined in src/models/config/BusybeeUserConfig.ts:20</li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Describes the available resources that environments can be deployed to</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="oncomplete" class="tsd-anchor"></a>
+					<h3>on<wbr>Complete</h3>
+					<div class="tsd-signature tsd-kind-icon">on<wbr>Complete<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in src/models/config/BusybeeUserConfig.ts:25</li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The name of a .js file to call on completion of all Test Suites.
+							Must export a single function with the signature (errors, results).</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="reporters" class="tsd-anchor"></a>
+					<h3>reporters</h3>
+					<div class="tsd-signature tsd-kind-icon">reporters<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in src/models/config/BusybeeUserConfig.ts:34</li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>A collection of reporters that will be called at the completion of a TestSuite</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="testsuites" class="tsd-anchor"></a>
+					<h3>test<wbr>Suites</h3>
+					<div class="tsd-signature tsd-kind-icon">test<wbr>Suites<span class="tsd-signature-symbol">:</span> <a href="_src_models_config_user_testsuiteconfig_.testsuiteconfig.html" class="tsd-signature-type">TestSuiteConfig</a><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in src/models/config/BusybeeUserConfig.ts:30</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
 							<p><span style="color:red"><strong>Required</strong></span> <br>
-								<strong>Example</strong> <code>read-only environment</code>
-							a unique id used to identify this TestEnv</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external">
-					<a name="startdata" class="tsd-anchor"></a>
-					<h3>start<wbr>Data</h3>
-					<div class="tsd-signature tsd-kind-icon">start<wbr>Data<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in user/EnvInstanceConfig.ts:33</li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>Data that will be passed to the startScript as <code>startData</code> when this environment instance is started</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external">
-					<a name="stopdata" class="tsd-anchor"></a>
-					<h3>stop<wbr>Data</h3>
-					<div class="tsd-signature tsd-kind-icon">stop<wbr>Data<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in user/EnvInstanceConfig.ts:37</li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>Data that will be passed to the stopScript as <code>stopData</code> when this environment instance is stopped</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external">
-					<a name="testsets" class="tsd-anchor"></a>
-					<h3>test<wbr>Sets</h3>
-					<div class="tsd-signature tsd-kind-icon">test<wbr>Sets<span class="tsd-signature-symbol">:</span> <a href="_user_testsetconfig_.testsetconfig.html" class="tsd-signature-type">TestSetConfig</a><span class="tsd-signature-symbol">[]</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in user/EnvInstanceConfig.ts:29</li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p><span style="color:red"><strong>Required</strong></span> <br>
-								List of test sets that should run with-in this environment instance.
-							A TestEnv can only have tests added to it via a TestSet and therefore requires at least one TestSet.</p>
+							A collection of TestSuites to run via <code>busybee test</code></p>
 						</div>
 					</div>
 				</section>
@@ -215,40 +211,64 @@
 						<span>Internals</span>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="../modules/_busybeeuserconfig_.html">"<wbr>Busybee<wbr>User<wbr>Config"</a>
+						<a href="../modules/_src_models_resttest_.html">"src/models/RESTTest"</a>
+					</li>
+					<li class="current tsd-kind-external-module">
+						<a href="../modules/_src_models_config_busybeeuserconfig_.html">"src/models/config/<wbr>Busybee<wbr>User<wbr>Config"</a>
 					</li>
 					<li class="label tsd-is-external">
 						<span>Externals</span>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_common_envconfig_.html">"common/<wbr>Env<wbr>Config"</a>
+						<a href="../modules/_node_modules_json_typescript_mapper_index_.html">"node_<wbr>modules/json-<wbr>typescript-<wbr>mapper/index"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_common_envresourceconfig_.html">"common/<wbr>Env<wbr>Resource<wbr>Config"</a>
+						<a href="../modules/_node_modules_json_typescript_mapper_libs_utils_.html">"node_<wbr>modules/json-<wbr>typescript-<wbr>mapper/libs/utils"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_common_mockserverconfig_.html">"common/<wbr>Mock<wbr>Server<wbr>Config"</a>
+						<a href="../modules/_src_models_restmock_.html">"src/models/RESTMock"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_common_requestoptsconfig_.html">"common/<wbr>Request<wbr>Opts<wbr>Config"</a>
-					</li>
-					<li class="current tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_user_envinstanceconfig_.html">"user/<wbr>Env<wbr>Instance<wbr>Config"</a>
+						<a href="../modules/_src_models_resttestassertionmodifications_.html">"src/models/RESTTest<wbr>Assertion<wbr>Modifications"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_user_healthcheckconfig_.html">"user/<wbr>Health<wbr>Check<wbr>Config"</a>
+						<a href="../modules/_src_models_resttestexpect_.html">"src/models/RESTTest<wbr>Expect"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_user_hostconfig_.html">"user/<wbr>Host<wbr>Config"</a>
+						<a href="../modules/_src_models_resttestset_.html">"src/models/RESTTest<wbr>Set"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_user_proxyconfig_.html">"user/<wbr>Proxy<wbr>Config"</a>
+						<a href="../modules/_src_models_responsebody_.html">"src/models/<wbr>Response<wbr>Body"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_user_testsetconfig_.html">"user/<wbr>Test<wbr>Set<wbr>Config"</a>
+						<a href="../modules/_src_models_config_common_envconfig_.html">"src/models/config/common/<wbr>Env<wbr>Config"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_user_testsuiteconfig_.html">"user/<wbr>Test<wbr>Suite<wbr>Config"</a>
+						<a href="../modules/_src_models_config_common_envresourceconfig_.html">"src/models/config/common/<wbr>Env<wbr>Resource<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_src_models_config_common_mockserverconfig_.html">"src/models/config/common/<wbr>Mock<wbr>Server<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_src_models_config_common_requestoptsconfig_.html">"src/models/config/common/<wbr>Request<wbr>Opts<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_src_models_config_user_envinstanceconfig_.html">"src/models/config/user/<wbr>Env<wbr>Instance<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_src_models_config_user_healthcheckconfig_.html">"src/models/config/user/<wbr>Health<wbr>Check<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_src_models_config_user_hostconfig_.html">"src/models/config/user/<wbr>Host<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_src_models_config_user_proxyconfig_.html">"src/models/config/user/<wbr>Proxy<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_src_models_config_user_testsetconfig_.html">"src/models/config/user/<wbr>Test<wbr>Set<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_src_models_config_user_testsuiteconfig_.html">"src/models/config/user/<wbr>Test<wbr>Suite<wbr>Config"</a>
 					</li>
 				</ul>
 			</nav>
@@ -256,23 +276,23 @@
 				<ul class="before-current">
 				</ul>
 				<ul class="current">
-					<li class="current tsd-kind-class tsd-parent-kind-external-module tsd-is-external">
-						<a href="_user_envinstanceconfig_.envinstanceconfig.html" class="tsd-kind-icon">Env<wbr>Instance<wbr>Config</a>
+					<li class="current tsd-kind-class tsd-parent-kind-external-module">
+						<a href="_src_models_config_busybeeuserconfig_.busybeeuserconfig.html" class="tsd-kind-icon">Busybee<wbr>User<wbr>Config</a>
 						<ul>
-							<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-external">
-								<a href="_user_envinstanceconfig_.envinstanceconfig.html#constructor" class="tsd-kind-icon">constructor</a>
+							<li class=" tsd-kind-constructor tsd-parent-kind-class">
+								<a href="_src_models_config_busybeeuserconfig_.busybeeuserconfig.html#constructor" class="tsd-kind-icon">constructor</a>
 							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
-								<a href="_user_envinstanceconfig_.envinstanceconfig.html#id" class="tsd-kind-icon">id</a>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="_src_models_config_busybeeuserconfig_.busybeeuserconfig.html#envresources" class="tsd-kind-icon">env<wbr>Resources</a>
 							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
-								<a href="_user_envinstanceconfig_.envinstanceconfig.html#startdata" class="tsd-kind-icon">start<wbr>Data</a>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="_src_models_config_busybeeuserconfig_.busybeeuserconfig.html#oncomplete" class="tsd-kind-icon">on<wbr>Complete</a>
 							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
-								<a href="_user_envinstanceconfig_.envinstanceconfig.html#stopdata" class="tsd-kind-icon">stop<wbr>Data</a>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="_src_models_config_busybeeuserconfig_.busybeeuserconfig.html#reporters" class="tsd-kind-icon">reporters</a>
 							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
-								<a href="_user_envinstanceconfig_.envinstanceconfig.html#testsets" class="tsd-kind-icon">test<wbr>Sets</a>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="_src_models_config_busybeeuserconfig_.busybeeuserconfig.html#testsuites" class="tsd-kind-icon">test<wbr>Suites</a>
 							</li>
 						</ul>
 					</li>
