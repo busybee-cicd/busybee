@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>&quot;BusybeeUserConfig&quot; | busybee</title>
+	<title>HostConfig | busybee</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -56,26 +56,115 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="_busybeeuserconfig_.html">&quot;BusybeeUserConfig&quot;</a>
+					<a href="../modules/_src_models_config_user_hostconfig_.html">&quot;src/models/config/user/HostConfig&quot;</a>
+				</li>
+				<li>
+					<a href="_src_models_config_user_hostconfig_.hostconfig.html">HostConfig</a>
 				</li>
 			</ul>
-			<h1>External module &quot;BusybeeUserConfig&quot;</h1>
+			<h1>Class HostConfig</h1>
 		</div>
 	</div>
 </header>
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Properties of an available host that test environments can be deployed to</p>
+						<pre><code>{
+  <span class="hljs-attribute">name</span>: <span class="hljs-string">'localhost'</span>,
+  capacity: <span class="hljs-number">200</span>
+}
+</code></pre>
+					</div>
+				</div>
+			</section>
+			<section class="tsd-panel tsd-hierarchy">
+				<h3>Hierarchy</h3>
+				<ul class="tsd-hierarchy">
+					<li>
+						<span class="target">HostConfig</span>
+					</li>
+				</ul>
+			</section>
 			<section class="tsd-panel-group tsd-index-group">
 				<h2>Index</h2>
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
-						<section class="tsd-index-section ">
-							<h3>Classes</h3>
+						<section class="tsd-index-section tsd-is-external">
+							<h3>Constructors</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-class tsd-parent-kind-external-module"><a href="../classes/_busybeeuserconfig_.busybeeuserconfig.html" class="tsd-kind-icon">Busybee<wbr>User<wbr>Config</a></li>
+								<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-external"><a href="_src_models_config_user_hostconfig_.hostconfig.html#constructor" class="tsd-kind-icon">constructor</a></li>
 							</ul>
 						</section>
+						<section class="tsd-index-section tsd-is-external">
+							<h3>Properties</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_src_models_config_user_hostconfig_.hostconfig.html#capacity" class="tsd-kind-icon">capacity</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_src_models_config_user_hostconfig_.hostconfig.html#name" class="tsd-kind-icon">name</a></li>
+							</ul>
+						</section>
+					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group tsd-is-external">
+				<h2>Constructors</h2>
+				<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class tsd-is-external">
+					<a name="constructor" class="tsd-anchor"></a>
+					<h3>constructor</h3>
+					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-external">
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Host<wbr>Config<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_src_models_config_user_hostconfig_.hostconfig.html" class="tsd-signature-type">HostConfig</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in src/models/config/user/HostConfig.ts:24</li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <a href="_src_models_config_user_hostconfig_.hostconfig.html" class="tsd-signature-type">HostConfig</a></h4>
+						</li>
+					</ul>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group tsd-is-external">
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external">
+					<a name="capacity" class="tsd-anchor"></a>
+					<h3>capacity</h3>
+					<div class="tsd-signature tsd-kind-icon">capacity<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in src/models/config/user/HostConfig.ts:24</li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p><strong>Default* <code>100</code> <br>
+								</strong>Allowed** A number between <code>0</code> and <code>100</code> <br>
+								A crude measurement of the total resources available at this host.
+								Supplied with a value of <code>100</code>, a TestSuite.env with a resourceCost of 50 would be able to run 2 instances on this host simultaneously.
+								When an instance of a Test Suite is added to a host its resourceCost is added to the load of that host.
+							If an instance&#39;s (resourceCost + host.currentLoad) &gt; capacity then the instance will wait until instances are removed from the host.</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external">
+					<a name="name" class="tsd-anchor"></a>
+					<h3>name</h3>
+					<div class="tsd-signature tsd-kind-icon">name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in src/models/config/user/HostConfig.ts:15</li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p><strong>Example</strong> <code>localhost</code>
+							hostname of an available resource</p>
+						</div>
 					</div>
 				</section>
 			</section>
@@ -89,49 +178,88 @@
 					<li class="label tsd-is-external">
 						<span>Internals</span>
 					</li>
-					<li class="current tsd-kind-external-module">
-						<a href="_busybeeuserconfig_.html">"<wbr>Busybee<wbr>User<wbr>Config"</a>
+					<li class=" tsd-kind-external-module">
+						<a href="../modules/_src_models_resttest_.html">"src/models/RESTTest"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="../modules/_src_models_config_busybeeuserconfig_.html">"src/models/config/<wbr>Busybee<wbr>User<wbr>Config"</a>
 					</li>
 					<li class="label tsd-is-external">
 						<span>Externals</span>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_common_envconfig_.html">"common/<wbr>Env<wbr>Config"</a>
+						<a href="../modules/_node_modules_json_typescript_mapper_index_.html">"node_<wbr>modules/json-<wbr>typescript-<wbr>mapper/index"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_common_envresourceconfig_.html">"common/<wbr>Env<wbr>Resource<wbr>Config"</a>
+						<a href="../modules/_node_modules_json_typescript_mapper_libs_utils_.html">"node_<wbr>modules/json-<wbr>typescript-<wbr>mapper/libs/utils"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_common_mockserverconfig_.html">"common/<wbr>Mock<wbr>Server<wbr>Config"</a>
+						<a href="../modules/_src_models_restmock_.html">"src/models/RESTMock"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_common_requestoptsconfig_.html">"common/<wbr>Request<wbr>Opts<wbr>Config"</a>
+						<a href="../modules/_src_models_resttestassertionmodifications_.html">"src/models/RESTTest<wbr>Assertion<wbr>Modifications"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_user_envinstanceconfig_.html">"user/<wbr>Env<wbr>Instance<wbr>Config"</a>
+						<a href="../modules/_src_models_resttestexpect_.html">"src/models/RESTTest<wbr>Expect"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_user_healthcheckconfig_.html">"user/<wbr>Health<wbr>Check<wbr>Config"</a>
+						<a href="../modules/_src_models_resttestset_.html">"src/models/RESTTest<wbr>Set"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_user_hostconfig_.html">"user/<wbr>Host<wbr>Config"</a>
+						<a href="../modules/_src_models_responsebody_.html">"src/models/<wbr>Response<wbr>Body"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_user_proxyconfig_.html">"user/<wbr>Proxy<wbr>Config"</a>
+						<a href="../modules/_src_models_config_common_envconfig_.html">"src/models/config/common/<wbr>Env<wbr>Config"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_user_testsetconfig_.html">"user/<wbr>Test<wbr>Set<wbr>Config"</a>
+						<a href="../modules/_src_models_config_common_envresourceconfig_.html">"src/models/config/common/<wbr>Env<wbr>Resource<wbr>Config"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_user_testsuiteconfig_.html">"user/<wbr>Test<wbr>Suite<wbr>Config"</a>
+						<a href="../modules/_src_models_config_common_mockserverconfig_.html">"src/models/config/common/<wbr>Mock<wbr>Server<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_src_models_config_common_requestoptsconfig_.html">"src/models/config/common/<wbr>Request<wbr>Opts<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_src_models_config_user_envinstanceconfig_.html">"src/models/config/user/<wbr>Env<wbr>Instance<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_src_models_config_user_healthcheckconfig_.html">"src/models/config/user/<wbr>Health<wbr>Check<wbr>Config"</a>
+					</li>
+					<li class="current tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_src_models_config_user_hostconfig_.html">"src/models/config/user/<wbr>Host<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_src_models_config_user_proxyconfig_.html">"src/models/config/user/<wbr>Proxy<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_src_models_config_user_testsetconfig_.html">"src/models/config/user/<wbr>Test<wbr>Set<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_src_models_config_user_testsuiteconfig_.html">"src/models/config/user/<wbr>Test<wbr>Suite<wbr>Config"</a>
 					</li>
 				</ul>
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
-					<li class=" tsd-kind-class tsd-parent-kind-external-module">
-						<a href="../classes/_busybeeuserconfig_.busybeeuserconfig.html" class="tsd-kind-icon">Busybee<wbr>User<wbr>Config</a>
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-class tsd-parent-kind-external-module tsd-is-external">
+						<a href="_src_models_config_user_hostconfig_.hostconfig.html" class="tsd-kind-icon">Host<wbr>Config</a>
+						<ul>
+							<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-external">
+								<a href="_src_models_config_user_hostconfig_.hostconfig.html#constructor" class="tsd-kind-icon">constructor</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
+								<a href="_src_models_config_user_hostconfig_.hostconfig.html#capacity" class="tsd-kind-icon">capacity</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
+								<a href="_src_models_config_user_hostconfig_.hostconfig.html#name" class="tsd-kind-icon">name</a>
+							</li>
+						</ul>
 					</li>
+				</ul>
+				<ul class="after-current">
 				</ul>
 			</nav>
 		</div>

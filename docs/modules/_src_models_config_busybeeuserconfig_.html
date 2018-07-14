@@ -3,17 +3,17 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>busybee</title>
+	<title>&quot;src/models/config/BusybeeUserConfig&quot; | busybee</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="assets/css/main.css">
+	<link rel="stylesheet" href="../assets/css/main.css">
 </head>
 <body>
 <header>
 	<div class="tsd-page-toolbar">
 		<div class="container">
 			<div class="table-wrap">
-				<div class="table-cell" id="tsd-search" data-index="assets/js/search.js" data-base=".">
+				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.js" data-base="..">
 					<div class="field">
 						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
 						<input id="tsd-search-field" type="text" />
@@ -22,7 +22,7 @@
 						<li class="state loading">Preparing search index...</li>
 						<li class="state failure">The search index is not available</li>
 					</ul>
-					<a href="index.html" class="title">busybee</a>
+					<a href="../index.html" class="title">busybee</a>
 				</div>
 				<div class="table-cell" id="tsd-widgets">
 					<div id="tsd-filter">
@@ -53,109 +53,109 @@
 		<div class="container">
 			<ul class="tsd-breadcrumb">
 				<li>
-					<a href="globals.html">Globals</a>
+					<a href="../globals.html">Globals</a>
+				</li>
+				<li>
+					<a href="_src_models_config_busybeeuserconfig_.html">&quot;src/models/config/BusybeeUserConfig&quot;</a>
 				</li>
 			</ul>
-			<h1> busybee</h1>
+			<h1>External module &quot;src/models/config/BusybeeUserConfig&quot;</h1>
 		</div>
 	</div>
 </header>
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
-			<div class="tsd-panel tsd-typography">
-				<h1 id="busybee-configuration">Busybee Configuration</h1>
-				<p><em>Welcome to the home of Busybee&#39;s configuration documentation. The definitions are auto-generated using <a href="http://typedoc.org/">Typedoc</a> and while not perfect for documenting the JSON config that a user must provide, Typedoc served as the quickest path to achieving thorough and maintainable documentation of the models that user-provide JSON is mapped to once parsed. We will likely re-visit our documentation strategy in the future</em></p>
-				<h2 id="configuring-a-busybee-testsuite">Configuring A Busybee TestSuite</h2>
-				<h3 id="busybeeuserconfig">BusybeeUserConfig</h3>
-				<p>In order to run Busybee one must first set up a top-level <code>config.js/json</code> file which will be parsed by Busybee at runtime and mapped to the <a href="classes/_src_models_config_busybeeuserconfig_.busybeeuserconfig.html">BusybeeUserConfig</a> model. The BusybeeUserConfig is where a user will define not only the TestSuite(s) but also the available compute resources available to Busybee. Please reference the <a href="classes/_src_models_config_busybeeuserconfig_.busybeeuserconfig.html">BusybeeUserConfig</a> for more information on how to structure your <code>config.js/json</code>.</p>
-				<h4 id="rest-vs-user_provided-testsuite-s">REST vs USER_PROVIDED TestSuite&#39;s</h4>
-				<p>Busybee provides a test schema for testing REST api&#39;s. If a REST api is what you would like to test with your TestSuite then configure the <code>type</code> as <code>&#39;REST&#39;</code> and provide <a href="classes/_src_models_resttest_.resttest.html">RESTTest</a> files. When you run <code>busybee test</code> if everything is configured properly your <a href="classes/_src_models_resttest_.resttest.html">RESTTest</a> will be parsed and used to run requests against an already running REST service or one that Busybee has provisioned for testing purposes.</p>
-				<h3 id="providing-sh-scripts-for-starting-and-stopping-environments">Providing .sh scripts for starting and stopping environments</h3>
-				<p>In many cases you will want Busybee to spin up your Service(s) being tested and then tear them down afterward. In order to do this you must provide a <code>startScript</code> and a <code>stopScript</code>. This are simply <code>.sh</code> files that will be called once Busybee has identified an available resource to provision your test environment to. Busybee will pass all of the necesssary information to your <code>startScript</code> and <code>stopScript</code> as json so that you can provision your environment accordingly.</p>
-				<p>Example of parsing json passed to startScript using the <code>jq</code> commandline tool.</p>
-				<pre><code><span class="hljs-meta">#!/bin/bash</span>
-ENV_ID=$(<span class="hljs-built_in">echo</span> <span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> | jq -r <span class="hljs-string">".generatedEnvID"</span>)
-HOST=$(<span class="hljs-built_in">echo</span> <span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> | jq -r <span class="hljs-string">".hostName"</span>)
-API_PORT=$(<span class="hljs-built_in">echo</span> <span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> | jq -r <span class="hljs-string">".ports[0]"</span>) <span class="hljs-comment"># ports are passed in the same order in which they are provided in your config.json</span>
-BUSYBEE_DIR=$(<span class="hljs-built_in">echo</span> <span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> | jq -r <span class="hljs-string">".busybeeDir"</span>)
-</code></pre><h3 id="user_provided-testsuite-s">USER_PROVIDED TestSuite&#39;s</h3>
-				<p>The only additional requirement of a <code>USER_PROVIDED</code> TestSuite is that a <code>runScript</code> is configured. The <code>runScript</code> will be called once an envirnmonet has been provisioned and is ready (in the even that Busybee is configured to do so) or once an existing environment has been confirmed to be ready. The <code>runScript</code> is where you should run your test commands, reporters, etc. A successful run should return an <code>exit 0</code></p>
-			</div>
+			<section class="tsd-panel-group tsd-index-group">
+				<h2>Index</h2>
+				<section class="tsd-panel tsd-index-panel">
+					<div class="tsd-index-content">
+						<section class="tsd-index-section ">
+							<h3>Classes</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-class tsd-parent-kind-external-module"><a href="../classes/_src_models_config_busybeeuserconfig_.busybeeuserconfig.html" class="tsd-kind-icon">Busybee<wbr>User<wbr>Config</a></li>
+							</ul>
+						</section>
+					</div>
+				</section>
+			</section>
 		</div>
 		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 			<nav class="tsd-navigation primary">
 				<ul>
 					<li class="globals  ">
-						<a href="globals.html"><em>Globals</em></a>
+						<a href="../globals.html"><em>Globals</em></a>
 					</li>
 					<li class="label tsd-is-external">
 						<span>Internals</span>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="modules/_src_models_resttest_.html">"src/models/RESTTest"</a>
+						<a href="_src_models_resttest_.html">"src/models/RESTTest"</a>
 					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="modules/_src_models_config_busybeeuserconfig_.html">"src/models/config/<wbr>Busybee<wbr>User<wbr>Config"</a>
+					<li class="current tsd-kind-external-module">
+						<a href="_src_models_config_busybeeuserconfig_.html">"src/models/config/<wbr>Busybee<wbr>User<wbr>Config"</a>
 					</li>
 					<li class="label tsd-is-external">
 						<span>Externals</span>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_node_modules_json_typescript_mapper_index_.html">"node_<wbr>modules/json-<wbr>typescript-<wbr>mapper/index"</a>
+						<a href="_node_modules_json_typescript_mapper_index_.html">"node_<wbr>modules/json-<wbr>typescript-<wbr>mapper/index"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_node_modules_json_typescript_mapper_libs_utils_.html">"node_<wbr>modules/json-<wbr>typescript-<wbr>mapper/libs/utils"</a>
+						<a href="_node_modules_json_typescript_mapper_libs_utils_.html">"node_<wbr>modules/json-<wbr>typescript-<wbr>mapper/libs/utils"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_restmock_.html">"src/models/RESTMock"</a>
+						<a href="_src_models_restmock_.html">"src/models/RESTMock"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_resttestassertionmodifications_.html">"src/models/RESTTest<wbr>Assertion<wbr>Modifications"</a>
+						<a href="_src_models_resttestassertionmodifications_.html">"src/models/RESTTest<wbr>Assertion<wbr>Modifications"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_resttestexpect_.html">"src/models/RESTTest<wbr>Expect"</a>
+						<a href="_src_models_resttestexpect_.html">"src/models/RESTTest<wbr>Expect"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_resttestset_.html">"src/models/RESTTest<wbr>Set"</a>
+						<a href="_src_models_resttestset_.html">"src/models/RESTTest<wbr>Set"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_responsebody_.html">"src/models/<wbr>Response<wbr>Body"</a>
+						<a href="_src_models_responsebody_.html">"src/models/<wbr>Response<wbr>Body"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_config_common_envconfig_.html">"src/models/config/common/<wbr>Env<wbr>Config"</a>
+						<a href="_src_models_config_common_envconfig_.html">"src/models/config/common/<wbr>Env<wbr>Config"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_config_common_envresourceconfig_.html">"src/models/config/common/<wbr>Env<wbr>Resource<wbr>Config"</a>
+						<a href="_src_models_config_common_envresourceconfig_.html">"src/models/config/common/<wbr>Env<wbr>Resource<wbr>Config"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_config_common_mockserverconfig_.html">"src/models/config/common/<wbr>Mock<wbr>Server<wbr>Config"</a>
+						<a href="_src_models_config_common_mockserverconfig_.html">"src/models/config/common/<wbr>Mock<wbr>Server<wbr>Config"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_config_common_requestoptsconfig_.html">"src/models/config/common/<wbr>Request<wbr>Opts<wbr>Config"</a>
+						<a href="_src_models_config_common_requestoptsconfig_.html">"src/models/config/common/<wbr>Request<wbr>Opts<wbr>Config"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_config_user_envinstanceconfig_.html">"src/models/config/user/<wbr>Env<wbr>Instance<wbr>Config"</a>
+						<a href="_src_models_config_user_envinstanceconfig_.html">"src/models/config/user/<wbr>Env<wbr>Instance<wbr>Config"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_config_user_healthcheckconfig_.html">"src/models/config/user/<wbr>Health<wbr>Check<wbr>Config"</a>
+						<a href="_src_models_config_user_healthcheckconfig_.html">"src/models/config/user/<wbr>Health<wbr>Check<wbr>Config"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_config_user_hostconfig_.html">"src/models/config/user/<wbr>Host<wbr>Config"</a>
+						<a href="_src_models_config_user_hostconfig_.html">"src/models/config/user/<wbr>Host<wbr>Config"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_config_user_proxyconfig_.html">"src/models/config/user/<wbr>Proxy<wbr>Config"</a>
+						<a href="_src_models_config_user_proxyconfig_.html">"src/models/config/user/<wbr>Proxy<wbr>Config"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_config_user_testsetconfig_.html">"src/models/config/user/<wbr>Test<wbr>Set<wbr>Config"</a>
+						<a href="_src_models_config_user_testsetconfig_.html">"src/models/config/user/<wbr>Test<wbr>Set<wbr>Config"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_config_user_testsuiteconfig_.html">"src/models/config/user/<wbr>Test<wbr>Suite<wbr>Config"</a>
+						<a href="_src_models_config_user_testsuiteconfig_.html">"src/models/config/user/<wbr>Test<wbr>Suite<wbr>Config"</a>
 					</li>
 				</ul>
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
+					<li class=" tsd-kind-class tsd-parent-kind-external-module">
+						<a href="../classes/_src_models_config_busybeeuserconfig_.busybeeuserconfig.html" class="tsd-kind-icon">Busybee<wbr>User<wbr>Config</a>
+					</li>
 				</ul>
 			</nav>
 		</div>
@@ -224,7 +224,7 @@ BUSYBEE_DIR=$(<span class="hljs-built_in">echo</span> <span class="hljs-string">
 	<p>Generated using <a href="http://typedoc.org/" target="_blank">TypeDoc</a></p>
 </div>
 <div class="overlay"></div>
-<script src="assets/js/main.js"></script>
-<script>if (location.protocol == 'file:') document.write('<script src="assets/js/search.js"><' + '/script>');</script>
+<script src="../assets/js/main.js"></script>
+<script>if (location.protocol == 'file:') document.write('<script src="../assets/js/search.js"><' + '/script>');</script>
 </body>
 </html>

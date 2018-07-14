@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>HealthCheckConfig | busybee</title>
+	<title>TestSetConfig | busybee</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -56,24 +56,41 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="../modules/_user_healthcheckconfig_.html">&quot;user/HealthCheckConfig&quot;</a>
+					<a href="../modules/_src_models_config_user_testsetconfig_.html">&quot;src/models/config/user/TestSetConfig&quot;</a>
 				</li>
 				<li>
-					<a href="_user_healthcheckconfig_.healthcheckconfig.html">HealthCheckConfig</a>
+					<a href="_src_models_config_user_testsetconfig_.testsetconfig.html">TestSetConfig</a>
 				</li>
 			</ul>
-			<h1>Class HealthCheckConfig</h1>
+			<h1>Class TestSetConfig</h1>
 		</div>
 	</div>
 </header>
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>A TestSet is a logical grouping of tests. One or more TestSets can be assigned to an environment instance.
+						Tests can be run in a specific order with-in a TestSet (see RESTTest.testSet)</p>
+						<pre><code>{
+  <span class="hljs-attribute">id</span>: <span class="hljs-string">'users'</span>,
+  <span class="hljs-attribute">controlFlow</span>: <span class="hljs-string">'parallel'</span>,
+  <span class="hljs-attribute">runData</span>: {
+    <span class="hljs-attribute">user</span>: <span class="hljs-string">'admin'</span>,
+  },
+  <span class="hljs-attribute">description</span>: <span class="hljs-string">'runs all User CRUD tests'</span>
+}
+</code></pre>
+					</div>
+				</div>
+			</section>
 			<section class="tsd-panel tsd-hierarchy">
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">HealthCheckConfig</span>
+						<span class="target">TestSetConfig</span>
 					</li>
 				</ul>
 			</section>
@@ -84,15 +101,16 @@
 						<section class="tsd-index-section tsd-is-external">
 							<h3>Constructors</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-external"><a href="_user_healthcheckconfig_.healthcheckconfig.html#constructor" class="tsd-kind-icon">constructor</a></li>
+								<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-external"><a href="_src_models_config_user_testsetconfig_.testsetconfig.html#constructor" class="tsd-kind-icon">constructor</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section tsd-is-external">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_user_healthcheckconfig_.healthcheckconfig.html#request" class="tsd-kind-icon">request</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_user_healthcheckconfig_.healthcheckconfig.html#retries" class="tsd-kind-icon">retries</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_user_healthcheckconfig_.healthcheckconfig.html#type" class="tsd-kind-icon">type</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_src_models_config_user_testsetconfig_.testsetconfig.html#controlflow" class="tsd-kind-icon">control<wbr>Flow</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_src_models_config_user_testsetconfig_.testsetconfig.html#description" class="tsd-kind-icon">description</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_src_models_config_user_testsetconfig_.testsetconfig.html#id" class="tsd-kind-icon">id</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="_src_models_config_user_testsetconfig_.testsetconfig.html#rundata" class="tsd-kind-icon">run<wbr>Data</a></li>
 							</ul>
 						</section>
 					</div>
@@ -104,16 +122,16 @@
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
 					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-external">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>Health<wbr>Check<wbr>Config<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_user_healthcheckconfig_.healthcheckconfig.html" class="tsd-signature-type">HealthCheckConfig</a></li>
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Test<wbr>Set<wbr>Config<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_src_models_config_user_testsetconfig_.testsetconfig.html" class="tsd-signature-type">TestSetConfig</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in user/HealthCheckConfig.ts:6</li>
+									<li>Defined in src/models/config/user/TestSetConfig.ts:31</li>
 								</ul>
 							</aside>
-							<h4 class="tsd-returns-title">Returns <a href="_user_healthcheckconfig_.healthcheckconfig.html" class="tsd-signature-type">HealthCheckConfig</a></h4>
+							<h4 class="tsd-returns-title">Returns <a href="_src_models_config_user_testsetconfig_.testsetconfig.html" class="tsd-signature-type">TestSetConfig</a></h4>
 						</li>
 					</ul>
 				</section>
@@ -121,34 +139,62 @@
 			<section class="tsd-panel-group tsd-member-group tsd-is-external">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external">
-					<a name="request" class="tsd-anchor"></a>
-					<h3>request</h3>
-					<div class="tsd-signature tsd-kind-icon">request<span class="tsd-signature-symbol">:</span> <a href="_common_requestoptsconfig_.requestoptsconfig.html" class="tsd-signature-type">RequestOptsConfig</a></div>
+					<a name="controlflow" class="tsd-anchor"></a>
+					<h3>control<wbr>Flow</h3>
+					<div class="tsd-signature tsd-kind-icon">control<wbr>Flow<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in user/HealthCheckConfig.ts:6</li>
+							<li>Defined in src/models/config/user/TestSetConfig.ts:25</li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p><strong>Allowed</strong> <code>parallel</code> <code>series</code></p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external">
+					<a name="description" class="tsd-anchor"></a>
+					<h3>description</h3>
+					<div class="tsd-signature tsd-kind-icon">description<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in src/models/config/user/TestSetConfig.ts:31</li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external">
-					<a name="retries" class="tsd-anchor"></a>
-					<h3>retries</h3>
-					<div class="tsd-signature tsd-kind-icon">retries<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<a name="id" class="tsd-anchor"></a>
+					<h3>id</h3>
+					<div class="tsd-signature tsd-kind-icon">id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in user/HealthCheckConfig.ts:5</li>
+							<li>Defined in src/models/config/user/TestSetConfig.ts:21</li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p><strong>Example</strong> <code>users</code><br>
+								<span style="color:red"><strong>Required</strong></span> <br>
+							unique id (name) assigned to the TestSet</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external">
-					<a name="type" class="tsd-anchor"></a>
-					<h3>type</h3>
-					<div class="tsd-signature tsd-kind-icon">type<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<a name="rundata" class="tsd-anchor"></a>
+					<h3>run<wbr>Data</h3>
+					<div class="tsd-signature tsd-kind-icon">run<wbr>Data<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in user/HealthCheckConfig.ts:4</li>
+							<li>Defined in src/models/config/user/TestSetConfig.ts:30</li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p><em><span style="color:magenta"><strong>Allowed</strong> if <code>TestSuiteConfig.type</code> == <code>USER_PROVIDED</code> is enabled</span></em> <br>
+							Data that will be passed to the runScript as <code>runData</code> when this environment instance is started</p>
+						</div>
+					</div>
 				</section>
 			</section>
 		</div>
@@ -162,40 +208,64 @@
 						<span>Internals</span>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="../modules/_busybeeuserconfig_.html">"<wbr>Busybee<wbr>User<wbr>Config"</a>
+						<a href="../modules/_src_models_resttest_.html">"src/models/RESTTest"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="../modules/_src_models_config_busybeeuserconfig_.html">"src/models/config/<wbr>Busybee<wbr>User<wbr>Config"</a>
 					</li>
 					<li class="label tsd-is-external">
 						<span>Externals</span>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_common_envconfig_.html">"common/<wbr>Env<wbr>Config"</a>
+						<a href="../modules/_node_modules_json_typescript_mapper_index_.html">"node_<wbr>modules/json-<wbr>typescript-<wbr>mapper/index"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_common_envresourceconfig_.html">"common/<wbr>Env<wbr>Resource<wbr>Config"</a>
+						<a href="../modules/_node_modules_json_typescript_mapper_libs_utils_.html">"node_<wbr>modules/json-<wbr>typescript-<wbr>mapper/libs/utils"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_common_mockserverconfig_.html">"common/<wbr>Mock<wbr>Server<wbr>Config"</a>
+						<a href="../modules/_src_models_restmock_.html">"src/models/RESTMock"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_common_requestoptsconfig_.html">"common/<wbr>Request<wbr>Opts<wbr>Config"</a>
+						<a href="../modules/_src_models_resttestassertionmodifications_.html">"src/models/RESTTest<wbr>Assertion<wbr>Modifications"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_user_envinstanceconfig_.html">"user/<wbr>Env<wbr>Instance<wbr>Config"</a>
+						<a href="../modules/_src_models_resttestexpect_.html">"src/models/RESTTest<wbr>Expect"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_src_models_resttestset_.html">"src/models/RESTTest<wbr>Set"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_src_models_responsebody_.html">"src/models/<wbr>Response<wbr>Body"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_src_models_config_common_envconfig_.html">"src/models/config/common/<wbr>Env<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_src_models_config_common_envresourceconfig_.html">"src/models/config/common/<wbr>Env<wbr>Resource<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_src_models_config_common_mockserverconfig_.html">"src/models/config/common/<wbr>Mock<wbr>Server<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_src_models_config_common_requestoptsconfig_.html">"src/models/config/common/<wbr>Request<wbr>Opts<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_src_models_config_user_envinstanceconfig_.html">"src/models/config/user/<wbr>Env<wbr>Instance<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_src_models_config_user_healthcheckconfig_.html">"src/models/config/user/<wbr>Health<wbr>Check<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_src_models_config_user_hostconfig_.html">"src/models/config/user/<wbr>Host<wbr>Config"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_src_models_config_user_proxyconfig_.html">"src/models/config/user/<wbr>Proxy<wbr>Config"</a>
 					</li>
 					<li class="current tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_user_healthcheckconfig_.html">"user/<wbr>Health<wbr>Check<wbr>Config"</a>
+						<a href="../modules/_src_models_config_user_testsetconfig_.html">"src/models/config/user/<wbr>Test<wbr>Set<wbr>Config"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_user_hostconfig_.html">"user/<wbr>Host<wbr>Config"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_user_proxyconfig_.html">"user/<wbr>Proxy<wbr>Config"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_user_testsetconfig_.html">"user/<wbr>Test<wbr>Set<wbr>Config"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_user_testsuiteconfig_.html">"user/<wbr>Test<wbr>Suite<wbr>Config"</a>
+						<a href="../modules/_src_models_config_user_testsuiteconfig_.html">"src/models/config/user/<wbr>Test<wbr>Suite<wbr>Config"</a>
 					</li>
 				</ul>
 			</nav>
@@ -204,19 +274,22 @@
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-class tsd-parent-kind-external-module tsd-is-external">
-						<a href="_user_healthcheckconfig_.healthcheckconfig.html" class="tsd-kind-icon">Health<wbr>Check<wbr>Config</a>
+						<a href="_src_models_config_user_testsetconfig_.testsetconfig.html" class="tsd-kind-icon">Test<wbr>Set<wbr>Config</a>
 						<ul>
 							<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-external">
-								<a href="_user_healthcheckconfig_.healthcheckconfig.html#constructor" class="tsd-kind-icon">constructor</a>
+								<a href="_src_models_config_user_testsetconfig_.testsetconfig.html#constructor" class="tsd-kind-icon">constructor</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
-								<a href="_user_healthcheckconfig_.healthcheckconfig.html#request" class="tsd-kind-icon">request</a>
+								<a href="_src_models_config_user_testsetconfig_.testsetconfig.html#controlflow" class="tsd-kind-icon">control<wbr>Flow</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
-								<a href="_user_healthcheckconfig_.healthcheckconfig.html#retries" class="tsd-kind-icon">retries</a>
+								<a href="_src_models_config_user_testsetconfig_.testsetconfig.html#description" class="tsd-kind-icon">description</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
-								<a href="_user_healthcheckconfig_.healthcheckconfig.html#type" class="tsd-kind-icon">type</a>
+								<a href="_src_models_config_user_testsetconfig_.testsetconfig.html#id" class="tsd-kind-icon">id</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
+								<a href="_src_models_config_user_testsetconfig_.testsetconfig.html#rundata" class="tsd-kind-icon">run<wbr>Data</a>
 							</li>
 						</ul>
 					</li>
