@@ -2,10 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Configuration opts for provisioning Test Set Environments
- *
- * {<br>
- * &nbsp; hosts: HostConfig[]<br>
+ * ```
+ * {
+ *   hosts: HostConfig[]
  * }
+ * ```
  */
 var EnvResourceConfig = /** @class */ (function () {
     function EnvResourceConfig() {
