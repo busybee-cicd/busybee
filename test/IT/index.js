@@ -48,11 +48,11 @@ var busybee = path.join(__dirname, '../../dist/src/index.js');
  * .serial modifier will force this test to run by itself. need this since we check for specific ports to be used
  * in the response.
  */
-ava_1.default.serial("happy path simple", function (t) {
+ava_1.default.serial("REST happy path", function (t) {
     return new Promise(function (resolve, reject) {
         var returned = false;
-        var testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-happy-path-simple')]);
-        var expected = [{ "testSets": [{ "pass": true, "id": "ts1", "tests": [{ "pass": true, "id": "body assertion", "status": { "pass": true, "actual": 200 }, "headers": { "pass": true, "actual": [{ "content-type": "application/json" }, { "date": "Wed, 04 Jul 2018 15:15:16 GMT" }, { "connection": "close" }, { "transfer-encoding": "chunked" }], "expected": [] }, "body": { "pass": true, "actual": { "hello": "world", "object": { "1": "2", "arr": [1, 3, 4], "nested": { "im": "nested", "arr": [1, 2, 3, 4] } }, "arr": [1, 2, 3] } }, "request": { "json": true, "method": "GET", "url": "http://localhost:7777/body-assertion", "timeout": 30000, "resolveWithFullResponse": true, "simple": false } }, { "pass": true, "id": "status assertion", "status": { "pass": true, "actual": 404 }, "headers": { "pass": true, "actual": [{ "content-type": "application/json" }, { "date": "Wed, 04 Jul 2018 15:15:16 GMT" }, { "connection": "close" }, { "transfer-encoding": "chunked" }], "expected": [] }, "body": { "pass": true }, "request": { "json": true, "method": "GET", "url": "http://localhost:7777/status-assertion", "timeout": 30000, "resolveWithFullResponse": true, "simple": false } }] }], "pass": true, "type": "REST", "id": "Happy Path" }];
+        var testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-happy-path')]);
+        var expected = [{ "testSets": [{ "pass": true, "id": "ts1", "tests": [{ "pass": true, "id": "body assertion", "status": { "pass": true, "actual": 200 }, "headers": { "pass": true, "actual": [{ "content-type": "application/json" }, { "date": "Wed, 04 Jul 2018 15:15:16 GMT" }, { "connection": "close" }, { "transfer-encoding": "chunked" }], "expected": [] }, "body": { "pass": true, "actual": { "hello": "world", "object": { "1": "2", "arr": [1, 3, 4], "nested": { "im": "nested", "arr": [1, 2, 3, 4] } }, "arr": [1, 2, 3] } }, "request": { "json": true, "method": "GET", "url": "http://localhost:7777/body-assertion", "timeout": 30000, "resolveWithFullResponse": true, "simple": false } }, { "pass": true, "id": "status assertion", "status": { "pass": true, "actual": 404 }, "headers": { "pass": true, "actual": [{ "content-type": "application/json" }, { "date": "Wed, 04 Jul 2018 15:15:16 GMT" }, { "connection": "close" }, { "transfer-encoding": "chunked" }], "expected": [] }, "body": { "pass": true }, "request": { "json": true, "method": "GET", "url": "http://localhost:7777/status-assertion", "timeout": 30000, "resolveWithFullResponse": true, "simple": false } }] }], "pass": true, "type": "REST", "id": "REST Happy Path" }];
         var actual;
         testCmd.stdout.on('data', function (data) {
             var lines = IOUtil_1.IOUtil.parseDataBuffer(data);
@@ -183,6 +183,29 @@ ava_1.default("ports in use", function (t) { return __awaiter(_this, void 0, voi
             case 3:
                 // shut down server holding 7777
                 _a.sent();
+                return [2 /*return*/];
+        }
+    });
+}); });
+/**
+ *
+ */
+ava_1.default("USER_PROVIDED happy path", function (t) { return __awaiter(_this, void 0, void 0, function () {
+    var testCmd, expected, result;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/USER_PROVIDED-happy-path'), '-D']);
+                expected = [
+                    'DEBUG:EnvManager: startData is neat',
+                    'DEBUG:EnvManager: runData rules',
+                    'DEBUG:EnvManager: stopData is also neat',
+                    'RESULTS: [{"pass":true}]'
+                ];
+                return [4 /*yield*/, ITUtil_1.ITUtil.expectInOrder(testCmd, expected, t)];
+            case 1:
+                result = _a.sent();
+                t.is(result.length, 0);
                 return [2 /*return*/];
         }
     });

@@ -8,7 +8,7 @@ module.exports = {
   }],
   "testSuites" : [
     {
-      "id": "Happy Path",
+      "id": "Tests Run In Order",
       "skip": false,
       "protocol": "http",
       "ports": [7777],

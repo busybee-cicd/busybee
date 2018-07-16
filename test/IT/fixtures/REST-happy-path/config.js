@@ -9,7 +9,7 @@ module.exports = {
   "onComplete": "onComplete.js",
   "testSuites" : [
     {
-      "id": "Happy Path",
+      "id": "REST Happy Path",
       "skip": false,
       "protocol": "http",
       "ports": [7777],

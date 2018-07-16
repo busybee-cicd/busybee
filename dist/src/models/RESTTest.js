@@ -6,6 +6,22 @@ var RESTTestExpect_1 = require("./RESTTestExpect");
 var RESTTestSet_1 = require("./RESTTestSet");
 var _ = require("lodash");
 var RESTMock_1 = require("./RESTMock");
+/**
+ * The definition of a REST Service Test. Also defines any additional mock behavior
+ * for when Busybee is running in `mock` mode.
+ *
+ * ```
+ * {
+ *   id: 'My Test',
+ *   description: 'This test is used to test something',
+ *   testSet: RESTTestSet[],
+ *   request : RequestOptsConfig,
+ *   expect: RESTTestExpect,
+ *   skip: false,
+ *   mock: RESTMock
+ * }
+ * ```
+ */
 var RESTTest = /** @class */ (function () {
     function RESTTest(data) {
         this.id = data.id;

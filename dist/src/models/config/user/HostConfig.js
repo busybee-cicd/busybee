@@ -2,11 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Properties of an available host that test environments can be deployed to
- *
- * {<br>
- * &nbsp; name: 'localhost',<br>
- * &nbsp; capacity: 200<br>
+ * ```
+ * {
+ *   name: 'localhost',
+ *   capacity: 200
  * }
+ * ```
  */
 var HostConfig = /** @class */ (function () {
     function HostConfig() {
