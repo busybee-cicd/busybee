@@ -2,7 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var _ = require("lodash");
 var Logger = /** @class */ (function () {
-    function Logger(conf, clazz) {
+    function Logger(conf, clazz, writeCb) {
+        if (writeCb === void 0) { writeCb = null; }
         this.conf = _.cloneDeep(conf);
         this.className = clazz.constructor.name;
         this.logLevel = conf.logLevel || Logger.INFO;
@@ -14,6 +15,7 @@ var Logger = /** @class */ (function () {
             'WARN': 3,
             'ERROR': 4
         };
+        this.writeCb = writeCb || console.log;
     }
     Logger.isLogLevel = function (val) {
         return Logger.validLevels.indexOf(val.toUpperCase()) !== -1 ? true : false;
@@ -55,15 +57,15 @@ var Logger = /** @class */ (function () {
             if (this.logLevel === Logger.DEBUG || this.logLevel === Logger.TRACE) {
                 level = level + ":" + this.className + ":";
             }
-            console.log(level);
-            console.log(message);
+            this.writeCb(level);
+            this.writeCb(message);
         }
         else {
             if (this.logLevel === Logger.DEBUG || this.logLevel === Logger.TRACE) {
-                console.log(level + ":" + this.className + ": " + message);
+                this.writeCb(level + ":" + this.className + ": " + message);
             }
             else {
-                console.log(level + ": " + message);
+                this.writeCb(level + ": " + message);
             }
         }
     };

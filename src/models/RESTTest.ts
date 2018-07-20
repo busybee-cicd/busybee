@@ -18,7 +18,7 @@ import { RESTMock } from "./RESTMock";
  *   request : RequestOptsConfig,
  *   expect: RESTTestExpect,
  *   skip: false,
- *   mock: RESTMock
+ *   mocks: RESTMock[]
  * }
  * ```
  */
@@ -56,12 +56,13 @@ export class RESTTest {
    */
   skip: boolean;
   /**
-   * Allows the user to provide a mock response when busybee is running in `mock` mode. This field is required if
+   * Allows the user to provide a mock responses when busybee is running in `mock` mode. This field is required if
    * the `expect` property contains Javascript Assertion Functions instead of Javascript Objects. In `mock` mode Busybee
    * simply returns the `expect` objects as the mocked response. This will not work if you use functions and manually
-   * assert responses.
+   * assert responses. When more than 1 mock is supplied the mock server will iterate through the responses as requests
+   * are made allowing the tester to simulate errors and inconsistent behavior.
    */
-  mock: RESTMock;
+  mocks: RESTMock[];
 
   constructor(data: any) {
     this.id = data.id;
@@ -74,7 +75,15 @@ export class RESTTest {
       this.expect = new RESTTestExpect(data.expect);
     }
     this.skip = data.skip;
-    this.mock = new RESTMock(data.mock);
+
+    if (data.mocks) {
+      if (_.isArray(data.mocks)) {
+        this.mocks = data.mocks.map(m => new RESTMock(m));
+      } else {
+        this.mocks = _.isEmpty(data.mocks) ? [] : [new RESTMock(data.mocks)];
+      }
+    }
+
     this.delayRequest = data.delayRequest;
   }
 }

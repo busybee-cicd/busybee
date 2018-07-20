@@ -41,14 +41,25 @@ var child_process_1 = require("child_process");
 var path = require("path");
 var IOUtil_1 = require("../../src/lib/IOUtil");
 var IgnoreKeys_1 = require("../../src/lib/assertionModifications/IgnoreKeys");
-var ITUtil_1 = require("./ITUtil");
+var ITUtil_1 = require("./util/ITUtil");
 var http = require("http");
+var request = require("request-promise");
+var Logger_1 = require("../../src/lib/Logger");
+var _request = request.defaults({
+    json: true,
+    simple: false,
+    resolveWithFullResponse: true,
+    proxy: false
+});
 var busybee = path.join(__dirname, '../../dist/src/index.js');
+var loggerClazz = { constructor: { name: 'ITRunner' } }; // hack to get the logger to prepend something meaningful in debug mode
+process.env['NO_PROXY'] = 'localhost,127.0.0.1';
 /**
  * .serial modifier will force this test to run by itself. need this since we check for specific ports to be used
  * in the response.
  */
 ava_1.default.serial("REST happy path", function (t) {
+    var logger = new Logger_1.Logger({ logLevel: process.env.LOG_LEVEL }, loggerClazz, t.log.bind(t));
     return new Promise(function (resolve, reject) {
         var returned = false;
         var testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-happy-path')]);
@@ -82,10 +93,11 @@ ava_1.default.serial("REST happy path", function (t) {
     });
 });
 ava_1.default("tests run in order", function (t) { return __awaiter(_this, void 0, void 0, function () {
-    var testCmd, expected, result;
+    var logger, testCmd, expected, result;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
+                logger = new Logger_1.Logger({ logLevel: process.env.LOG_LEVEL }, loggerClazz, t.log.bind(t));
                 testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-tests-run-in-order')]);
                 expected = [
                     'INFO: Running Test Set: ts1',
@@ -98,7 +110,7 @@ ava_1.default("tests run in order", function (t) { return __awaiter(_this, void 
                     'INFO: ts1: #: implicitly ordered 2',
                     'INFO: ts1: #: implicitly ordered 3'
                 ];
-                return [4 /*yield*/, ITUtil_1.ITUtil.expectInOrder(testCmd, expected, t)];
+                return [4 /*yield*/, ITUtil_1.ITUtil.expectInOrder(testCmd, expected, t, false, logger)];
             case 1:
                 result = _a.sent();
                 t.is(result.length, 0);
@@ -107,10 +119,11 @@ ava_1.default("tests run in order", function (t) { return __awaiter(_this, void 
     });
 }); });
 ava_1.default("env start failure", function (t) { return __awaiter(_this, void 0, void 0, function () {
-    var expected, testCmd, actual;
+    var logger, expected, testCmd, actual;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
+                logger = new Logger_1.Logger({ logLevel: process.env.LOG_LEVEL }, loggerClazz, t.log.bind(t));
                 expected = {
                     'BUSYBEE_ERROR detected': 2,
                     'Stopping Environment: Env That Will Fail To Start (1)': 1,
@@ -120,7 +133,7 @@ ava_1.default("env start failure", function (t) { return __awaiter(_this, void 0
                     'Tests finished in': 1
                 };
                 testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/env-start-failure')]);
-                return [4 /*yield*/, ITUtil_1.ITUtil.analyzeOutputFrequency(testCmd, expected)];
+                return [4 /*yield*/, ITUtil_1.ITUtil.analyzeOutputFrequency(testCmd, expected, logger)];
             case 1:
                 actual = _a.sent();
                 t.deepEqual(actual, expected);
@@ -134,10 +147,11 @@ ava_1.default("env start failure", function (t) { return __awaiter(_this, void 0
  */
 ava_1.default("ports in use", function (t) { return __awaiter(_this, void 0, void 0, function () {
     var _this = this;
-    var server, childEnv, testCmd, expected, actual;
+    var logger, server, childEnv, testCmd, expected, actual;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
+                logger = new Logger_1.Logger({ logLevel: process.env.LOG_LEVEL }, loggerClazz, t.log.bind(t));
                 server = http.createServer();
                 server.listen(7777);
                 // wait for service to begin listening
@@ -165,7 +179,7 @@ ava_1.default("ports in use", function (t) { return __awaiter(_this, void 0, voi
                     'TRACE:EnvManager: ports identified: {"ports":[7780,7781],"portOffset":3}': 1,
                     'INFO:Object: Tests finished in': 1
                 };
-                return [4 /*yield*/, ITUtil_1.ITUtil.analyzeOutputFrequency(testCmd, expected)];
+                return [4 /*yield*/, ITUtil_1.ITUtil.analyzeOutputFrequency(testCmd, expected, logger)];
             case 2:
                 actual = _a.sent();
                 t.deepEqual(actual, expected);
@@ -191,10 +205,11 @@ ava_1.default("ports in use", function (t) { return __awaiter(_this, void 0, voi
  *
  */
 ava_1.default("USER_PROVIDED happy path", function (t) { return __awaiter(_this, void 0, void 0, function () {
-    var testCmd, expected, result;
+    var logger, testCmd, expected, result;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
+                logger = new Logger_1.Logger({ logLevel: process.env.LOG_LEVEL }, loggerClazz, t.log.bind(t));
                 testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/USER_PROVIDED-happy-path'), '-D']);
                 expected = [
                     'DEBUG:EnvManager: startData is neat',
@@ -202,7 +217,7 @@ ava_1.default("USER_PROVIDED happy path", function (t) { return __awaiter(_this,
                     'DEBUG:EnvManager: stopData is also neat',
                     'RESULTS: [{"pass":true}]'
                 ];
-                return [4 /*yield*/, ITUtil_1.ITUtil.expectInOrder(testCmd, expected, t)];
+                return [4 /*yield*/, ITUtil_1.ITUtil.expectInOrder(testCmd, expected, t, false, logger)];
             case 1:
                 result = _a.sent();
                 t.is(result.length, 0);
@@ -210,8 +225,62 @@ ava_1.default("USER_PROVIDED happy path", function (t) { return __awaiter(_this,
         }
     });
 }); });
-function sleep(ms) {
-    if (ms === void 0) { ms = 0; }
-    return new Promise(function (r) { return setTimeout(r, ms); });
-}
+/**
+ * tests that mock behavior is working properly
+ */
+ava_1.default("REST mock mode", function (t) { return __awaiter(_this, void 0, void 0, function () {
+    var logger, testCmd, uri, okRes, failRes, e_1, okRes, notFoundRes, e_2;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                logger = new Logger_1.Logger({ logLevel: process.env.LOG_LEVEL }, loggerClazz, t.log.bind(t));
+                testCmd = child_process_1.spawn(busybee, ['mock', '-d', path.join(__dirname, 'fixtures/REST-mock-mode'), '--testSuite', 'REST Mock Mode']);
+                // confirm start-up
+                return [4 /*yield*/, ITUtil_1.ITUtil.waitFor(testCmd, 'INFO: Mock Server listening on 3030', t, false, logger)];
+            case 1:
+                // confirm start-up
+                _a.sent();
+                uri = 'http://localhost:3030/body-assertion';
+                _a.label = 2;
+            case 2:
+                _a.trys.push([2, 5, , 6]);
+                return [4 /*yield*/, _request({ uri: uri })];
+            case 3:
+                okRes = _a.sent();
+                t.is(okRes.statusCode, 200);
+                t.deepEqual(okRes.body, { hello: 'world' });
+                return [4 /*yield*/, _request({ uri: uri })];
+            case 4:
+                failRes = _a.sent();
+                t.is(failRes.statusCode, 500);
+                return [3 /*break*/, 6];
+            case 5:
+                e_1 = _a.sent();
+                t.fail(e_1.message);
+                return [3 /*break*/, 6];
+            case 6:
+                _a.trys.push([6, 9, , 10]);
+                return [4 /*yield*/, _request({ uri: uri })];
+            case 7:
+                okRes = _a.sent();
+                t.is(okRes.statusCode, 200);
+                t.deepEqual(okRes.body, { hello: 'world' });
+                return [4 /*yield*/, _request({ uri: uri, headers: { 'busybee-mock-status': 404 } })];
+            case 8:
+                notFoundRes = _a.sent();
+                t.is(notFoundRes.statusCode, 404);
+                return [3 /*break*/, 10];
+            case 9:
+                e_2 = _a.sent();
+                t.fail(e_2.message);
+                return [3 /*break*/, 10];
+            case 10:
+                testCmd.kill('SIGHUP');
+                return [2 /*return*/];
+        }
+    });
+}); });
+// function sleep(ms = 0) {
+//   return new Promise(r => setTimeout(r, ms));
+// }
 //# sourceMappingURL=index.js.map
