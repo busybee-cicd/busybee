@@ -12,8 +12,9 @@ export class Logger {
   private className: string;
   private logLevel: string;
   private levelMap: any;
+  private writeCb: (msg:string)=>void;
 
-  constructor(conf: any, clazz) {
+  constructor(conf: any, clazz, writeCb: (msg:string)=>void = null) {
     this.conf = _.cloneDeep(conf);
     this.className = clazz.constructor.name;
     this.logLevel = conf.logLevel || Logger.INFO;
@@ -24,7 +25,8 @@ export class Logger {
       'INFO': 2,
       'WARN': 3,
       'ERROR': 4
-    }
+    };
+    this.writeCb = writeCb || console.log;
   }
 
   static isLogLevel(val) {
@@ -34,7 +36,6 @@ export class Logger {
   passesLevel(level) {
     return this.levelMap[level] >= this.levelMap[this.logLevel];
   }
-
 
   debug(message, pretty = false) {
     this.write(Logger.DEBUG, message, pretty);
@@ -56,7 +57,7 @@ export class Logger {
     this.write(Logger.TRACE, message, pretty);
   }
 
-  write(level, message, pretty) {
+  private write(level, message, pretty) {
     if (!this.passesLevel(level)) {
       return;
     }
@@ -70,13 +71,13 @@ export class Logger {
       if (this.logLevel === Logger.DEBUG || this.logLevel === Logger.TRACE) {
         level = `${level}:${this.className}:`;
       }
-      console.log(level);
-      console.log(message);
+      this.writeCb(level);
+      this.writeCb(message);
     } else {
       if (this.logLevel === Logger.DEBUG || this.logLevel === Logger.TRACE) {
-        console.log(`${level}:${this.className}: ${message}`);
+        this.writeCb(`${level}:${this.className}: ${message}`);
       } else {
-        console.log(`${level}: ${message}`);
+        this.writeCb(`${level}: ${message}`);
       }
     }
 

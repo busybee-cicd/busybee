@@ -2,9 +2,6 @@ import * as request from 'request-promise';
 import * as _ from 'lodash';
 import {Logger} from './Logger';
 import {RequestOptsConfig} from "../models/config/common/RequestOptsConfig";
-import {IncomingMessage} from "http";
-import {TestSetConfig} from "../models/config/user/TestSetConfig";
-import {ParsedTestSuite} from "../models/config/parsed/ParsedTestSuiteConfig";
 import {BusybeeParsedConfig} from "../models/config/BusybeeParsedConfig";
 
 export class RESTClient {
@@ -19,7 +16,11 @@ export class RESTClient {
     this.conf = _.cloneDeep(conf);
     this.suiteEnvConf = _.cloneDeep(suiteEnvConf);
     this.logger = new Logger(conf, this);
-    const standardRequestOpts = {"json": true};
+    const standardRequestOpts = {
+      json: true,
+      resolveWithFullResponse: true, // don't resolve just the body (request-promise option)
+      simple: false // only reject() if the request fails for technical reasons (not status code other than 200, request-promise option).
+    };
     this.defaultRequestOpts = Object.assign({}, standardRequestOpts, this.suiteEnvConf.defaultRequestOpts);
     this.apiRequest = request.defaults(this.defaultRequestOpts);
 
@@ -73,8 +74,6 @@ export class RESTClient {
       method: requestConf.method || 'GET',
       url: url,
       timeout: requestConf.timeout || 30000, // default 30 seconds
-      resolveWithFullResponse: true, // don't resolve just the body
-      simple: false // only reject() if the request fails for technical reasons (not status code other than 200).
     };
 
     if (requestConf.query) {

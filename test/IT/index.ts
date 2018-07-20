@@ -1,18 +1,29 @@
-import test, { GenericTestContext, Context } from 'ava';
-import { spawn, ChildProcess, SpawnOptions } from 'child_process';
+import test from 'ava';
+import { spawn } from 'child_process';
 import * as path from 'path';
 import { IOUtil } from '../../src/lib/IOUtil';
 import { IgnoreKeys } from '../../src/lib/assertionModifications/IgnoreKeys';
-import { ITUtil } from './ITUtil';
+import { ITUtil } from './util/ITUtil';
 import * as http from 'http';
-import { resolve } from 'url';
+import * as request from 'request-promise';
+import { Logger } from '../../src/lib/Logger';
+const _request = request.defaults({
+  json:true,
+  simple: false,
+  resolveWithFullResponse: true,
+  proxy: false
+});
 const busybee = path.join(__dirname, '../../dist/src/index.js');
+const loggerClazz = { constructor: { name: 'ITRunner' } }; // hack to get the logger to prepend something meaningful in debug mode
+process.env['NO_PROXY'] = 'localhost,127.0.0.1';
 
 /**
  * .serial modifier will force this test to run by itself. need this since we check for specific ports to be used
  * in the response.
  */
 test.serial(`REST happy path`, (t) => {
+  const logger = new Logger({logLevel: process.env.LOG_LEVEL}, loggerClazz, t.log.bind(t));
+
   return new Promise((resolve, reject) => {
     let returned = false;
     const testCmd = spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-happy-path')]);
@@ -50,6 +61,7 @@ test.serial(`REST happy path`, (t) => {
 });
 
 test(`tests run in order`, async (t) => {
+  const logger = new Logger({logLevel: process.env.LOG_LEVEL}, loggerClazz, t.log.bind(t));
   const testCmd = spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-tests-run-in-order')]);
   const expected = [
     'INFO: Running Test Set: ts1',
@@ -63,11 +75,12 @@ test(`tests run in order`, async (t) => {
     'INFO: ts1: #: implicitly ordered 3'
   ];
 
-  let result = await ITUtil.expectInOrder(testCmd, expected, t);
+  let result = await ITUtil.expectInOrder(testCmd, expected, t, false, logger);
   t.is(result.length, 0);
 });
 
 test(`env start failure`, async (t) => {
+  const logger = new Logger({logLevel: process.env.LOG_LEVEL}, loggerClazz, t.log.bind(t));
   const expected = {
     'BUSYBEE_ERROR detected': 2,
     'Stopping Environment: Env That Will Fail To Start (1)': 1,
@@ -79,7 +92,7 @@ test(`env start failure`, async (t) => {
 
   const testCmd = spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/env-start-failure')]);
 
-  let actual = await ITUtil.analyzeOutputFrequency(testCmd, expected);
+  let actual = await ITUtil.analyzeOutputFrequency(testCmd, expected, logger);
   t.deepEqual(actual, expected);
 });
 
@@ -88,6 +101,7 @@ test(`env start failure`, async (t) => {
  * we're asserting specific ports
  */
 test(`ports in use`, async (t) => {
+  const logger = new Logger({logLevel: process.env.LOG_LEVEL}, loggerClazz, t.log.bind(t));
   // spin up a service on 7777 to block the port
   const server = http.createServer();
   server.listen(7777);
@@ -115,7 +129,7 @@ test(`ports in use`, async (t) => {
     'INFO:Object: Tests finished in': 1
   };
 
-  let actual = await ITUtil.analyzeOutputFrequency(testCmd, expected);
+  let actual = await ITUtil.analyzeOutputFrequency(testCmd, expected, logger);
   t.deepEqual(actual, expected);
 
   // shut down server holding 7777
@@ -134,6 +148,7 @@ test(`ports in use`, async (t) => {
  *
  */
 test(`USER_PROVIDED happy path`, async (t) => {
+  const logger = new Logger({logLevel: process.env.LOG_LEVEL}, loggerClazz, t.log.bind(t));
   const testCmd = spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/USER_PROVIDED-happy-path'), '-D']);
   const expected = [
     'DEBUG:EnvManager: startData is neat',
@@ -142,11 +157,57 @@ test(`USER_PROVIDED happy path`, async (t) => {
     'RESULTS: [{"pass":true}]'
   ];
 
-  let result = await ITUtil.expectInOrder(testCmd, expected, t);
+  let result = await ITUtil.expectInOrder(testCmd, expected, t, false, logger);
   t.is(result.length, 0);
 });
 
+/**
+ * tests that mock behavior is working properly
+ */
+test(`REST mock mode`, async (t) => {
+  const logger = new Logger({logLevel: process.env.LOG_LEVEL}, loggerClazz, t.log.bind(t));
+  const testCmd = spawn(busybee, ['mock', '-d', path.join(__dirname, 'fixtures/REST-mock-mode'), '--testSuite', 'REST Mock Mode']);
+  // confirm start-up
+  await ITUtil.waitFor(testCmd, 'INFO: Mock Server listening on 3030', t, false, logger);
+  //await ITUtil.waitFor(testCmd, 'forever', t, false, logger);
 
-function sleep(ms = 0) {
-  return new Promise(r => setTimeout(r, ms));
-}
+  /*
+    1. check that a test with multiple mocks will iterate
+    between them on subsequent calls
+  */
+  let uri = 'http://localhost:3030/body-assertion';
+  try {
+    let okRes = await _request({uri: uri});
+    t.is(okRes.statusCode, 200);
+    t.deepEqual(okRes.body, {hello: 'world'});
+
+    let failRes = await _request({uri: uri});
+    t.is(failRes.statusCode, 500);
+  } catch (e) {
+    t.fail(e.message);
+  }
+
+  /*
+    2. check that an explicitly defined mock can be called separately
+    for the same endpoint using the busybee-mock-status header
+  */
+  try {
+    // call the uri without busybee-mock-status header and should get 200
+    let okRes = await _request({uri: uri});
+    t.is(okRes.statusCode, 200);
+    t.deepEqual(okRes.body, {hello: 'world'});
+
+    // explicitly request a 404 status
+    let notFoundRes = await _request({uri: uri, headers: {'busybee-mock-status': 404}});
+    t.is(notFoundRes.statusCode, 404);
+  } catch (e) {
+    t.fail(e.message);
+  }
+
+  testCmd.kill('SIGHUP');
+});
+
+
+// function sleep(ms = 0) {
+//   return new Promise(r => setTimeout(r, ms));
+// }

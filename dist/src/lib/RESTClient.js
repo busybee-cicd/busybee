@@ -8,7 +8,11 @@ var RESTClient = /** @class */ (function () {
         this.conf = _.cloneDeep(conf);
         this.suiteEnvConf = _.cloneDeep(suiteEnvConf);
         this.logger = new Logger_1.Logger(conf, this);
-        var standardRequestOpts = { "json": true };
+        var standardRequestOpts = {
+            json: true,
+            resolveWithFullResponse: true,
+            simple: false // only reject() if the request fails for technical reasons (not status code other than 200, request-promise option).
+        };
         this.defaultRequestOpts = Object.assign({}, standardRequestOpts, this.suiteEnvConf.defaultRequestOpts);
         this.apiRequest = request.defaults(this.defaultRequestOpts);
         // if (conf.debug) {
@@ -54,8 +58,6 @@ var RESTClient = /** @class */ (function () {
             method: requestConf.method || 'GET',
             url: url,
             timeout: requestConf.timeout || 30000,
-            resolveWithFullResponse: true,
-            simple: false // only reject() if the request fails for technical reasons (not status code other than 200).
         };
         if (requestConf.query) {
             req['qs'] = requestConf.query;

@@ -13,6 +13,7 @@ import {MockServerConfig} from "../models/config/common/MockServerConfig";
 import {ParsedTestEnvConfig} from "../models/config/parsed/ParsedTestEnvConfig";
 import {ParsedTestSetConfig} from "../models/config/parsed/ParsedTestSetConfig";
 import {RESTTest} from "../models/RESTTest";
+import { RESTMock } from '../models/RESTMock';
 
 export class MockServer {
 
@@ -115,11 +116,10 @@ export class MockServer {
           let pass = false;
           if (test.expect && test.expect.status && !_.isFunction(test.expect.body)) {
             pass = true;
-          } else if (test.mock
-            && test.mock.response
-            && test.mock.response.status
-            && test.mock.response.body) {
-              pass = true;
+          } else if (test.mocks) {
+            pass = _.every(test.mocks, (m) => {
+              return (m.response && m.response.status)
+            });
           }
 
           if (pass) {
@@ -198,7 +198,12 @@ export class MockServer {
     let hashedReq = hash(requestOpts);
     // 1a. search the this.routeMap[test.request.path] for it using the hash
     let method = request.method.toLocaleLowerCase();
-    let resStatus = (mock.mock && mock.mock.response) ? mock.mock.response.status : mock.expect.status; // default to mockResponse
+    let resStatus; // default to mockResponse
+    if (!_.isEmpty(mock.mocks)) {
+      resStatus = mock.mocks[0].response.status;
+    } else {
+      resStatus = mock.expect.status;
+    }
 
     if (this.routeMap[path][method]) {
       if (this.routeMap[path][method][resStatus]) {
@@ -306,7 +311,7 @@ export class MockServer {
         });
 
 
-        let mockToReturn;
+        let mockToReturn:RESTTest;
         this.logger.trace("mocksWithoutHeaders");
         this.logger.trace(mocksWithoutHeaders, true);
         this.logger.trace("mocksWithHeaders");
@@ -340,9 +345,20 @@ export class MockServer {
         // set headers
         res.append('busybee-mock', true);
         let resHeaders;
-        let mockResponse = (mockToReturn.mock && mockToReturn.mock.response) // default to test.mock.response and then attempt 'expect'
-          ? mockToReturn.mock.response
-          : mockToReturn.expect;
+        let mockResponse;
+        let mockData:RESTMock; // will be populated if a mock is provided
+        if (!_.isEmpty(mockToReturn.mocks)) {
+          // in instances where more than 1 mock is provided
+          // the user is signalling that they'd like to change the behavior for
+          // subsequent requests. therefore we shift() this mockData and pop it to the back
+          // for the next request
+          mockData = mockToReturn.mocks.shift();
+          mockResponse = mockData.response;
+          mockToReturn.mocks.push(_.cloneDeep(mockData));
+        } else {
+          mockResponse = mockToReturn.expect;
+        }
+
         if (mockResponse) {
           resHeaders = Object.assign({}, resHeaders, mockResponse);
         }
@@ -356,8 +372,9 @@ export class MockServer {
         }
 
         // check for a delay
-        if (mockToReturn.mock && mockToReturn.mock.lag) {
-          await this.sleep(mockToReturn.mock.lag);
+        if (mockData && mockData.lag) {
+          this.logger.info(`lagging response for ${mockData.lag} milliseconds`);
+          await this.sleep(mockData.lag);
         }
 
         let bodyToReturn = mockResponse.body;

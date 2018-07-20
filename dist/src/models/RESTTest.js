@@ -18,7 +18,7 @@ var RESTMock_1 = require("./RESTMock");
  *   request : RequestOptsConfig,
  *   expect: RESTTestExpect,
  *   skip: false,
- *   mock: RESTMock
+ *   mocks: RESTMock[]
  * }
  * ```
  */
@@ -34,7 +34,14 @@ var RESTTest = /** @class */ (function () {
             this.expect = new RESTTestExpect_1.RESTTestExpect(data.expect);
         }
         this.skip = data.skip;
-        this.mock = new RESTMock_1.RESTMock(data.mock);
+        if (data.mocks) {
+            if (_.isArray(data.mocks)) {
+                this.mocks = data.mocks.map(function (m) { return new RESTMock_1.RESTMock(m); });
+            }
+            else {
+                this.mocks = _.isEmpty(data.mocks) ? [] : [new RESTMock_1.RESTMock(data.mocks)];
+            }
+        }
         this.delayRequest = data.delayRequest;
     }
     return RESTTest;

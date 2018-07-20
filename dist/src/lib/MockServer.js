@@ -130,11 +130,10 @@ var MockServer = /** @class */ (function () {
                     if (test.expect && test.expect.status && !_.isFunction(test.expect.body)) {
                         pass = true;
                     }
-                    else if (test.mock
-                        && test.mock.response
-                        && test.mock.response.status
-                        && test.mock.response.body) {
-                        pass = true;
+                    else if (test.mocks) {
+                        pass = _.every(test.mocks, function (m) {
+                            return (m.response && m.response.status);
+                        });
                     }
                     if (pass) {
                         _this.updateRouteMap(test);
@@ -206,7 +205,13 @@ var MockServer = /** @class */ (function () {
         var hashedReq = hash(requestOpts);
         // 1a. search the this.routeMap[test.request.path] for it using the hash
         var method = request.method.toLocaleLowerCase();
-        var resStatus = (mock.mock && mock.mock.response) ? mock.mock.response.status : mock.expect.status; // default to mockResponse
+        var resStatus; // default to mockResponse
+        if (!_.isEmpty(mock.mocks)) {
+            resStatus = mock.mocks[0].response.status;
+        }
+        else {
+            resStatus = mock.expect.status;
+        }
         if (this.routeMap[path][method]) {
             if (this.routeMap[path][method][resStatus]) {
                 if (_.find(this.routeMap[path][method], function (reqInfo) {
@@ -234,7 +239,7 @@ var MockServer = /** @class */ (function () {
             // 1. build a controller
             var ctrl = function (req, res) { return __awaiter(_this, void 0, void 0, function () {
                 var _this = this;
-                var requestedStatus, mocks, reqOpts, hashedReq, matchingMocks, mocksWithoutHeaders, mocksWithHeaders, mockToReturn, message, message, resHeaders, mockResponse, bodyToReturn;
+                var requestedStatus, mocks, reqOpts, hashedReq, matchingMocks, mocksWithoutHeaders, mocksWithHeaders, mockToReturn, message, message, resHeaders, mockResponse, mockData, bodyToReturn;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
@@ -336,9 +341,18 @@ var MockServer = /** @class */ (function () {
                             }
                             // set headers
                             res.append('busybee-mock', true);
-                            mockResponse = (mockToReturn.mock && mockToReturn.mock.response) // default to test.mock.response and then attempt 'expect'
-                                ? mockToReturn.mock.response
-                                : mockToReturn.expect;
+                            if (!_.isEmpty(mockToReturn.mocks)) {
+                                // in instances where more than 1 mock is provided
+                                // the user is signalling that they'd like to change the behavior for
+                                // subsequent requests. therefore we shift() this mockData and pop it to the back
+                                // for the next request
+                                mockData = mockToReturn.mocks.shift();
+                                mockResponse = mockData.response;
+                                mockToReturn.mocks.push(_.cloneDeep(mockData));
+                            }
+                            else {
+                                mockResponse = mockToReturn.expect;
+                            }
                             if (mockResponse) {
                                 resHeaders = Object.assign({}, resHeaders, mockResponse);
                             }
@@ -350,8 +364,9 @@ var MockServer = /** @class */ (function () {
                                     res.append(k, v);
                                 });
                             }
-                            if (!(mockToReturn.mock && mockToReturn.mock.lag)) return [3 /*break*/, 2];
-                            return [4 /*yield*/, this.sleep(mockToReturn.mock.lag)];
+                            if (!(mockData && mockData.lag)) return [3 /*break*/, 2];
+                            this.logger.info("lagging response for " + mockData.lag + " milliseconds");
+                            return [4 /*yield*/, this.sleep(mockData.lag)];
                         case 1:
                             _a.sent();
                             _a.label = 2;
