@@ -207,6 +207,16 @@ test(`REST mock mode`, async (t) => {
   testCmd.kill('SIGHUP');
 });
 
+test(`REST variable exports`, async (t) => {
+  const logger = new Logger({logLevel: process.env.LOG_LEVEL}, loggerClazz, t.log.bind(t));
+  const expected = ['Test Passed?: true'];
+
+  const testCmd = spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-variable-exports')]);
+
+  let result = await ITUtil.expectInOrder(testCmd, expected, t, false, logger);
+  t.is(result.length, 0);
+});
+
 
 // function sleep(ms = 0) {
 //   return new Promise(r => setTimeout(r, ms));

@@ -280,6 +280,22 @@ ava_1.default("REST mock mode", function (t) { return __awaiter(_this, void 0, v
         }
     });
 }); });
+ava_1.default.only("REST variable exports", function (t) { return __awaiter(_this, void 0, void 0, function () {
+    var logger, expected, testCmd, result;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                logger = new Logger_1.Logger({ logLevel: process.env.LOG_LEVEL }, loggerClazz, t.log.bind(t));
+                expected = ['Test Passed?: true'];
+                testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-variable-exports')]);
+                return [4 /*yield*/, ITUtil_1.ITUtil.expectInOrder(testCmd, expected, t, false, logger)];
+            case 1:
+                result = _a.sent();
+                t.is(result.length, 0);
+                return [2 /*return*/];
+        }
+    });
+}); });
 // function sleep(ms = 0) {
 //   return new Promise(r => setTimeout(r, ms));
 // }

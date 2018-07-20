@@ -194,10 +194,10 @@ export class RESTSuiteManager {
    Iterates through the request opts and relaces all instances of #{myVar}
    with properties of the same name on variableExports
    */
-  processRequestOptsForVariableDeclarations(opts: any, variableExports: any) {
+  processRequestOptsForVariableDeclarations(opts: any, variableExports: any): any {
     // check url
     opts.url = this.replaceVars(opts.url, variableExports);
-    let objBasedPropsToCheck = ['query', 'headers', 'body'];
+    let objBasedPropsToCheck = ['qs', 'headers', 'body'];
     objBasedPropsToCheck.forEach(prop => {
       if (opts[prop]) {
         opts[prop] = this.replaceVarsInObject(opts[prop], variableExports);
@@ -373,6 +373,10 @@ export class RESTSuiteManager {
             bodyPass = false;
           } // else we pass it. ie) it doesn't return anything we assume it passed.
         } else {
+          // substitue any exported variable referenced from previous tests
+          if (!_.isEmpty(testSet.variableExports)) {
+            this.replaceVarsInObject(expected, testSet.variableExports);
+          }
           // assert the body against the provided pojo body
           bodyPass = _.isEqual(expected, actual);
         }

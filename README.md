@@ -11,7 +11,7 @@ busybee
 * [Todo](#todo)
 
 ## Requirements
-- Node.js 8 or higher. The library relies on async/await syntax only supported in the lastest NodeJS version. However, I plan to transpile the library to support older NodeJS versions.
+- Node.js 8 or higher
 
 ## Quickstart
 ```
@@ -40,6 +40,8 @@ when it comes to deciding how your environments are started, when they're ready,
 It is not a magic bullet. You still have to write tests. You still have to provide 'start' and 'stop' scripts detailing how start/stop your environments. If your [Test Suite](#TestSuite) is not a REST [Test Suite](#TestSuite) then you will also need to provide a 'run' script that actually runs your tests once the environment as been provisioned.
 
 ## Todo
+Check out the [Github Issues Page](https://github.build.ge.com/Busybee/busybee/issues) for a list of future bugfixes and enhancements
+
 - test adapters
   - support https://github.com/postmanlabs/newman#using-newman-as-a-nodejs-module ?
     - may just want a commandline opt for running postman tests and another for converting them to Busybee formay since Busybee supports additional features like sets and indexes.
