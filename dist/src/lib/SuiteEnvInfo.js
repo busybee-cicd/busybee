@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var SuiteEnvInfo = /** @class */ (function () {
-    function SuiteEnvInfo(suiteConf, suiteID, suiteEnvID, resourceCost, hostName) {
-        this.suiteID = suiteID;
+    function SuiteEnvInfo(suiteConf, suiteEnvID, resourceCost, hostName) {
+        this.suiteID = suiteConf.suiteID;
         this.suiteEnvID = suiteEnvID;
         this.resourceCost = resourceCost;
         this.hostName = hostName;

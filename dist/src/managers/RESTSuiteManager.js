@@ -222,7 +222,7 @@ var RESTSuiteManager = /** @class */ (function () {
         var _this = this;
         // check url
         opts.url = this.replaceVars(opts.url, variableExports);
-        var objBasedPropsToCheck = ['query', 'headers', 'body'];
+        var objBasedPropsToCheck = ['qs', 'headers', 'body'];
         objBasedPropsToCheck.forEach(function (prop) {
             if (opts[prop]) {
                 opts[prop] = _this.replaceVarsInObject(opts[prop], variableExports);
@@ -380,6 +380,10 @@ var RESTSuiteManager = /** @class */ (function () {
                     } // else we pass it. ie) it doesn't return anything we assume it passed.
                 }
                 else {
+                    // substitue any exported variable referenced from previous tests
+                    if (!_.isEmpty(testSet.variableExports)) {
+                        this.replaceVarsInObject(expected, testSet.variableExports);
+                    }
                     // assert the body against the provided pojo body
                     bodyPass = _.isEqual(expected, actual);
                 }

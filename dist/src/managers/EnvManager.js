@@ -537,7 +537,7 @@ var EnvManager = /** @class */ (function () {
                             // 2. add an entry for this env on this host (may get ports added in the next step)
                             _this.currentHosts[hostName].envs[generatedEnvID] = {};
                             // 3. add this env to the currentEnvs object
-                            var envInfo = new SuiteEnvInfo_1.SuiteEnvInfo(suiteConf, suiteID, suiteEnvID, cost, hostName);
+                            var envInfo = new SuiteEnvInfo_1.SuiteEnvInfo(suiteConf, suiteEnvID, cost, hostName);
                             _this.currentEnvs.set(generatedEnvID, envInfo);
                             _this.logger.trace('currentHosts updated');
                             _this.logger.trace(_this.currentHosts, true);

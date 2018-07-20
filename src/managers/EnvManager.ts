@@ -461,7 +461,7 @@ export class EnvManager {
         // 2. add an entry for this env on this host (may get ports added in the next step)
         this.currentHosts[hostName].envs[generatedEnvID] = {};
         // 3. add this env to the currentEnvs object
-        let envInfo = new SuiteEnvInfo(suiteConf, suiteID, suiteEnvID, cost, hostName);
+        let envInfo = new SuiteEnvInfo(suiteConf, suiteEnvID, cost, hostName);
         this.currentEnvs.set(generatedEnvID, envInfo);
 
         this.logger.trace('currentHosts updated');

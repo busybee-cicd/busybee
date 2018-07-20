@@ -24,8 +24,8 @@ export class SuiteEnvInfo {
   startData: any;
   stopData: any;
 
-  constructor(suiteConf: ParsedTestSuite, suiteID: string, suiteEnvID: string, resourceCost: number, hostName: string) {
-    this.suiteID = suiteID;
+  constructor(suiteConf: ParsedTestSuite, suiteEnvID: string, resourceCost: number, hostName: string) {
+    this.suiteID = suiteConf.suiteID;
     this.suiteEnvID = suiteEnvID;
     this.resourceCost = resourceCost;
     this.hostName = hostName;
