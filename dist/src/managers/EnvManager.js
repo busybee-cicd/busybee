@@ -14,8 +14,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -41,16 +41,16 @@ var path = require("path");
 var _ = require("lodash");
 var _async = require("async");
 var portscanner = require("portscanner");
-var Logger_1 = require("../lib/Logger");
+var busybee_util_1 = require("busybee-util");
 var RESTClient_1 = require("../lib/RESTClient");
 var TypedMap_1 = require("../lib/TypedMap");
 var SuiteEnvInfo_1 = require("../lib/SuiteEnvInfo");
-var IOUtil_1 = require("../lib/IOUtil");
+var busybee_util_2 = require("busybee-util");
 var EnvManager = /** @class */ (function () {
     function EnvManager(conf) {
-        this.envStartRetries = {};
         this.conf = _.cloneDeep(conf);
-        this.logger = new Logger_1.Logger(conf, this);
+        var loggerConf = new busybee_util_1.LoggerConf(this, conf.logLevel, null);
+        this.logger = new busybee_util_1.Logger(loggerConf);
         if (conf.getSkipEnvProvisioning().length > 0) {
             this.skipEnvProvisioningList = conf.getSkipEnvProvisioning();
         }
@@ -236,8 +236,8 @@ var EnvManager = /** @class */ (function () {
             return __generator(this, function (_a) {
                 this.logger.trace('stopAll');
                 return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-                        var _this = this;
                         var stopFns, e_2;
+                        var _this = this;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
@@ -418,8 +418,8 @@ var EnvManager = /** @class */ (function () {
     EnvManager.prototype.runScript = function (path, args) {
         var _this = this;
         return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-            var _this = this;
             var completeMessage, returned, script;
+            var _this = this;
             return __generator(this, function (_a) {
                 this.logger.info("runScript " + path + " <args>");
                 this.logger.debug(args);
@@ -447,7 +447,7 @@ var EnvManager = /** @class */ (function () {
                     if (returned || _.isEmpty(data)) {
                         return;
                     }
-                    var lines = IOUtil_1.IOUtil.parseDataBuffer(data);
+                    var lines = busybee_util_2.IOUtil.parseDataBuffer(data);
                     lines.forEach(function (l) {
                         _this.logger.debug(l);
                         if (l.includes(EnvManager.BUSYBEE_ERROR)) {
@@ -715,8 +715,8 @@ var EnvManager = /** @class */ (function () {
      */
     EnvManager.prototype.arePortsTaken = function (hostName, ports) {
         return __awaiter(this, void 0, void 0, function () {
-            var _this = this;
             var takenPorts, portCheckPromises, results;
+            var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -826,7 +826,12 @@ var EnvManager = /** @class */ (function () {
     EnvManager.prototype.getCurrentEnv = function (generatedEnvID) {
         return this.currentEnvs.get(generatedEnvID);
     };
-    EnvManager.ENV_START_MAX_RETRIES = 3;
+    EnvManager.prototype.getCurrentEnvs = function () {
+        return this.currentEnvs;
+    };
+    EnvManager.prototype.getCurrentHosts = function () {
+        return this.currentHosts;
+    };
     EnvManager.BUSYBEE_ERROR = 'BUSYBEE_ERROR';
     EnvManager.BUSYBEE_RETURN = 'BUSYBEE_RETURN';
     return EnvManager;

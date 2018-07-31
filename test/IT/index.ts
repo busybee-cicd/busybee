@@ -1,12 +1,11 @@
 import test from 'ava';
 import { spawn } from 'child_process';
 import * as path from 'path';
-import { IOUtil } from '../../src/lib/IOUtil';
 import { IgnoreKeys } from '../../src/lib/assertionModifications/IgnoreKeys';
 import { ITUtil } from './util/ITUtil';
 import * as http from 'http';
 import * as request from 'request-promise';
-import { Logger } from '../../src/lib/Logger';
+import { Logger, IOUtil, LoggerConf } from 'busybee-util';
 const _request = request.defaults({
   json:true,
   simple: false,
@@ -22,7 +21,8 @@ process.env['NO_PROXY'] = 'localhost,127.0.0.1';
  * in the response.
  */
 test.serial(`REST happy path`, (t) => {
-  const logger = new Logger({logLevel: process.env.LOG_LEVEL}, loggerClazz, t.log.bind(t));
+  const loggerConf = new LoggerConf(loggerClazz, process.env.LOG_LEVEL, t.log.bind(t));
+  const logger = new Logger(loggerConf);
 
   return new Promise((resolve, reject) => {
     let returned = false;
@@ -57,11 +57,12 @@ test.serial(`REST happy path`, (t) => {
         resolve();
       }
     });
-  })
+  });
 });
 
 test(`tests run in order`, async (t) => {
-  const logger = new Logger({logLevel: process.env.LOG_LEVEL}, loggerClazz, t.log.bind(t));
+  const loggerConf = new LoggerConf(loggerClazz, process.env.LOG_LEVEL, t.log.bind(t));
+  const logger = new Logger(loggerConf);
   const testCmd = spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-tests-run-in-order')]);
   const expected = [
     'INFO: Running Test Set: ts1',
@@ -80,7 +81,8 @@ test(`tests run in order`, async (t) => {
 });
 
 test(`env start failure`, async (t) => {
-  const logger = new Logger({logLevel: process.env.LOG_LEVEL}, loggerClazz, t.log.bind(t));
+  const loggerConf = new LoggerConf(loggerClazz, process.env.LOG_LEVEL, t.log.bind(t));
+  const logger = new Logger(loggerConf);
   const expected = {
     'BUSYBEE_ERROR detected': 2,
     'Stopping Environment: Env That Will Fail To Start (1)': 1,
@@ -101,7 +103,8 @@ test(`env start failure`, async (t) => {
  * we're asserting specific ports
  */
 test(`ports in use`, async (t) => {
-  const logger = new Logger({logLevel: process.env.LOG_LEVEL}, loggerClazz, t.log.bind(t));
+  const loggerConf = new LoggerConf(loggerClazz, process.env.LOG_LEVEL, t.log.bind(t));
+  const logger = new Logger(loggerConf);
   // spin up a service on 7777 to block the port
   const server = http.createServer();
   server.listen(7777);
@@ -118,7 +121,7 @@ test(`ports in use`, async (t) => {
   });
 
   // spin up busybee and assert output
-  const childEnv = Object.assign({}, process.env, {BUSYBEE_LOG_LEVEL: 'TRACE'});
+  const childEnv = Object.assign({}, process.env, {LOG_LEVEL: 'TRACE'});
   const testCmd = spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/ports-in-use')], {env: childEnv});
   const expected = {
     'TRACE:EnvManager: arePortsInUseByBusybee  | 7777,7778' : 1,
@@ -148,7 +151,8 @@ test(`ports in use`, async (t) => {
  *
  */
 test(`USER_PROVIDED happy path`, async (t) => {
-  const logger = new Logger({logLevel: process.env.LOG_LEVEL}, loggerClazz, t.log.bind(t));
+  const loggerConf = new LoggerConf(loggerClazz, process.env.LOG_LEVEL, t.log.bind(t));
+  const logger = new Logger(loggerConf);
   const testCmd = spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/USER_PROVIDED-happy-path'), '-D']);
   const expected = [
     'DEBUG:EnvManager: startData is neat',
@@ -165,7 +169,8 @@ test(`USER_PROVIDED happy path`, async (t) => {
  * tests that mock behavior is working properly
  */
 test(`REST mock mode`, async (t) => {
-  const logger = new Logger({logLevel: process.env.LOG_LEVEL}, loggerClazz, t.log.bind(t));
+  const loggerConf = new LoggerConf(loggerClazz, process.env.LOG_LEVEL, t.log.bind(t));
+  const logger = new Logger(loggerConf);
   const testCmd = spawn(busybee, ['mock', '-d', path.join(__dirname, 'fixtures/REST-mock-mode'), '--testSuite', 'REST Mock Mode']);
   // confirm start-up
   await ITUtil.waitFor(testCmd, 'INFO: Mock Server listening on 3030', t, false, logger);
@@ -208,7 +213,8 @@ test(`REST mock mode`, async (t) => {
 });
 
 test(`REST variable exports`, async (t) => {
-  const logger = new Logger({logLevel: process.env.LOG_LEVEL}, loggerClazz, t.log.bind(t));
+  const loggerConf = new LoggerConf(loggerClazz, process.env.LOG_LEVEL, t.log.bind(t));
+  const logger = new Logger(loggerConf);
   const expected = ['Test Passed?: true'];
 
   const testCmd = spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-variable-exports')]);

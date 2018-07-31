@@ -7,7 +7,7 @@ import {TestSuiteConfig} from "../user/TestSuiteConfig";
 import {ParsedTestSetConfig} from "./ParsedTestSetConfig";
 import {EnvInstanceConfig} from "../user/EnvInstanceConfig";
 import {TestSetConfig} from "../user/TestSetConfig";
-import {Logger} from "../../../lib/Logger";
+import {Logger, LoggerConf} from 'busybee-util';
 import * as _ from 'lodash';
 
 export class ParsedTestSuite {
@@ -26,7 +26,8 @@ export class ParsedTestSuite {
   private logger: Logger;
 
   constructor(suite: TestSuiteConfig, mode: string, testSet2EnvMap: TypedMap<Array<string>>, env2TestSuiteMap: TypedMap<string>) {
-    this.logger = new Logger({logLevel: process.env['BUSYBEE_LOG_LEVEL']}, this);
+    const loggerConf = new LoggerConf(this, process.env['LOG_LEVEL'], null);
+    this.logger = new Logger(loggerConf);
     this.defaultRequestOpts = suite.defaultRequestOpts;
     this.env = suite.env;
     this.mockServer = suite.mockServer;

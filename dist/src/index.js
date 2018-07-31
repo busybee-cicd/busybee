@@ -15,8 +15,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -48,7 +48,7 @@ var ConfigParser_1 = require("./lib/ConfigParser");
 var EnvManager_1 = require("./managers/EnvManager");
 var TestManager_1 = require("./managers/TestManager");
 var MockServer_1 = require("./lib/MockServer");
-var Logger_1 = require("./lib/Logger");
+var busybee_util_1 = require("busybee-util");
 var TestSuiteResult_1 = require("./models/results/TestSuiteResult");
 var logger;
 var ONE_SECOND = 1000;
@@ -71,10 +71,12 @@ Commander
     .option('-k, --skipTestSuite <ids>', 'list of comma-separated TestSuite ids to skip')
     .option('-t, --testFiles <filenames>', 'list of comma-separated test files to run. ie) test.json,test2.json,users/mytest.json')
     .option('-e, --envInstances <ids>', 'list of comma-separated envInstance ids to run')
+    .option('-w, --wsserver <port>', 'enable a websocket server at the specified port')
     .action(function (options) {
     var configParser = new ConfigParser_1.ConfigParser(options);
     var conf = configParser.parse('test');
-    logger = new Logger_1.Logger(conf, _this);
+    var loggerConf = new busybee_util_1.LoggerConf(_this, conf.logLevel, null);
+    logger = new busybee_util_1.Logger(loggerConf);
     initTests(conf);
 });
 Commander
@@ -86,6 +88,7 @@ Commander
     .option('-L, --logLevel <level>', '[DEBUG, INFO, WARN, ERROR]')
     .option('-n, --noProxy, Will ignore any userConfigFile.json proxy configuration and skip proxy attempts')
     .option('-t, --testSuite <id>', 'Required. The ID of the REST Api TestSuite that you would like to run a mock server for')
+    .option('-w, --wsserver <port>', 'enable a websocket server at the specified port')
     .action(function (options) {
     if (!options.testSuite) {
         console.log("'--testSuite' is a required argument, exiting");
@@ -93,7 +96,8 @@ Commander
     }
     var configParser = new ConfigParser_1.ConfigParser(options);
     var conf = configParser.parse('mock');
-    logger = new Logger_1.Logger(conf, _this);
+    var loggerConf = new busybee_util_1.LoggerConf(_this, conf.logLevel, null);
+    logger = new busybee_util_1.Logger(loggerConf);
     // identify the TestSuite.
     var testSuite = _.find(conf.parsedTestSuites.values(), function (suite) {
         return suite.suiteID == options.testSuite;
@@ -227,6 +231,7 @@ function initTests(conf) {
             logger.trace(err || suiteResultsList);
             logger.info(formatElapsed(start, end));
         }
+        process.exit();
     });
     function formatElapsed(start, end) {
         var elapsed = end - start;
@@ -268,6 +273,5 @@ function initTests(conf) {
         }
         return ret;
     }
-    // run the ui tests
 }
 //# sourceMappingURL=index.js.map

@@ -31,11 +31,11 @@ var KeyIdentifier = /** @class */ (function () {
             if (_.isArray(v)) {
                 v.forEach(function (keyToRemove) {
                     // keyToRemove could be a string or an object
-                    if (_.isObject(keyToRemove) && !_.isArray(keyToRemove)) {
+                    if (_.isObject(keyToRemove) && !_.isArray(keyToRemove)) { // an object describing further recursion
                         // advance the expected/actual and pass in the keyToRemove (configObj)
                         var nextExpected = expected[k];
                         var nextActual_1 = actual[k];
-                        if (KeyIdentifier.valueIsArray(nextExpected, nextActual_1)) {
+                        if (KeyIdentifier.valueIsArray(nextExpected, nextActual_1)) { // if this next key is a collection in our actual/expected
                             nextExpected.forEach(function (_nextExpected, i) {
                                 KeyIdentifier.parseConfigObject(keyToRemove, _nextExpected, nextActual_1[i], action);
                             });
@@ -44,7 +44,7 @@ var KeyIdentifier = /** @class */ (function () {
                             KeyIdentifier.parseConfigObject(keyToRemove, nextExpected, nextActual_1, action);
                         }
                     }
-                    else {
+                    else { // simply a string representing a key to remove at this iteration
                         KeyIdentifier.advanceAndRemoveKey(k, keyToRemove, expected, actual, action);
                     }
                 });
@@ -130,7 +130,7 @@ var KeyIdentifier = /** @class */ (function () {
             var nextExpected_1 = advanceKey === '*' ? expected : expected[advanceKey];
             var nextActual_3 = advanceKey === '*' ? actual : actual[advanceKey];
             // the value could be another object, an array of keys to delete
-            if (_.isArray(configValue)) {
+            if (_.isArray(configValue)) { // always a have to check _.isArray first because _.isObject([]) == true
                 // remove all these dang keys
                 configValue.forEach(function (keyToRemove) {
                     if (KeyIdentifier.valueIsArray(nextExpected_1, nextActual_3)) {

@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import * as path from 'path';
-import {Logger} from '../lib/Logger';
+import {Logger, LoggerConf} from 'busybee-util';
 import {EnvManager} from "./EnvManager";
 import {ParsedTestSetConfig} from "../models/config/parsed/ParsedTestSetConfig";
 import {SuiteEnvInfo} from "../lib/SuiteEnvInfo";
@@ -17,7 +17,8 @@ export class GenericSuiteManager {
     this.conf = _.cloneDeep(conf);
     this.suiteEnvConf = suiteEnvConf;
     this.envManager = envManager;
-    this.logger = new Logger(conf, this);
+    const loggerConf = new LoggerConf(this, conf.logLevel, null);
+    this.logger = new Logger(loggerConf);
   }
 
   buildUrl(port) {

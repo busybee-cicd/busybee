@@ -1,0 +1,15 @@
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+    "hello": "world",
+    "object": {
+        "1" : "2",
+        "arr" : [1,3,4],
+        "nested" : {
+            "im": "nested",
+            "arr" : [1,2,3,4]
+        }
+    },
+    "arr" : [1,2,3]
+}

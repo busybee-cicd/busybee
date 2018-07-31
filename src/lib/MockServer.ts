@@ -6,7 +6,7 @@ import * as hash from 'object-hash';
 import * as httpProxy from 'http-proxy';
 let restream = require('./restream');
 import * as qs from 'querystring';
-import {Logger} from './Logger';
+import { Logger, LoggerConf } from 'busybee-util';
 import {ParsedTestSuite} from "../models/config/parsed/ParsedTestSuiteConfig";
 import {BusybeeParsedConfig} from "../models/config/BusybeeParsedConfig";
 import {MockServerConfig} from "../models/config/common/MockServerConfig";
@@ -26,7 +26,8 @@ export class MockServer {
   constructor(testSuiteConf: ParsedTestSuite, conf: BusybeeParsedConfig) {
     this.conf = conf;
     this.testSuiteConf = testSuiteConf;
-    this.logger = new Logger(conf, this);
+    const loggerConf = new LoggerConf(this, conf.logLevel, null);
+    this.logger = new Logger(loggerConf);
     this.logger.info('Initializing Mock Server');
     this.routeMap = {}; // store the routes and all of the known request combos for each route
 

@@ -14,8 +14,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -39,12 +39,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var ava_1 = require("ava");
 var child_process_1 = require("child_process");
 var path = require("path");
-var IOUtil_1 = require("../../src/lib/IOUtil");
 var IgnoreKeys_1 = require("../../src/lib/assertionModifications/IgnoreKeys");
 var ITUtil_1 = require("./util/ITUtil");
 var http = require("http");
 var request = require("request-promise");
-var Logger_1 = require("../../src/lib/Logger");
+var busybee_util_1 = require("busybee-util");
 var _request = request.defaults({
     json: true,
     simple: false,
@@ -59,14 +58,15 @@ process.env['NO_PROXY'] = 'localhost,127.0.0.1';
  * in the response.
  */
 ava_1.default.serial("REST happy path", function (t) {
-    var logger = new Logger_1.Logger({ logLevel: process.env.LOG_LEVEL }, loggerClazz, t.log.bind(t));
+    var loggerConf = new busybee_util_1.LoggerConf(loggerClazz, process.env.LOG_LEVEL, t.log.bind(t));
+    var logger = new busybee_util_1.Logger(loggerConf);
     return new Promise(function (resolve, reject) {
         var returned = false;
         var testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-happy-path')]);
         var expected = [{ "testSets": [{ "pass": true, "id": "ts1", "tests": [{ "pass": true, "id": "body assertion", "status": { "pass": true, "actual": 200 }, "headers": { "pass": true, "actual": [{ "content-type": "application/json" }, { "date": "Wed, 04 Jul 2018 15:15:16 GMT" }, { "connection": "close" }, { "transfer-encoding": "chunked" }], "expected": [] }, "body": { "pass": true, "actual": { "hello": "world", "object": { "1": "2", "arr": [1, 3, 4], "nested": { "im": "nested", "arr": [1, 2, 3, 4] } }, "arr": [1, 2, 3] } }, "request": { "json": true, "method": "GET", "url": "http://localhost:7777/body-assertion", "timeout": 30000, "resolveWithFullResponse": true, "simple": false } }, { "pass": true, "id": "status assertion", "status": { "pass": true, "actual": 404 }, "headers": { "pass": true, "actual": [{ "content-type": "application/json" }, { "date": "Wed, 04 Jul 2018 15:15:16 GMT" }, { "connection": "close" }, { "transfer-encoding": "chunked" }], "expected": [] }, "body": { "pass": true }, "request": { "json": true, "method": "GET", "url": "http://localhost:7777/status-assertion", "timeout": 30000, "resolveWithFullResponse": true, "simple": false } }] }], "pass": true, "type": "REST", "id": "REST Happy Path" }];
         var actual;
         testCmd.stdout.on('data', function (data) {
-            var lines = IOUtil_1.IOUtil.parseDataBuffer(data);
+            var lines = busybee_util_1.IOUtil.parseDataBuffer(data);
             lines.forEach(function (l) {
                 if (l.startsWith('RESULTS:')) {
                     actual = JSON.parse(l.replace('RESULTS: ', ''));
@@ -93,11 +93,12 @@ ava_1.default.serial("REST happy path", function (t) {
     });
 });
 ava_1.default("tests run in order", function (t) { return __awaiter(_this, void 0, void 0, function () {
-    var logger, testCmd, expected, result;
+    var loggerConf, logger, testCmd, expected, result;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                logger = new Logger_1.Logger({ logLevel: process.env.LOG_LEVEL }, loggerClazz, t.log.bind(t));
+                loggerConf = new busybee_util_1.LoggerConf(loggerClazz, process.env.LOG_LEVEL, t.log.bind(t));
+                logger = new busybee_util_1.Logger(loggerConf);
                 testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-tests-run-in-order')]);
                 expected = [
                     'INFO: Running Test Set: ts1',
@@ -119,11 +120,12 @@ ava_1.default("tests run in order", function (t) { return __awaiter(_this, void 
     });
 }); });
 ava_1.default("env start failure", function (t) { return __awaiter(_this, void 0, void 0, function () {
-    var logger, expected, testCmd, actual;
+    var loggerConf, logger, expected, testCmd, actual;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                logger = new Logger_1.Logger({ logLevel: process.env.LOG_LEVEL }, loggerClazz, t.log.bind(t));
+                loggerConf = new busybee_util_1.LoggerConf(loggerClazz, process.env.LOG_LEVEL, t.log.bind(t));
+                logger = new busybee_util_1.Logger(loggerConf);
                 expected = {
                     'BUSYBEE_ERROR detected': 2,
                     'Stopping Environment: Env That Will Fail To Start (1)': 1,
@@ -146,12 +148,13 @@ ava_1.default("env start failure", function (t) { return __awaiter(_this, void 0
  * we're asserting specific ports
  */
 ava_1.default("ports in use", function (t) { return __awaiter(_this, void 0, void 0, function () {
+    var loggerConf, logger, server, childEnv, testCmd, expected, actual;
     var _this = this;
-    var logger, server, childEnv, testCmd, expected, actual;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                logger = new Logger_1.Logger({ logLevel: process.env.LOG_LEVEL }, loggerClazz, t.log.bind(t));
+                loggerConf = new busybee_util_1.LoggerConf(loggerClazz, process.env.LOG_LEVEL, t.log.bind(t));
+                logger = new busybee_util_1.Logger(loggerConf);
                 server = http.createServer();
                 server.listen(7777);
                 // wait for service to begin listening
@@ -169,7 +172,7 @@ ava_1.default("ports in use", function (t) { return __awaiter(_this, void 0, voi
             case 1:
                 // wait for service to begin listening
                 _a.sent();
-                childEnv = Object.assign({}, process.env, { BUSYBEE_LOG_LEVEL: 'TRACE' });
+                childEnv = Object.assign({}, process.env, { LOG_LEVEL: 'TRACE' });
                 testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/ports-in-use')], { env: childEnv });
                 expected = {
                     'TRACE:EnvManager: arePortsInUseByBusybee  | 7777,7778': 1,
@@ -205,11 +208,12 @@ ava_1.default("ports in use", function (t) { return __awaiter(_this, void 0, voi
  *
  */
 ava_1.default("USER_PROVIDED happy path", function (t) { return __awaiter(_this, void 0, void 0, function () {
-    var logger, testCmd, expected, result;
+    var loggerConf, logger, testCmd, expected, result;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                logger = new Logger_1.Logger({ logLevel: process.env.LOG_LEVEL }, loggerClazz, t.log.bind(t));
+                loggerConf = new busybee_util_1.LoggerConf(loggerClazz, process.env.LOG_LEVEL, t.log.bind(t));
+                logger = new busybee_util_1.Logger(loggerConf);
                 testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/USER_PROVIDED-happy-path'), '-D']);
                 expected = [
                     'DEBUG:EnvManager: startData is neat',
@@ -229,11 +233,12 @@ ava_1.default("USER_PROVIDED happy path", function (t) { return __awaiter(_this,
  * tests that mock behavior is working properly
  */
 ava_1.default("REST mock mode", function (t) { return __awaiter(_this, void 0, void 0, function () {
-    var logger, testCmd, uri, okRes, failRes, e_1, okRes, notFoundRes, e_2;
+    var loggerConf, logger, testCmd, uri, okRes, failRes, e_1, okRes, notFoundRes, e_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                logger = new Logger_1.Logger({ logLevel: process.env.LOG_LEVEL }, loggerClazz, t.log.bind(t));
+                loggerConf = new busybee_util_1.LoggerConf(loggerClazz, process.env.LOG_LEVEL, t.log.bind(t));
+                logger = new busybee_util_1.Logger(loggerConf);
                 testCmd = child_process_1.spawn(busybee, ['mock', '-d', path.join(__dirname, 'fixtures/REST-mock-mode'), '--testSuite', 'REST Mock Mode']);
                 // confirm start-up
                 return [4 /*yield*/, ITUtil_1.ITUtil.waitFor(testCmd, 'INFO: Mock Server listening on 3030', t, false, logger)];
@@ -280,12 +285,13 @@ ava_1.default("REST mock mode", function (t) { return __awaiter(_this, void 0, v
         }
     });
 }); });
-ava_1.default.only("REST variable exports", function (t) { return __awaiter(_this, void 0, void 0, function () {
-    var logger, expected, testCmd, result;
+ava_1.default("REST variable exports", function (t) { return __awaiter(_this, void 0, void 0, function () {
+    var loggerConf, logger, expected, testCmd, result;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                logger = new Logger_1.Logger({ logLevel: process.env.LOG_LEVEL }, loggerClazz, t.log.bind(t));
+                loggerConf = new busybee_util_1.LoggerConf(loggerClazz, process.env.LOG_LEVEL, t.log.bind(t));
+                logger = new busybee_util_1.Logger(loggerConf);
                 expected = ['Test Passed?: true'];
                 testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-variable-exports')]);
                 return [4 /*yield*/, ITUtil_1.ITUtil.expectInOrder(testCmd, expected, t, false, logger)];

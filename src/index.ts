@@ -12,7 +12,7 @@ import {ConfigParser} from  './lib/ConfigParser';
 import {EnvManager} from './managers/EnvManager';
 import {TestManager} from './managers/TestManager';
 import {MockServer} from './lib/MockServer';
-import {Logger} from './lib/Logger';
+import {Logger, LoggerConf} from 'busybee-util';
 import {EnvResult} from './models/results/EnvResult';
 import {TestSuiteResult} from './models/results/TestSuiteResult';
 let logger;
@@ -38,10 +38,13 @@ Commander
   .option('-k, --skipTestSuite <ids>', 'list of comma-separated TestSuite ids to skip')
   .option('-t, --testFiles <filenames>', 'list of comma-separated test files to run. ie) test.json,test2.json,users/mytest.json')
   .option('-e, --envInstances <ids>', 'list of comma-separated envInstance ids to run')
+  .option('-w, --wsserver <port>', 'enable a websocket server at the specified port')
   .action((options) => {
     let configParser = new ConfigParser(options);
     const conf: BusybeeParsedConfig = configParser.parse('test');
-    logger = new Logger(conf, this);
+    const loggerConf = new LoggerConf(this, conf.logLevel, null);
+    logger = new Logger(loggerConf);
+
     initTests(conf);
   });
 
@@ -54,6 +57,7 @@ Commander
   .option('-L, --logLevel <level>', '[DEBUG, INFO, WARN, ERROR]')
   .option('-n, --noProxy, Will ignore any userConfigFile.json proxy configuration and skip proxy attempts')
   .option('-t, --testSuite <id>', 'Required. The ID of the REST Api TestSuite that you would like to run a mock server for')
+  .option('-w, --wsserver <port>', 'enable a websocket server at the specified port')
   .action((options) => {
     if (!options.testSuite) {
       console.log(`'--testSuite' is a required argument, exiting`);
@@ -61,7 +65,8 @@ Commander
     }
     let configParser = new ConfigParser(options);
     const conf: BusybeeParsedConfig = configParser.parse('mock');
-    logger = new Logger(conf, this);
+    const loggerConf = new LoggerConf(this, conf.logLevel, null);
+    logger = new Logger(loggerConf);
 
 
     // identify the TestSuite.
@@ -199,6 +204,8 @@ function initTests(conf: BusybeeParsedConfig) {
       logger.trace(err || suiteResultsList);
       logger.info(formatElapsed(start, end));
     }
+
+    process.exit();
   });
 
   function formatElapsed(start: number, end: number): string {
@@ -243,6 +250,4 @@ function initTests(conf: BusybeeParsedConfig) {
 
     return ret;
   }
-
-  // run the ui tests
 }

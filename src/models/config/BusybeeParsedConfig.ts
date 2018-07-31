@@ -1,7 +1,7 @@
 import * as uuidv1 from 'uuid/v1';
 import {TestSuiteConfig} from "./user/TestSuiteConfig";
 import {BusybeeUserConfig} from "./BusybeeUserConfig";
-import {Logger} from "../../lib/Logger";
+import {Logger, LoggerConf} from 'busybee-util';
 import * as glob from 'glob';
 import * as fs from 'fs';
 import * as _ from 'lodash';
@@ -32,11 +32,13 @@ export class BusybeeParsedConfig {
   reporters: Array<any>;
   localMode: boolean = false;
   noProxy: boolean = false;
+  webSocketPort: number;
 
   constructor(userConfig: BusybeeUserConfig, cmdOpts: any, mode: string) {
     this.cmdOpts = Object.assign({}, cmdOpts); // TODO make sure nothing references this directly from this point
     this.logLevel = this.getLogLevel();
-    this.logger = new Logger({logLevel: this.logLevel}, this);
+    const loggerConf = new LoggerConf(this, this.logLevel, null);
+    this.logger = new Logger(loggerConf);
     this.parseCmdOpts();
     this.filePaths = new FilePathsConfig(this.cmdOpts);
     this.onComplete = userConfig.onComplete;
@@ -70,6 +72,9 @@ export class BusybeeParsedConfig {
     }
     if (this.cmdOpts.noProxy) {
       this.noProxy = true;
+    }
+    if (this.cmdOpts.wsserver) {
+      this.webSocketPort = this.cmdOpts.wsserver;
     }
   }
 
@@ -286,9 +291,9 @@ export class BusybeeParsedConfig {
 
     if (process.env['BUSYBEE_DEBUG']) {
       logLevel = Logger.DEBUG;
-    } else if (process.env['BUSYBEE_LOG_LEVEL']) {
-      if (Logger.isLogLevel(process.env['BUSYBEE_LOG_LEVEL'])) {
-        logLevel = process.env['BUSYBEE_LOG_LEVEL'];
+    } else if (process.env['LOG_LEVEL']) {
+      if (Logger.isLogLevel(process.env['LOG_LEVEL'])) {
+        logLevel = process.env['LOG_LEVEL'];
       }
     } else if (this.cmdOpts) {
       if (this.cmdOpts.debug) {

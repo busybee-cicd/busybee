@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var uuidv1 = require("uuid/v1");
-var Logger_1 = require("../../lib/Logger");
+var busybee_util_1 = require("busybee-util");
 var glob = require("glob");
 var fs = require("fs");
 var _ = require("lodash");
@@ -22,7 +22,8 @@ var BusybeeParsedConfig = /** @class */ (function () {
         this.noProxy = false;
         this.cmdOpts = Object.assign({}, cmdOpts); // TODO make sure nothing references this directly from this point
         this.logLevel = this.getLogLevel();
-        this.logger = new Logger_1.Logger({ logLevel: this.logLevel }, this);
+        var loggerConf = new busybee_util_1.LoggerConf(this, this.logLevel, null);
+        this.logger = new busybee_util_1.Logger(loggerConf);
         this.parseCmdOpts();
         this.filePaths = new FilePathsConfig_1.FilePathsConfig(this.cmdOpts);
         this.onComplete = userConfig.onComplete;
@@ -54,6 +55,9 @@ var BusybeeParsedConfig = /** @class */ (function () {
         }
         if (this.cmdOpts.noProxy) {
             this.noProxy = true;
+        }
+        if (this.cmdOpts.wsserver) {
+            this.webSocketPort = this.cmdOpts.wsserver;
         }
     };
     BusybeeParsedConfig.prototype.getEnvInstancesToRun = function () {
@@ -246,19 +250,19 @@ var BusybeeParsedConfig = /** @class */ (function () {
     BusybeeParsedConfig.prototype.getLogLevel = function () {
         var logLevel;
         if (process.env['BUSYBEE_DEBUG']) {
-            logLevel = Logger_1.Logger.DEBUG;
+            logLevel = busybee_util_1.Logger.DEBUG;
         }
-        else if (process.env['BUSYBEE_LOG_LEVEL']) {
-            if (Logger_1.Logger.isLogLevel(process.env['BUSYBEE_LOG_LEVEL'])) {
-                logLevel = process.env['BUSYBEE_LOG_LEVEL'];
+        else if (process.env['LOG_LEVEL']) {
+            if (busybee_util_1.Logger.isLogLevel(process.env['LOG_LEVEL'])) {
+                logLevel = process.env['LOG_LEVEL'];
             }
         }
         else if (this.cmdOpts) {
             if (this.cmdOpts.debug) {
-                logLevel = Logger_1.Logger.DEBUG;
+                logLevel = busybee_util_1.Logger.DEBUG;
             }
             else if (this.cmdOpts.logLevel) {
-                if (Logger_1.Logger.isLogLevel(this.cmdOpts.logLevel)) {
+                if (busybee_util_1.Logger.isLogLevel(this.cmdOpts.logLevel)) {
                     logLevel = this.cmdOpts.logLevel;
                 }
             }

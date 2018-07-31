@@ -2,12 +2,13 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var request = require("request-promise");
 var _ = require("lodash");
-var Logger_1 = require("./Logger");
+var busybee_util_1 = require("busybee-util");
 var RESTClient = /** @class */ (function () {
     function RESTClient(conf, suiteEnvConf) {
         this.conf = _.cloneDeep(conf);
         this.suiteEnvConf = _.cloneDeep(suiteEnvConf);
-        this.logger = new Logger_1.Logger(conf, this);
+        var loggerConf = new busybee_util_1.LoggerConf(this, conf.logLevel, null);
+        this.logger = new busybee_util_1.Logger(loggerConf);
         var standardRequestOpts = {
             json: true,
             resolveWithFullResponse: true,

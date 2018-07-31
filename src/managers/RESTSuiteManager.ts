@@ -1,6 +1,6 @@
 import * as _async from 'async';
 import * as _ from 'lodash';
-import {Logger} from '../lib/Logger';
+import {Logger, LoggerConf} from 'busybee-util';
 import {RESTClient} from '../lib/RESTClient';
 import {SuiteEnvInfo} from "../lib/SuiteEnvInfo";
 import {ParsedTestSetConfig} from "../models/config/parsed/ParsedTestSetConfig";
@@ -41,7 +41,8 @@ export class RESTSuiteManager {
 
   constructor(conf: BusybeeParsedConfig, suiteEnvConf: SuiteEnvInfo) {
     this.conf = _.cloneDeep(conf);
-    this.logger = new Logger(conf, this);
+    const loggerConf = new LoggerConf(this, conf.logLevel, null);
+    this.logger = new Logger(loggerConf);
     this.restClient = new RESTClient(conf, suiteEnvConf);
   }
 

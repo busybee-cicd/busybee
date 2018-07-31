@@ -1,7 +1,6 @@
 import { ChildProcess } from 'child_process';
-import { IOUtil } from '../../../src/lib/IOUtil';
 import { GenericTestContext, Context } from 'ava';
-import { Logger } from '../../../src/lib/Logger';
+import { Logger, IOUtil } from 'busybee-util';
 
 export class ITUtil {
 

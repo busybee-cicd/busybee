@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as _ from 'lodash';
 import * as _async from 'async';
 import * as portscanner from 'portscanner';
-import {Logger} from '../lib/Logger';
+import {Logger, LoggerConf} from 'busybee-util';
 import {RESTClient} from '../lib/RESTClient';
 import {BusybeeParsedConfig} from "../models/config/BusybeeParsedConfig";
 import {EnvResourceConfig} from "../models/config/common/EnvResourceConfig";
@@ -13,7 +13,7 @@ import {RequestOptsConfig} from "../models/config/common/RequestOptsConfig";
 import {TypedMap} from "../lib/TypedMap";
 import {ParsedTestSuite} from "../models/config/parsed/ParsedTestSuiteConfig";
 import {SuiteEnvInfo} from "../lib/SuiteEnvInfo";
-import { IOUtil } from "../lib/IOUtil";
+import { IOUtil } from "busybee-util";
 
 export class EnvManager {
   private conf: BusybeeParsedConfig;
@@ -22,14 +22,13 @@ export class EnvManager {
   private envsWaitingForProvision: string[];
   private currentHosts: any;
   private currentEnvs: TypedMap<SuiteEnvInfo>;
-  private envStartRetries: any = {};
-  private static ENV_START_MAX_RETRIES = 3;
   private static BUSYBEE_ERROR: string = 'BUSYBEE_ERROR';
   private static BUSYBEE_RETURN: string = 'BUSYBEE_RETURN';
 
   constructor(conf: BusybeeParsedConfig) {
     this.conf = _.cloneDeep(conf);
-    this.logger = new Logger(conf, this);
+    const loggerConf = new LoggerConf(this, conf.logLevel, null);
+    this.logger = new Logger(loggerConf);
     if (conf.getSkipEnvProvisioning().length > 0) {
       this.skipEnvProvisioningList = conf.getSkipEnvProvisioning();
     }
@@ -730,4 +729,11 @@ export class EnvManager {
     return this.currentEnvs.get(generatedEnvID);
   }
 
+  getCurrentEnvs(): TypedMap<SuiteEnvInfo> {
+    return this.currentEnvs;
+  }
+
+  getCurrentHosts(): any {
+    return this.currentHosts;
+  }
 }

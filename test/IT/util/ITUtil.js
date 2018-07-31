@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var IOUtil_1 = require("../../../src/lib/IOUtil");
+var busybee_util_1 = require("busybee-util");
 var ITUtil = /** @class */ (function () {
     function ITUtil() {
     }
@@ -17,7 +17,7 @@ var ITUtil = /** @class */ (function () {
         return new Promise(function (resolve, reject) {
             var actual = {};
             childProc.stdout.on('data', function (data) {
-                var lines = IOUtil_1.IOUtil.parseDataBuffer(data);
+                var lines = busybee_util_1.IOUtil.parseDataBuffer(data);
                 lines.forEach(function (l) {
                     if (logger) {
                         logger.debug(l);
@@ -59,7 +59,7 @@ var ITUtil = /** @class */ (function () {
         return new Promise(function (resolve, reject) {
             var returned = false;
             childProc.stdout.on('data', function (data) {
-                var lines = IOUtil_1.IOUtil.parseDataBuffer(data);
+                var lines = busybee_util_1.IOUtil.parseDataBuffer(data);
                 lines.forEach(function (l) {
                     if (logger) {
                         logger.debug(l);
@@ -112,7 +112,7 @@ var ITUtil = /** @class */ (function () {
         return new Promise(function (resolve, reject) {
             var returned = false;
             childProc.stdout.on('data', function (data) {
-                var lines = IOUtil_1.IOUtil.parseDataBuffer(data);
+                var lines = busybee_util_1.IOUtil.parseDataBuffer(data);
                 lines.forEach(function (l) {
                     if (logger) {
                         logger.debug(l);

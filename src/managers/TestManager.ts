@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import {Logger} from "../lib/Logger";
+import {Logger, LoggerConf} from 'busybee-util';
 import {RESTSuiteManager} from './RESTSuiteManager';
 import {GenericSuiteManager} from './GenericSuiteManager';
 import {EnvManager} from "./EnvManager";
@@ -8,6 +8,7 @@ import {SuiteEnvInfo} from "../lib/SuiteEnvInfo";
 import {EnvResult} from "../models/results/EnvResult";
 import {ParsedTestSuite} from "../models/config/parsed/ParsedTestSuiteConfig";
 import {ParsedTestEnvConfig} from "../models/config/parsed/ParsedTestEnvConfig";
+import { TestWebSocketServer } from '../ws/TestWebSocketServer';
 
 export class TestManager {
 
@@ -15,12 +16,21 @@ export class TestManager {
   private conf: BusybeeParsedConfig;
   private logger: Logger;
   private envManager: EnvManager;
+  private wsServer: TestWebSocketServer;
 
   constructor(conf: BusybeeParsedConfig, envManager: EnvManager) {
     this.conf = _.cloneDeep(conf);
-    this.logger = new Logger(conf, this);
+    const loggerConf = new LoggerConf(this, conf.logLevel, null);
+    this.logger = new Logger(loggerConf);
     this.envManager = envManager;
     this.testSuiteTasks = {};
+    if (conf.webSocketPort) {
+      let wsConf = {
+        port: conf.webSocketPort,
+        logLevel: conf.logLevel
+      }
+      this.wsServer = new TestWebSocketServer(wsConf, this.envManager);
+    }
   }
 
   buildTestSuiteTasks() {

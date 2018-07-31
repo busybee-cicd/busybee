@@ -10,6 +10,7 @@
   "dependencies": {
     "async": "^2.5.0",
     "body-parser": "^1.17.2",
+    "busybee-util": "git://github.build.ge.com/Busybee/busybee-util.git",
     "commander": "^2.11.0",
     "deepmerge": "^2.0.1",
     "express": "^4.15.3",
@@ -23,18 +24,19 @@
     "request-promise": "^4.2.2",
     "request-promise-native": "^1.0.5",
     "source-map-support": "^0.4.18",
-    "uuid": "^3.1.0"
+    "uuid": "^3.1.0",
+    "ws": "^6.0.0"
   },
   "devDependencies": {
     "@types/async": "^2.0.46",
     "@types/body-parser": "^1.16.8",
-    "@types/commander": "^2.12.2",
     "@types/glob": "^5.0.34",
     "@types/lodash": "^4.14.104",
     "@types/lodash.clonedeep": "^4.5.3",
     "@types/node": "^10.0.5",
     "@types/portscanner": "^2.1.0",
     "@types/uuid": "^3.4.3",
+    "@types/ws": "^5.1.2",
     "ava": "^0.23.0",
     "busybee-html-reporter": "git://github.build.ge.com/Busybee/busybee-html-reporter.git",
     "npm-watch": "^0.3.0",

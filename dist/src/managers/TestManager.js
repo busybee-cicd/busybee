@@ -14,8 +14,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -36,16 +36,25 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var _ = require("lodash");
-var Logger_1 = require("../lib/Logger");
+var busybee_util_1 = require("busybee-util");
 var RESTSuiteManager_1 = require("./RESTSuiteManager");
 var GenericSuiteManager_1 = require("./GenericSuiteManager");
 var EnvResult_1 = require("../models/results/EnvResult");
+var TestWebSocketServer_1 = require("../ws/TestWebSocketServer");
 var TestManager = /** @class */ (function () {
     function TestManager(conf, envManager) {
         this.conf = _.cloneDeep(conf);
-        this.logger = new Logger_1.Logger(conf, this);
+        var loggerConf = new busybee_util_1.LoggerConf(this, conf.logLevel, null);
+        this.logger = new busybee_util_1.Logger(loggerConf);
         this.envManager = envManager;
         this.testSuiteTasks = {};
+        if (conf.webSocketPort) {
+            var wsConf = {
+                port: conf.webSocketPort,
+                logLevel: conf.logLevel
+            };
+            this.wsServer = new TestWebSocketServer_1.TestWebSocketServer(wsConf, this.envManager);
+        }
     }
     TestManager.prototype.buildTestSuiteTasks = function () {
         var _this = this;
