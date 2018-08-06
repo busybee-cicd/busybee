@@ -832,6 +832,12 @@ var EnvManager = /** @class */ (function () {
     EnvManager.prototype.getCurrentHosts = function () {
         return this.currentHosts;
     };
+    EnvManager.prototype.getRunTimestamp = function () {
+        return this.conf.runTimestamp;
+    };
+    EnvManager.prototype.getRunId = function () {
+        return this.conf.runId;
+    };
     EnvManager.BUSYBEE_ERROR = 'BUSYBEE_ERROR';
     EnvManager.BUSYBEE_RETURN = 'BUSYBEE_RETURN';
     return EnvManager;

@@ -33,6 +33,8 @@ export class BusybeeParsedConfig {
   localMode: boolean = false;
   noProxy: boolean = false;
   webSocketPort: number;
+  runTimestamp: number;
+  runId: string;
 
   constructor(userConfig: BusybeeUserConfig, cmdOpts: any, mode: string) {
     this.cmdOpts = Object.assign({}, cmdOpts); // TODO make sure nothing references this directly from this point
@@ -45,6 +47,8 @@ export class BusybeeParsedConfig {
     this.parsedTestSuites = this.parseTestSuites(userConfig, mode);
     this.envResources = userConfig.envResources;
     this.reporters = userConfig.reporters;
+    this.runTimestamp = new Date().getTime();
+    this.runId = uuidv1();
 
     if (this.localMode) {
       this.logger.info(`LocalMode detected. Host Configuration will be ignored in favor of 'localhost'`);

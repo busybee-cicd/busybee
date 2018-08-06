@@ -736,4 +736,12 @@ export class EnvManager {
   getCurrentHosts(): any {
     return this.currentHosts;
   }
+
+  getRunTimestamp(): number {
+    return this.conf.runTimestamp;
+  }
+
+  getRunId(): string {
+    return this.conf.runId;
+  }
 }

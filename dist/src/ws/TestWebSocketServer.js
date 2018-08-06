@@ -27,7 +27,10 @@ var TestWebSocketServer = /** @class */ (function (_super) {
         this.logger.debug('emitStatus');
         var msg = {
             type: MessageTypes_1.MessageTypes.TEST_RUN_STATUS,
+            timestamp: new Date().getTime(),
             data: {
+                runId: this.envManager.getRunId(),
+                runTimestamp: this.envManager.getRunTimestamp(),
                 envs: this.envManager.getCurrentEnvs(),
                 hosts: this.envManager.getCurrentHosts()
             }

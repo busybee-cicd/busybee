@@ -19,7 +19,10 @@ export class TestWebSocketServer extends WebSocketServer {
     this.logger.debug('emitStatus');
     let msg = {
       type: MessageTypes.TEST_RUN_STATUS,
+      timestamp: new Date().getTime(),
       data: {
+        runId: this.envManager.getRunId(),
+        runTimestamp: this.envManager.getRunTimestamp(),
         envs: this.envManager.getCurrentEnvs(),
         hosts: this.envManager.getCurrentHosts()
       }
