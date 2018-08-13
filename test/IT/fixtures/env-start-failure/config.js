@@ -30,7 +30,7 @@ module.exports = {
       },
       "envInstances": [
         {
-          "id": "Env That Will Fail To Start (1)",
+          "id": "Env That Will Fail To Start",
           "startData": {
             "fail": true
           },
@@ -41,29 +41,7 @@ module.exports = {
           ]
         },
         {
-          "id": "Env That Starts Successfully (1)",
-          "startData": {
-            "fail": false
-          },
-          "testSets": [
-            {
-              "id": "ts1",
-            }
-          ]
-        },
-        {
-          "id": "Env That Will Fail To Start (2)",
-          "startData": {
-            "fail": true
-          },
-          "testSets": [
-            {
-              "id": "ts1",
-            }
-          ]
-        },
-        {
-          "id": "Env That Starts Successfully (2)",
+          "id": "Env That Starts Successfully",
           "startData": {
             "fail": false
           },

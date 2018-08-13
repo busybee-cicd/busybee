@@ -266,12 +266,35 @@ var EnvManager = /** @class */ (function () {
             });
         });
     };
+    EnvManager.prototype.retryStart = function (generatedEnvID, suiteID, suiteEnvID, failMsg) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        this.logger.trace("retryStart " + generatedEnvID);
+                        if (!(this.conf.parsedTestSuites.get(suiteID).testEnvs.get(suiteEnvID).retries < 3)) return [3 /*break*/, 2];
+                        this.conf.parsedTestSuites.get(suiteID).testEnvs.get(suiteEnvID).retries += 1;
+                        this.logger.info("Restart attempt number " + this.conf.parsedTestSuites.get(suiteID).testEnvs.get(suiteEnvID).retries + " for " + generatedEnvID);
+                        return [4 /*yield*/, this.start(generatedEnvID, suiteID, suiteEnvID)];
+                    case 1:
+                        _a.sent();
+                        return [3 /*break*/, 3];
+                    case 2:
+                        this.logger.trace("retryStart attempts exceeded. failing");
+                        // push to the back of the line and call start again.
+                        throw new Error(failMsg);
+                    case 3: return [2 /*return*/];
+                }
+            });
+        });
+    };
     EnvManager.prototype.start = function (generatedEnvID, suiteID, suiteEnvID) {
         return __awaiter(this, void 0, void 0, function () {
             var e_3, e_4, e_5;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        this.logger.trace("start " + generatedEnvID);
                         this.envsWaitingForProvision.push(generatedEnvID);
                         _a.label = 1;
                     case 1:
@@ -284,30 +307,39 @@ var EnvManager = /** @class */ (function () {
                         e_3 = _a.sent();
                         throw new Error(generatedEnvID + " failed to wait it's turn");
                     case 4:
-                        _a.trys.push([4, 6, , 7]);
+                        _a.trys.push([4, 6, , 9]);
                         return [4 /*yield*/, this.provisionEnv(generatedEnvID, suiteID, suiteEnvID)];
                     case 5:
                         _a.sent();
                         this.logger.trace(generatedEnvID + " provisioned successfully");
                         this.envsWaitingForProvision.shift();
-                        return [3 /*break*/, 7];
+                        return [3 /*break*/, 9];
                     case 6:
                         e_4 = _a.sent();
                         this.envsWaitingForProvision.shift();
-                        throw new Error(generatedEnvID + " failed to provision");
+                        return [4 /*yield*/, this.stop(generatedEnvID)];
                     case 7:
-                        this.logger.trace("envsWaitingForProvision updated to " + this.envsWaitingForProvision);
-                        _a.label = 8;
+                        _a.sent(); // allow the user to do any potential background cleanup if necessary/possible
+                        return [4 /*yield*/, this.retryStart(generatedEnvID, suiteID, suiteEnvID, generatedEnvID + " failed to provision")];
                     case 8:
-                        _a.trys.push([8, 10, , 11]);
-                        return [4 /*yield*/, this.confirmHealthcheck(generatedEnvID)];
-                    case 9:
                         _a.sent();
-                        return [3 /*break*/, 11];
+                        return [3 /*break*/, 9];
+                    case 9:
+                        this.logger.trace("envsWaitingForProvision updated to " + this.envsWaitingForProvision);
+                        _a.label = 10;
                     case 10:
+                        _a.trys.push([10, 12, , 14]);
+                        return [4 /*yield*/, this.confirmHealthcheck(generatedEnvID)];
+                    case 11:
+                        _a.sent();
+                        return [3 /*break*/, 14];
+                    case 12:
                         e_5 = _a.sent();
-                        throw new Error(generatedEnvID + " failed to confirm the healthcheck");
-                    case 11: return [2 /*return*/];
+                        return [4 /*yield*/, this.retryStart(generatedEnvID, suiteID, suiteEnvID, generatedEnvID + " failed to confirm the healthcheck")];
+                    case 13:
+                        _a.sent();
+                        return [3 /*break*/, 14];
+                    case 14: return [2 /*return*/];
                 }
             });
         });
@@ -763,10 +795,12 @@ var EnvManager = /** @class */ (function () {
                 var portOffset = _this.currentHosts[suiteEnvConf.hostName].envs[generatedEnvID].portOffset;
                 healthcheckPort_1 += portOffset;
                 var opts_1 = restClient_1.buildRequest(requestConf, healthcheckPort_1);
-                // retries the healthcheck path every 3 seconds up to 20 times
+                // retries the healthcheck path every 3 seconds up to 50 times
                 // when successful calls the cb passed to confirmHealthcheck()
+                var attempt_1 = 0;
                 _async.retry({ times: healthcheckConf.retries || 50, interval: opts_1.timeout }, function (asyncCb) {
-                    _this.logger.info("Attempting healthcheck for " + generatedEnvID + " on port " + healthcheckPort_1);
+                    attempt_1 += 1;
+                    _this.logger.info("Attempting " + attempt_1 + " healthcheck for " + generatedEnvID + " on port " + healthcheckPort_1);
                     _this.logger.debug(opts_1);
                     restClient_1.makeRequest(opts_1)
                         .then(function (response) {
@@ -781,6 +815,7 @@ var EnvManager = /** @class */ (function () {
                         }
                     })
                         .catch(function (err) {
+                        _this.logger.error(err.message);
                         asyncCb("failed");
                     });
                 }, function (err, results) {

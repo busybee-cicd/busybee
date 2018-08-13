@@ -119,6 +119,7 @@ ava_1.default("tests run in order", function (t) { return __awaiter(_this, void 
         }
     });
 }); });
+// TODO: re-write now that we have retries
 ava_1.default("env start failure", function (t) { return __awaiter(_this, void 0, void 0, function () {
     var loggerConf, logger, expected, testCmd, actual;
     return __generator(this, function (_a) {
@@ -127,11 +128,10 @@ ava_1.default("env start failure", function (t) { return __awaiter(_this, void 0
                 loggerConf = new busybee_util_1.LoggerConf(loggerClazz, process.env.LOG_LEVEL, t.log.bind(t));
                 logger = new busybee_util_1.Logger(loggerConf);
                 expected = {
-                    'BUSYBEE_ERROR detected': 2,
-                    'Stopping Environment: Env That Will Fail To Start (1)': 1,
-                    'Stopping Environment: Env That Will Fail To Start (2)': 1,
-                    'Stopping Environment: Env That Starts Successfully (1)': 1,
-                    'Stopping Environment: Env That Starts Successfully (2)': 1,
+                    'BUSYBEE_ERROR detected': 4,
+                    'Stopping Environment: Env That Will Fail To Start': 4,
+                    'Stopping Environment: Env That Starts Successfully': 1,
+                    'Restart attempt number': 3,
                     'Tests finished in': 1
                 };
                 testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/env-start-failure')]);

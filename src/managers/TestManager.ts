@@ -9,8 +9,6 @@ import {EnvResult} from "../models/results/EnvResult";
 import {ParsedTestSuite} from "../models/config/parsed/ParsedTestSuiteConfig";
 import {ParsedTestEnvConfig} from "../models/config/parsed/ParsedTestEnvConfig";
 import { TestWebSocketServer } from '../ws/TestWebSocketServer';
-import { resolve } from 'path';
-
 
 interface TestSuiteTasks {
   [key: string]: TestSuiteTask;

@@ -226,7 +226,21 @@ export class EnvManager {
     });
   }
 
-  async start(generatedEnvID, suiteID, suiteEnvID) {
+  async retryStart(generatedEnvID:string, suiteID:string, suiteEnvID: string, failMsg:string) {
+    this.logger.trace(`retryStart ${generatedEnvID}`);
+    if (this.conf.parsedTestSuites.get(suiteID).testEnvs.get(suiteEnvID).retries < 3) {
+      this.conf.parsedTestSuites.get(suiteID).testEnvs.get(suiteEnvID).retries += 1
+      this.logger.info(`Restart attempt number ${this.conf.parsedTestSuites.get(suiteID).testEnvs.get(suiteEnvID).retries} for ${generatedEnvID}`);
+      await this.start(generatedEnvID, suiteID, suiteEnvID);
+    } else {
+      this.logger.trace(`retryStart attempts exceeded. failing`);
+      // push to the back of the line and call start again.
+      throw new Error(failMsg);
+    }
+  }
+
+  async start(generatedEnvID:string, suiteID:string, suiteEnvID:string) {
+    this.logger.trace(`start ${generatedEnvID}`);
     this.envsWaitingForProvision.push(generatedEnvID);
     try {
       await this.waitForTurn(generatedEnvID);
@@ -240,7 +254,8 @@ export class EnvManager {
       this.envsWaitingForProvision.shift();
     } catch (e) {
       this.envsWaitingForProvision.shift();
-      throw new Error(`${generatedEnvID} failed to provision`);
+      await this.stop(generatedEnvID); // allow the user to do any potential background cleanup if necessary/possible
+      await this.retryStart(generatedEnvID, suiteID, suiteEnvID, `${generatedEnvID} failed to provision`);
     }
 
     this.logger.trace(`envsWaitingForProvision updated to ${this.envsWaitingForProvision}`);
@@ -250,7 +265,7 @@ export class EnvManager {
     try {
       await this.confirmHealthcheck(generatedEnvID);
     } catch (e) {
-      throw new Error(`${generatedEnvID} failed to confirm the healthcheck`);
+      await this.retryStart(generatedEnvID, suiteID, suiteEnvID, `${generatedEnvID} failed to confirm the healthcheck`);
     }
 
     return;
@@ -718,11 +733,13 @@ export class EnvManager {
         healthcheckPort += portOffset;
         let opts = restClient.buildRequest(requestConf, healthcheckPort);
 
-        // retries the healthcheck path every 3 seconds up to 20 times
+        // retries the healthcheck path every 3 seconds up to 50 times
         // when successful calls the cb passed to confirmHealthcheck()
+        let attempt = 0;
         _async.retry({times: healthcheckConf.retries || 50, interval: opts.timeout},
           (asyncCb) => {
-            this.logger.info(`Attempting healthcheck for ${generatedEnvID} on port ${healthcheckPort}`);
+            attempt += 1;
+            this.logger.info(`Attempting ${attempt} healthcheck for ${generatedEnvID} on port ${healthcheckPort}`);
             this.logger.debug(opts);
             restClient.makeRequest(opts)
               .then((response) => {
@@ -736,6 +753,7 @@ export class EnvManager {
                 }
               })
               .catch((err) => {
+                this.logger.error(err.message);
                 asyncCb("failed");
               });
           }

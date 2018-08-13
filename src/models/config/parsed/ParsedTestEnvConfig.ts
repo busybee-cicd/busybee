@@ -7,6 +7,7 @@ export class ParsedTestEnvConfig {
   testSets: TypedMap<ParsedTestSetConfig>;
   startData: any;
   stopData: any;
+  retries: number = 0;
 
   constructor(config: EnvInstanceConfig) {
     this.testSets = new TypedMap<ParsedTestSetConfig>();

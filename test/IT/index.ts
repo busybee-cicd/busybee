@@ -80,15 +80,15 @@ test(`tests run in order`, async (t) => {
   t.is(result.length, 0);
 });
 
+// TODO: re-write now that we have retries
 test(`env start failure`, async (t) => {
   const loggerConf = new LoggerConf(loggerClazz, process.env.LOG_LEVEL, t.log.bind(t));
   const logger = new Logger(loggerConf);
   const expected = {
-    'BUSYBEE_ERROR detected': 2,
-    'Stopping Environment: Env That Will Fail To Start (1)': 1,
-    'Stopping Environment: Env That Will Fail To Start (2)': 1,
-    'Stopping Environment: Env That Starts Successfully (1)': 1,
-    'Stopping Environment: Env That Starts Successfully (2)': 1,
+    'BUSYBEE_ERROR detected': 4,
+    'Stopping Environment: Env That Will Fail To Start': 4, // stop() is called each time it fails to start. first failure + 3 retries.
+    'Stopping Environment: Env That Starts Successfully': 1,
+    'Restart attempt number': 3,
     'Tests finished in': 1
   };
 
