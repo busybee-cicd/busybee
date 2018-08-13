@@ -38,7 +38,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 require('source-map-support').install();
-var _async = require("async");
 var _ = require("lodash");
 var Commander = require("commander");
 var fs = require("fs");
@@ -124,154 +123,190 @@ Commander
     console.log("Busybee initialized!");
 });
 Commander.parse(process.argv);
-function initTests(conf) {
-    // 2. instantiate EnvManager and ApiManager. handle shutdown signals
-    var envManager = new EnvManager_1.EnvManager(conf);
-    var testManager = new TestManager_1.TestManager(conf, envManager);
-    function shutdown(err) {
-        return __awaiter(this, void 0, void 0, function () {
-            var e_1;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        if (err)
-                            console.log(err);
-                        _a.label = 1;
-                    case 1:
-                        _a.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, envManager.stopAll()];
-                    case 2:
-                        _a.sent();
-                        process.exit(0);
-                        return [3 /*break*/, 4];
-                    case 3:
-                        e_1 = _a.sent();
-                        console.log(err);
-                        process.exit(1);
-                        return [3 /*break*/, 4];
-                    case 4: return [2 /*return*/];
-                }
-            });
-        });
-    }
-    process.on('uncaughtException', function (err) {
-        shutdown(err);
-    });
-    process.on('SIGHUP', function () {
-        shutdown(null);
-    });
-    process.on('SIGINT', function () {
-        shutdown(null);
-    });
-    testManager.buildTestSuiteTasks();
-    // run the api tests
-    // TODO: allow ordering of TestSuites and TestEnvs
-    var envTasks = [];
-    _.forEach(testManager.testSuiteTasks, function (suiteTask) {
-        suiteTask.envTasks.forEach(function (envTask) {
-            envTasks.push(envTask);
-        });
-    });
-    var start = Date.now();
-    _async.parallel(envTasks, function (err, envResults) {
-        var end = Date.now();
-        // group the result sets by their Suite
-        var suiteResults = {};
-        envResults.forEach(function (envResult) {
-            // todo use TestSuiteResult model instead of any
-            if (!suiteResults[envResult.suiteID]) {
-                var sr = new TestSuiteResult_1.TestSuiteResult();
-                sr.testSets = envResult.testSets;
-                sr.pass = true;
-                sr.type = envResult.type;
-                sr.id = envResult.suiteID;
-                suiteResults[envResult.suiteID] = sr;
-            }
-            else {
-                suiteResults[envResult.suiteID].testSets = suiteResults[envResult.suiteID].testSets.concat(envResult.testSets);
-            }
-            // mark the suite as failed if it contains atleast 1 env w/ a failure
-            if (_.find(envResult.testSets, function (ts) {
-                return !ts.pass;
-            })) {
-                suiteResults[envResult.suiteID].pass = false;
-            }
-            ;
-        });
-        // for easier parsing lets return each suite as its own object in a list
-        var suiteResultsList = _.values(suiteResults).slice();
-        if (conf.reporters && !_.isEmpty(conf.reporters)) {
-            logger.info('Running Reporters');
-            conf.reporters.forEach(function (r) {
-                try {
-                    if (conf.localMode) {
-                        if (!_.isUndefined(r.skipInLocalMode) && r.skipInLocalMode) {
-                            return;
-                        }
-                    }
-                    r.run(suiteResultsList);
-                }
-                catch (e) {
-                    logger.error('Error encountered while running reporter');
-                    logger.error(e);
-                }
-            });
-        }
-        if (conf.onComplete) {
-            var scriptPath = conf.onComplete = path.join(conf.filePaths.busybeeDir, conf.onComplete);
-            try {
-                logger.info("Running onComplete: " + scriptPath);
-                require(scriptPath)(err, suiteResultsList);
-            }
-            catch (e) {
-                console.log(e);
-            }
+function formatElapsed(start, end) {
+    var elapsed = end - start;
+    var hours = 0;
+    var minutes = 0;
+    var seconds = 0;
+    var ret = "Tests finished in";
+    if (Math.round(elapsed / ONE_HOUR) > 0) {
+        hours = Math.round(elapsed / ONE_HOUR);
+        elapsed = elapsed % ONE_HOUR;
+        ret += " " + hours;
+        if (hours > 1) {
+            ret += " hours";
         }
         else {
-            logger.trace(err || suiteResultsList);
-            logger.info(formatElapsed(start, end));
+            ret += " hour";
         }
-        process.exit();
-    });
-    function formatElapsed(start, end) {
-        var elapsed = end - start;
-        var hours = 0;
-        var minutes = 0;
-        var seconds = 0;
-        var ret = "Tests finished in";
-        if (Math.round(elapsed / ONE_HOUR) > 0) {
-            hours = Math.round(elapsed / ONE_HOUR);
-            elapsed = elapsed % ONE_HOUR;
-            ret += " " + hours;
-            if (hours > 1) {
-                ret += " hours";
-            }
-            else {
-                ret += " hour";
-            }
-        }
-        if (Math.round(elapsed / ONE_MINUTE) > 0) {
-            minutes = Math.round(elapsed / ONE_MINUTE);
-            elapsed = elapsed % ONE_MINUTE;
-            ret += " " + minutes;
-            if (minutes > 1) {
-                ret += " minutes";
-            }
-            else {
-                ret += " minute";
-            }
-        }
-        if (Math.round(elapsed / 1000) > 0) {
-            seconds = Math.round(elapsed / ONE_SECOND);
-            ret += " " + seconds;
-            if (seconds > 1) {
-                ret += " seconds";
-            }
-            else {
-                ret += " second";
-            }
-        }
-        return ret;
     }
+    if (Math.round(elapsed / ONE_MINUTE) > 0) {
+        minutes = Math.round(elapsed / ONE_MINUTE);
+        elapsed = elapsed % ONE_MINUTE;
+        ret += " " + minutes;
+        if (minutes > 1) {
+            ret += " minutes";
+        }
+        else {
+            ret += " minute";
+        }
+    }
+    if (Math.round(elapsed / 1000) > 0) {
+        seconds = Math.round(elapsed / ONE_SECOND);
+        ret += " " + seconds;
+        if (seconds > 1) {
+            ret += " seconds";
+        }
+        else {
+            ret += " second";
+        }
+    }
+    return ret;
+}
+function initTests(conf) {
+    return __awaiter(this, void 0, void 0, function () {
+        function shutdown(err) {
+            return __awaiter(this, void 0, void 0, function () {
+                var e_1;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            if (err)
+                                console.log(err);
+                            _a.label = 1;
+                        case 1:
+                            _a.trys.push([1, 3, , 4]);
+                            return [4 /*yield*/, envManager.stopAll()];
+                        case 2:
+                            _a.sent();
+                            process.exit(0);
+                            return [3 /*break*/, 4];
+                        case 3:
+                            e_1 = _a.sent();
+                            console.log(err);
+                            process.exit(1);
+                            return [3 /*break*/, 4];
+                        case 4: return [2 /*return*/];
+                    }
+                });
+            });
+        }
+        var envManager, testManager, envResultsPromises, start, end, envResults, suiteResults_1, suiteResultsList_1, scriptPath, err_1, scriptPath;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    envManager = new EnvManager_1.EnvManager(conf);
+                    testManager = new TestManager_1.TestManager(conf, envManager);
+                    process.on('uncaughtException', function (err) {
+                        shutdown(err);
+                    });
+                    process.on('SIGHUP', function () {
+                        shutdown(null);
+                    });
+                    process.on('SIGINT', function () {
+                        shutdown(null);
+                    });
+                    testManager.executeTestSuiteTasks();
+                    envResultsPromises = [];
+                    _.forEach(testManager.testSuiteTasks, function (suiteTask) {
+                        suiteTask.envResults.forEach(function (envResultPromise) {
+                            envResultsPromises.push(envResultPromise);
+                        });
+                    });
+                    start = Date.now();
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 3, , 4]);
+                    return [4 /*yield*/, Promise.all(envResultsPromises)];
+                case 2:
+                    envResults = _a.sent();
+                    end = Date.now();
+                    suiteResults_1 = {};
+                    envResults.forEach(function (envResult) {
+                        // todo use TestSuiteResult model instead of any
+                        if (!suiteResults_1[envResult.suiteID]) {
+                            var sr = new TestSuiteResult_1.TestSuiteResult();
+                            sr.testSets = envResult.testSets;
+                            sr.pass = true;
+                            sr.type = envResult.type;
+                            sr.id = envResult.suiteID;
+                            suiteResults_1[envResult.suiteID] = sr;
+                        }
+                        else {
+                            suiteResults_1[envResult.suiteID].testSets = suiteResults_1[envResult.suiteID].testSets.concat(envResult.testSets);
+                        }
+                        // mark the suite as failed if it contains atleast 1 env w/ a failure
+                        if (_.find(envResult.testSets, function (ts) {
+                            return !ts.pass;
+                        })) {
+                            suiteResults_1[envResult.suiteID].pass = false;
+                        }
+                        ;
+                    });
+                    suiteResultsList_1 = _.values(suiteResults_1).slice();
+                    if (conf.reporters && !_.isEmpty(conf.reporters)) {
+                        logger.info('Running Reporters');
+                        conf.reporters.forEach(function (r) {
+                            try {
+                                if (conf.localMode) {
+                                    if (!_.isUndefined(r.skipInLocalMode) && r.skipInLocalMode) {
+                                        return;
+                                    }
+                                }
+                                r.run(suiteResultsList_1);
+                            }
+                            catch (e) {
+                                logger.error('Error encountered while running reporter');
+                                logger.error(e);
+                            }
+                        });
+                    }
+                    if (conf.onComplete) {
+                        scriptPath = conf.onComplete = path.join(conf.filePaths.busybeeDir, conf.onComplete);
+                        try {
+                            logger.info("Running onComplete: " + scriptPath);
+                            require(scriptPath)(null, suiteResultsList_1);
+                        }
+                        catch (e) {
+                            logger.error(e);
+                        }
+                    }
+                    else {
+                        logger.trace(suiteResultsList_1);
+                        logger.info(formatElapsed(start, end));
+                    }
+                    if (conf.webSocketPort) {
+                        testManager.getTestWebSockerServer().emitResult({
+                            runId: envManager.getRunId(),
+                            runTimestamp: envManager.getRunTimestamp(),
+                            results: suiteResultsList_1
+                        });
+                    }
+                    process.exit();
+                    return [3 /*break*/, 4];
+                case 3:
+                    err_1 = _a.sent();
+                    if (conf.onComplete) {
+                        scriptPath = conf.onComplete = path.join(conf.filePaths.busybeeDir, conf.onComplete);
+                        try {
+                            logger.info("Running onComplete: " + scriptPath);
+                            require(scriptPath)(err_1);
+                        }
+                        catch (e) {
+                            logger.error(e, true);
+                        }
+                    }
+                    else {
+                        logger.trace(err_1);
+                        if (!end) {
+                            end = Date.now();
+                        }
+                        logger.info(formatElapsed(start, end));
+                    }
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
 }
 //# sourceMappingURL=index.js.map

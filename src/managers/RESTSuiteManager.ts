@@ -124,7 +124,7 @@ export class RESTSuiteManager {
     });
     return _.map(testsWithARequest, (test: RESTTest) => {
 
-      return async(cb) => {
+      return async (cb) => {
         // build request
         let port = currentEnv.ports[0]; // the REST api port should be passed first in the userConfigFile.
         let opts = this.restClient.buildRequest(test.request, port);
@@ -232,10 +232,13 @@ export class RESTSuiteManager {
    Parses strings formatted as "#{myVar}"
    */
   replaceVars(str: string, variableExports: any) {
+    this.logger.trace('replaceVars: current variableExports ->')
+    this.logger.trace(variableExports, true);
     // When the string startsWith #{ and endswith }
-    // we assume its a literal substitution.
+    // we assume its a literal substitution. ie) no coercion, not an object, not interpolated
     if (str.startsWith(`#{`) && str.endsWith(`}`)) {
       let varName = str.substr(2).slice(0, -1);
+      this.logger.trace
       this.logger.trace(`Setting literal ${variableExports[varName]} for '${varName}'`);
       return variableExports[varName];
     }
@@ -252,8 +255,8 @@ export class RESTSuiteManager {
       return variableExports[match];
     });
 
-
     if (replaced.startsWith("OBJECT")) {
+      // set the key's value equal to an object stored in variableExports
       let key = replaced.substr(7);
       replaced = variableExports[key];
     }

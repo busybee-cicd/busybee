@@ -494,7 +494,6 @@ var EnvManager = /** @class */ (function () {
             return __generator(this, function (_a) {
                 return [2 /*return*/, new Promise(function (resolve, reject) {
                         _this.logger.trace("getAvailableHostName " + suiteID + " | " + suiteEnvID + " | " + generatedEnvID);
-                        _this.logger.trace(_this.conf.parsedTestSuites.get(suiteID));
                         var suiteConf = _this.conf.parsedTestSuites.get(suiteID);
                         var cost = suiteConf.env.resourceCost || 0;
                         var identifyHost = function (cb) {
@@ -572,8 +571,6 @@ var EnvManager = /** @class */ (function () {
                         return [4 /*yield*/, this.getReservedBusybeePorts(hostConf)];
                     case 2:
                         portsInUse = _b.sent();
-                        this.logger.trace('portsInUse');
-                        this.logger.trace(portsInUse);
                         parallelMode = false;
                         if (suiteConf.env && suiteConf.env.parallel) {
                             parallelMode = suiteConf.env.parallel;
@@ -581,8 +578,6 @@ var EnvManager = /** @class */ (function () {
                         return [4 /*yield*/, this.identifyPorts(generatedEnvID, hostName, portsInUse, suiteConf.ports, 0, parallelMode)];
                     case 3:
                         _a = _b.sent(), ports = _a.ports, portOffset = _a.portOffset;
-                        // 3. update global host and env info
-                        this.updateGlobalPortInfo(hostName, generatedEnvID, ports, portOffset);
                         // 4. resolve :)
                         resolve(ports);
                         return [3 /*break*/, 5];
@@ -622,6 +617,7 @@ var EnvManager = /** @class */ (function () {
     };
     /*
      Recursively check for available ports
+     TODO: Fix this to not care about parallelMode...it shouldn't be the job of this method to worry about that. it has been removed from the logic, not from the signature
   
      IF (parallelMode)
       IF (portsTaken)
@@ -634,7 +630,7 @@ var EnvManager = /** @class */ (function () {
      */
     EnvManager.prototype.identifyPorts = function (generatedEnvID, hostName, portsInUse, nextPorts, portOffset, parallelMode) {
         return __awaiter(this, void 0, void 0, function () {
-            var portsInUseByBusybee, oldPorts, portsTaken, oldPorts, ret, portsTaken, ret;
+            var portsInUseByBusybee, oldPorts, portsTaken, oldPorts, ret;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -644,7 +640,6 @@ var EnvManager = /** @class */ (function () {
                         portsInUseByBusybee = _a.sent();
                         this.logger.trace("portsInUseByBusybee: " + portsInUseByBusybee);
                         this.logger.trace("parallelMode: " + parallelMode);
-                        if (!parallelMode) return [3 /*break*/, 8];
                         if (!portsInUseByBusybee) return [3 /*break*/, 3];
                         oldPorts = nextPorts;
                         nextPorts = nextPorts.map(function (p) {
@@ -653,7 +648,10 @@ var EnvManager = /** @class */ (function () {
                         this.logger.info(generatedEnvID + " Ports " + oldPorts + " in use by Busybee, retrying with " + nextPorts);
                         return [4 /*yield*/, this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset + 1, parallelMode)];
                     case 2: return [2 /*return*/, _a.sent()];
-                    case 3: return [4 /*yield*/, this.arePortsTaken(hostName, nextPorts)];
+                    case 3:
+                        // first put a lock on these ports
+                        this.updateGlobalPortInfo(hostName, generatedEnvID, nextPorts, portOffset);
+                        return [4 /*yield*/, this.arePortsTaken(hostName, nextPorts)];
                     case 4:
                         portsTaken = _a.sent();
                         if (!portsTaken) return [3 /*break*/, 6];
@@ -671,29 +669,6 @@ var EnvManager = /** @class */ (function () {
                         };
                         this.logger.trace("ports identified: " + JSON.stringify(ret));
                         return [2 /*return*/, ret];
-                    case 7: return [3 /*break*/, 14];
-                    case 8:
-                        if (!portsInUseByBusybee) return [3 /*break*/, 10];
-                        this.logger.trace("parallelMode:false. Ports in use by Busybee, retrying...");
-                        this.logger.info(generatedEnvID + " Ports in use by Busybee, retrying " + nextPorts);
-                        return [4 /*yield*/, this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset, parallelMode)];
-                    case 9: return [2 /*return*/, _a.sent()];
-                    case 10: return [4 /*yield*/, this.arePortsTaken(hostName, nextPorts)];
-                    case 11:
-                        portsTaken = _a.sent();
-                        if (!portsTaken) return [3 /*break*/, 13];
-                        // DONT shift ports and try again
-                        this.logger.info(generatedEnvID + " Ports in use by an unknown service, retrying " + nextPorts);
-                        return [4 /*yield*/, this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset, parallelMode)];
-                    case 12: return [2 /*return*/, _a.sent()];
-                    case 13:
-                        ret = {
-                            ports: nextPorts,
-                            portOffset: portOffset
-                        };
-                        this.logger.trace("ports identified: " + JSON.stringify(ret));
-                        return [2 /*return*/, ret];
-                    case 14: return [2 /*return*/];
                 }
             });
         });

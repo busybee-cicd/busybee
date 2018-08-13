@@ -416,7 +416,6 @@ export class EnvManager {
   async getAvailableHostName(suiteID, suiteEnvID, generatedEnvID) {
     return new Promise((resolve, reject) => {
       this.logger.trace(`getAvailableHostName ${suiteID} | ${suiteEnvID} | ${generatedEnvID}`);
-      this.logger.trace(this.conf.parsedTestSuites.get(suiteID));
       let suiteConf: ParsedTestSuite = this.conf.parsedTestSuites.get(suiteID);
       let cost = suiteConf.env.resourceCost || 0;
 
@@ -489,8 +488,6 @@ export class EnvManager {
       // 1. find the current ports in use for this host
       try {
         let portsInUse = await this.getReservedBusybeePorts(hostConf);
-        this.logger.trace('portsInUse');
-        this.logger.trace(portsInUse);
         // 2. determine available ports
         let parallelMode = false;
         if (suiteConf.env && suiteConf.env.parallel) {
@@ -498,8 +495,6 @@ export class EnvManager {
         }
         let {ports, portOffset} =
           await this.identifyPorts(generatedEnvID, hostName, portsInUse, suiteConf.ports, 0, parallelMode);
-        // 3. update global host and env info
-        this.updateGlobalPortInfo(hostName, generatedEnvID, ports, portOffset);
 
         // 4. resolve :)
         resolve(ports);
@@ -538,6 +533,7 @@ export class EnvManager {
 
   /*
    Recursively check for available ports
+   TODO: Fix this to not care about parallelMode...it shouldn't be the job of this method to worry about that. it has been removed from the logic, not from the signature
 
    IF (parallelMode)
     IF (portsTaken)
@@ -554,60 +550,93 @@ export class EnvManager {
     this.logger.trace(`portsInUseByBusybee: ${portsInUseByBusybee}`);
     this.logger.trace(`parallelMode: ${parallelMode}`);
 
-    if (parallelMode) {
-      if (portsInUseByBusybee) {
+    if (portsInUseByBusybee) {
+      let oldPorts = nextPorts;
+      nextPorts = nextPorts.map((p) => {
+        return p + 1
+      });
+      this.logger.info(`${generatedEnvID} Ports ${oldPorts} in use by Busybee, retrying with ${nextPorts}`);
+      return await this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset + 1, parallelMode);
+    } else {
+      // first put a lock on these ports
+      this.updateGlobalPortInfo(hostName, generatedEnvID, nextPorts, portOffset);
+      // not in use by busybee. see if ports are in use by something else
+      let portsTaken = await this.arePortsTaken(hostName, nextPorts);
+      if (portsTaken) {
+        // shift ports and try again
         let oldPorts = nextPorts;
         nextPorts = nextPorts.map((p) => {
           return p + 1
         });
-        this.logger.info(`${generatedEnvID} Ports ${oldPorts} in use by Busybee, retrying with ${nextPorts}`);
+        this.logger.info(`${generatedEnvID} Ports ${oldPorts} in use by an unknown service, retrying with ${nextPorts}`);
         return await this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset + 1, parallelMode);
-      } else {
-        // not in use by busybee. see if ports are in use by something else
-        let portsTaken = await this.arePortsTaken(hostName, nextPorts);
-        if (portsTaken) {
-          // shift ports and try again
-          let oldPorts = nextPorts;
-          nextPorts = nextPorts.map((p) => {
-            return p + 1
-          });
-          this.logger.info(`${generatedEnvID} Ports ${oldPorts} in use by an unknown service, retrying with ${nextPorts}`);
-          return await this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset + 1, parallelMode);
-        }
-
-        // ports identified, resolve.
-        let ret = {
-          ports: nextPorts,
-          portOffset: portOffset
-        };
-
-        this.logger.trace(`ports identified: ${JSON.stringify(ret)}`);
-        return ret;
       }
-    } else {
-      if (portsInUseByBusybee) {
-        this.logger.trace(`parallelMode:false. Ports in use by Busybee, retrying...`);
-        this.logger.info(`${generatedEnvID} Ports in use by Busybee, retrying ${nextPorts}`);
-        return await this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset, parallelMode);
-      } else {
-        // not in use by busybee. see if ports are in use by something else
-        let portsTaken = await this.arePortsTaken(hostName, nextPorts);
-        if (portsTaken) {
-          // DONT shift ports and try again
-          this.logger.info(`${generatedEnvID} Ports in use by an unknown service, retrying ${nextPorts}`);
-          return await this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset, parallelMode);
-        }
 
-        // ports identified, resolve.
-        let ret = {
-          ports: nextPorts,
-          portOffset: portOffset
-        };
+      // ports identified, resolve.
+      let ret = {
+        ports: nextPorts,
+        portOffset: portOffset
+      };
 
-        this.logger.trace(`ports identified: ${JSON.stringify(ret)}`);
-        return ret;
-      }
+      this.logger.trace(`ports identified: ${JSON.stringify(ret)}`);
+      return ret;
     }
+
+    // if (parallelMode) {
+    //   if (portsInUseByBusybee) {
+    //     let oldPorts = nextPorts;
+    //     nextPorts = nextPorts.map((p) => {
+    //       return p + 1
+    //     });
+    //     this.logger.info(`${generatedEnvID} Ports ${oldPorts} in use by Busybee, retrying with ${nextPorts}`);
+    //     return await this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset + 1, parallelMode);
+    //   } else {
+    //     // not in use by busybee. see if ports are in use by something else
+    //     let portsTaken = await this.arePortsTaken(hostName, nextPorts);
+    //     if (portsTaken) {
+    //       // shift ports and try again
+    //       let oldPorts = nextPorts;
+    //       nextPorts = nextPorts.map((p) => {
+    //         return p + 1
+    //       });
+    //       this.logger.info(`${generatedEnvID} Ports ${oldPorts} in use by an unknown service, retrying with ${nextPorts}`);
+    //       return await this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset + 1, parallelMode);
+    //     }
+
+    //     // ports identified, resolve.
+    //     let ret = {
+    //       ports: nextPorts,
+    //       portOffset: portOffset
+    //     };
+
+    //     this.logger.trace(`ports identified: ${JSON.stringify(ret)}`);
+    //     return ret;
+    //   }
+    // } else {
+    //   // when not in parallel mode...we don't
+    //   if (portsInUseByBusybee) {
+    //     this.logger.trace(`parallelMode:false. Ports in use by Busybee, retrying...`);
+    //     this.logger.info(`${generatedEnvID} Ports in use by Busybee, retrying ${nextPorts}`);
+    //     return await this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset, parallelMode);
+    //   } else {
+    //     // not in use by busybee. see if ports are in use by something else
+    //     let portsTaken = await this.arePortsTaken(hostName, nextPorts);
+    //     if (portsTaken) {
+    //       // DONT shift ports and try again
+    //       this.logger.info(`${generatedEnvID} Ports in use by an unknown service, retrying ${nextPorts}`);
+    //       return await this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset, parallelMode);
+    //     }
+
+    //     // ports identified, resolve.
+    //     let ret = {
+    //       ports: nextPorts,
+    //       portOffset: portOffset
+    //     };
+
+    //     this.logger.trace(`ports identified: ${JSON.stringify(ret)}`);
+    //     return ret;
+    //   }
+    // }
   }
 
   /*

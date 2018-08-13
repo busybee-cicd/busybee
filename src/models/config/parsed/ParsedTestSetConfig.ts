@@ -9,6 +9,7 @@ export class ParsedTestSetConfig {
   tests: RESTTest[];
   testsUnordered: RESTTest[];
   variableExports: any; // holds vars exported from tests so that they can be used in other tests
+  assertion: (retrunData:string) => boolean|void;
 
   constructor(testSetConfig: TestSetConfig) {
     this.id = testSetConfig.id;
@@ -18,5 +19,6 @@ export class ParsedTestSetConfig {
     this.tests = <RESTTest []> [];
     this.testsUnordered = <RESTTest []> [];
     this.variableExports = {};
+    this.assertion = testSetConfig.assertion;
   }
 }

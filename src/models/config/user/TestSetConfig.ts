@@ -29,11 +29,19 @@ export class TestSetConfig {
    */
   runData: any;
   description: string;
+  /**
+   *  *<span style="color:magenta">**Allowed** if `TestSuiteConfig.type` == `USER_PROVIDED` is enabled</span>* <br>
+   * A custom function that can be provided for asserting that the data returned from your runScript
+   * is correct. This is aids in the BusybeeTestResult being reported correctly. Without this, your TestSet will be marked as
+   * `pass = true` provided the runScript.sh does not write to STDERR or return 'BUSYBEE_ERROR'.
+   */
+  assertion: (returnDataString: string) => boolean|void
 
   constructor() {
     this.id = void 0;
     this.controlFlow = void 0;
     this.runData = void 0;
     this.description = void 0;
+    this.assertion = void 0;
   }
 }

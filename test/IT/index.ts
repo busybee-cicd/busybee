@@ -107,7 +107,7 @@ test(`ports in use`, async (t) => {
   const logger = new Logger(loggerConf);
   // spin up a service on 7777 to block the port
   const server = http.createServer();
-  server.listen(7777);
+  server.listen(8888);
 
   // wait for service to begin listening
   await new Promise((resolve, reject) => {
@@ -124,11 +124,11 @@ test(`ports in use`, async (t) => {
   const childEnv = Object.assign({}, process.env, {LOG_LEVEL: 'TRACE'});
   const testCmd = spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/ports-in-use')], {env: childEnv});
   const expected = {
-    'TRACE:EnvManager: arePortsInUseByBusybee  | 7777,7778' : 1,
-    'TRACE:EnvManager: 7778 is available': 2,
-    'TRACE:EnvManager: 7777 is in use': 1,
-    'TRACE:EnvManager: ports identified: {"ports":[7778,7779],"portOffset":1}': 1,
-    'TRACE:EnvManager: ports identified: {"ports":[7780,7781],"portOffset":3}': 1,
+    'TRACE:EnvManager: arePortsInUseByBusybee  | 8888,8889' : 1,
+    'TRACE:EnvManager: 8889 is available': 2,
+    'TRACE:EnvManager: 8888 is in use': 1,
+    'TRACE:EnvManager: ports identified: {"ports":[8889,8890],"portOffset":1}': 1,
+    'TRACE:EnvManager: ports identified: {"ports":[8891,8892],"portOffset":3}': 1,
     'INFO:Object: Tests finished in': 1
   };
 
@@ -158,7 +158,7 @@ test(`USER_PROVIDED happy path`, async (t) => {
     'DEBUG:EnvManager: startData is neat',
     'DEBUG:EnvManager: runData rules',
     'DEBUG:EnvManager: stopData is also neat',
-    'RESULTS: [{"pass":true}]'
+    'RESULTS: [{"testSets":[{"id":"ts1","pass":true}],"pass":true,"type":"USER_PROVIDED","id":"USER_PROVIDED Happy Path"}]'
   ];
 
   let result = await ITUtil.expectInOrder(testCmd, expected, t, false, logger);
@@ -213,11 +213,12 @@ test(`REST mock mode`, async (t) => {
 });
 
 test(`REST variable exports`, async (t) => {
-  const loggerConf = new LoggerConf(loggerClazz, process.env.LOG_LEVEL, t.log.bind(t));
+  const loggerConf = new LoggerConf(loggerClazz, 'DEBUG', t.log.bind(t));
   const logger = new Logger(loggerConf);
   const expected = ['Test Passed?: true'];
 
-  const testCmd = spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-variable-exports')]);
+  const childEnv = Object.assign({}, process.env, {LOG_LEVEL: 'TRACE'});
+  const testCmd = spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-variable-exports')], {env: childEnv});
 
   let result = await ITUtil.expectInOrder(testCmd, expected, t, false, logger);
   t.is(result.length, 0);

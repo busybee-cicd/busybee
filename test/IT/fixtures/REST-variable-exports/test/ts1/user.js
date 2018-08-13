@@ -13,6 +13,7 @@ module.exports = [
     },
     "expect": {
         "body": (body, variableExports) => {
+          if (!body.id) { throw new Error('NO ID! mockserver probably not ready'); }
           variableExports.userId = body.id; // userId will be 12345
         }
     }

@@ -256,10 +256,13 @@ var RESTSuiteManager = /** @class */ (function () {
      */
     RESTSuiteManager.prototype.replaceVars = function (str, variableExports) {
         var _this = this;
+        this.logger.trace('replaceVars: current variableExports ->');
+        this.logger.trace(variableExports, true);
         // When the string startsWith #{ and endswith }
-        // we assume its a literal substitution.
+        // we assume its a literal substitution. ie) no coercion, not an object, not interpolated
         if (str.startsWith("#{") && str.endsWith("}")) {
             var varName = str.substr(2).slice(0, -1);
+            this.logger.trace;
             this.logger.trace("Setting literal " + variableExports[varName] + " for '" + varName + "'");
             return variableExports[varName];
         }
@@ -275,6 +278,7 @@ var RESTSuiteManager = /** @class */ (function () {
             return variableExports[match];
         });
         if (replaced.startsWith("OBJECT")) {
+            // set the key's value equal to an object stored in variableExports
             var key = replaced.substr(7);
             replaced = variableExports[key];
         }

@@ -9,5 +9,4 @@ BUSYBEE_DIR=$(echo "$1" | jq -r ".busybeeDir")
 ###
 mockserver -p $API_PORT -m "${BUSYBEE_DIR}"/mock-responses &
 MOCK_SERVER_PID=$!
-sleep 10
 echo "BUSYBEE_RETURN ${MOCK_SERVER_PID}"

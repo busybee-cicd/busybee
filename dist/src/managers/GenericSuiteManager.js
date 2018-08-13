@@ -38,6 +38,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var _ = require("lodash");
 var path = require("path");
 var busybee_util_1 = require("busybee-util");
+var TestSetResult_1 = require("../models/results/TestSetResult");
 var GenericSuiteManager = /** @class */ (function () {
     function GenericSuiteManager(conf, suiteEnvConf, envManager) {
         this.conf = _.cloneDeep(conf);
@@ -96,21 +97,51 @@ var GenericSuiteManager = /** @class */ (function () {
     };
     GenericSuiteManager.prototype.runTestSet = function (testSet, generatedEnvID) {
         return __awaiter(this, void 0, void 0, function () {
-            var busybeeDir, scriptPath, args;
+            var testSetResult, busybeeDir, scriptPath, args, returnData, assertionResult, e_2;
             return __generator(this, function (_a) {
-                this.logger.trace("runTestSet | " + this.suiteEnvConf.suiteID + " | " + this.suiteEnvConf.suiteEnvID + " | " + testSet.id);
-                this.logger.trace(testSet, true);
-                busybeeDir = this.conf.filePaths.busybeeDir;
-                scriptPath = path.join(busybeeDir, this.suiteEnvConf.runScript);
-                args = {
-                    generatedEnvID: generatedEnvID,
-                    protocol: this.suiteEnvConf.protocol,
-                    hostName: this.suiteEnvConf.hostName,
-                    ports: this.suiteEnvConf.ports,
-                    busybeeDir: busybeeDir,
-                    runData: testSet.runData
-                };
-                return [2 /*return*/, this.envManager.runScript(scriptPath, [JSON.stringify(args)])];
+                switch (_a.label) {
+                    case 0:
+                        this.logger.trace("runTestSet | " + this.suiteEnvConf.suiteID + " | " + this.suiteEnvConf.suiteEnvID + " | " + testSet.id);
+                        this.logger.trace(testSet, true);
+                        testSetResult = new TestSetResult_1.TestSetResult();
+                        testSetResult.id = testSet.id;
+                        testSetResult.pass = true;
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        busybeeDir = this.conf.filePaths.busybeeDir;
+                        scriptPath = path.join(busybeeDir, this.suiteEnvConf.runScript);
+                        args = {
+                            generatedEnvID: generatedEnvID,
+                            protocol: this.suiteEnvConf.protocol,
+                            hostName: this.suiteEnvConf.hostName,
+                            ports: this.suiteEnvConf.ports,
+                            busybeeDir: busybeeDir,
+                            runData: testSet.runData
+                        };
+                        return [4 /*yield*/, this.envManager.runScript(scriptPath, [JSON.stringify(args)])];
+                    case 2:
+                        returnData = _a.sent();
+                        if (testSet.assertion) {
+                            try {
+                                assertionResult = testSet.assertion(returnData);
+                                if (assertionResult === false) {
+                                    testSetResult.pass = false;
+                                }
+                            }
+                            catch (e) {
+                                testSetResult.pass = false;
+                                testSetResult.error = e;
+                            }
+                        }
+                        return [3 /*break*/, 4];
+                    case 3:
+                        e_2 = _a.sent();
+                        testSetResult.pass = false;
+                        testSetResult.error = e_2;
+                        return [3 /*break*/, 4];
+                    case 4: return [2 /*return*/, testSetResult];
+                }
             });
         });
     };

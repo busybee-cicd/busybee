@@ -38,6 +38,16 @@ var TestWebSocketServer = /** @class */ (function (_super) {
         this.logger.trace(msg);
         this.broadcast(JSON.stringify(msg));
     };
+    TestWebSocketServer.prototype.emitResult = function (result) {
+        this.logger.debug('emitResult');
+        var msg = {
+            type: MessageTypes_1.MessageTypes.TEST_RUN_RESULT,
+            timestamp: new Date().getTime(),
+            data: result
+        };
+        this.logger.trace(msg);
+        this.broadcast(JSON.stringify(msg));
+    };
     return TestWebSocketServer;
 }(WebSocketServer_1.WebSocketServer));
 exports.TestWebSocketServer = TestWebSocketServer;

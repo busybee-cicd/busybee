@@ -9,10 +9,18 @@ import {EnvResult} from "../models/results/EnvResult";
 import {ParsedTestSuite} from "../models/config/parsed/ParsedTestSuiteConfig";
 import {ParsedTestEnvConfig} from "../models/config/parsed/ParsedTestEnvConfig";
 import { TestWebSocketServer } from '../ws/TestWebSocketServer';
+import { resolve } from 'path';
 
+
+interface TestSuiteTasks {
+  [key: string]: TestSuiteTask;
+}
+interface TestSuiteTask {
+  envResults: Promise<EnvResult>[]
+}
 export class TestManager {
 
-  testSuiteTasks: any;
+  testSuiteTasks: TestSuiteTasks;
   private conf: BusybeeParsedConfig;
   private logger: Logger;
   private envManager: EnvManager;
@@ -33,7 +41,7 @@ export class TestManager {
     }
   }
 
-  buildTestSuiteTasks() {
+  executeTestSuiteTasks() {
     this.logger.trace('buildTestSuiteTasks');
     let conf = this.conf;
     conf.parsedTestSuites.forEach((testSuite: ParsedTestSuite, suiteID: string) => {
@@ -41,8 +49,7 @@ export class TestManager {
         return;
       }
       // parse the envs of this TestSuite
-      this.testSuiteTasks[suiteID] = {envTasks: []};
-      //conf.parsedTestSuites[suiteID].envTasks = [];
+      this.testSuiteTasks[suiteID] = { envResults: [] };
       this.logger.trace(suiteID);
       this.logger.trace(testSuite);
       this.logger.trace(`Processing ${suiteID} : type = ${testSuite.type}`);
@@ -59,7 +66,7 @@ export class TestManager {
         }
 
         if (testSuite.type === 'USER_PROVIDED') {
-          this.testSuiteTasks[suiteID].envTasks.push(this.buildTestEnvTask(suiteID, testEnv.suiteEnvID));
+          this.testSuiteTasks[suiteID].envResults.push(this.executeTestEnvTask(suiteID, testEnv.suiteEnvID));
         } else if (testSuite.type === 'REST' || _.isUndefined(testSuite.type)) {
           // 1. make sure testSets exist for this testEnv
           if (_.isEmpty(testEnv.testSets)) {
@@ -79,109 +86,90 @@ export class TestManager {
             return;
           }
 
-          this.testSuiteTasks[suiteID].envTasks.push(this.buildRESTTestEnvTask(suiteID, testEnv.suiteEnvID));
+          this.testSuiteTasks[suiteID].envResults.push(this.executeRESTTestEnvTask(suiteID, testEnv.suiteEnvID));
         }
       });
     });
   }
 
-  buildRESTTestEnvTask(suiteID: string, suiteEnvID: string) {
-    this.logger.trace(`buildRESTTestEnvTask ${suiteID} ${suiteEnvID}`);
+  async executeRESTTestEnvTask(suiteID: string, suiteEnvID: string): Promise<EnvResult>  {
+    this.logger.trace(`executeRESTTestEnvTask ${suiteID} ${suiteEnvID}`);
 
     var generatedEnvID;
-    return (cb: (err: any, envResult: EnvResult) => void) => {
-      let currentEnv: SuiteEnvInfo;
-      let restManager: RESTSuiteManager;
-      let testSetResults;
-      let _cb = _.once(cb); // ensure cb is only called once
 
-      let buildEnvFn = async () => {
-        generatedEnvID = this.envManager.generateId();
+    let currentEnv: SuiteEnvInfo;
+    let restManager: RESTSuiteManager;
+    let testSetResults;
+    let envResult = EnvResult.new('REST', suiteID, suiteEnvID);
 
-        await this.envManager.start(generatedEnvID, suiteID, suiteEnvID);
-        currentEnv = this.envManager.getCurrentEnv(generatedEnvID);
-        // create a restmanager to handle these tests
-        restManager = new RESTSuiteManager(this.conf, currentEnv);
-        testSetResults = await restManager.runRESTApiTestSets(currentEnv); // returns an array of testSets
+    let buildEnvFn = async () => {
+      generatedEnvID = this.envManager.generateId();
 
-        let envResult = EnvResult.new('REST', suiteID, suiteEnvID);
-        envResult.testSets = testSetResults;
+      await this.envManager.start(generatedEnvID, suiteID, suiteEnvID);
+      currentEnv = this.envManager.getCurrentEnv(generatedEnvID);
+      // create a restmanager to handle these tests
+      restManager = new RESTSuiteManager(this.conf, currentEnv);
+      testSetResults = await restManager.runRESTApiTestSets(currentEnv); // returns an array of testSets
+      envResult.testSets = testSetResults;
 
-        return envResult;
-      };
-
-      // we never want to call the err cb from here. If the Test Env has a failure we will report it
-      buildEnvFn()
-        .then((envResult: EnvResult) => {
-          this.envManager.stop(generatedEnvID)
-            .then(() => {
-              _cb(null, envResult);
-            })
-            .catch((err2) => {
-              this.logger.error(`buildRESTTestEnvTask: Error Encountered While Stopping ${generatedEnvID}`);
-              this.logger.error(err2);
-              envResult.error = err2;
-              _cb(null, envResult);
-            });
-        })
-        .catch((err2) => {
-          this.logger.error(`buildRESTTestEnvTask: Error Encountered While Running Tests for ${generatedEnvID}`);
-          this.logger.error(err2);
-          let envResult = EnvResult.new('REST', suiteID, suiteEnvID);
-          envResult.testSets = [];
-          envResult.error = err2;
-          this.envManager.stop(generatedEnvID)
-            .then(() => {
-              _cb(null, envResult);
-            })
-            .catch((err3) => {
-              this.logger.error(`buildRESTTestEnvTask: Error Encountered While Stopping ${generatedEnvID}`);
-              this.logger.error(err3);
-              envResult.error = err3;
-              _cb(null, envResult)
-            });
-        });
+      return envResult;
     };
+
+    try {
+      return await buildEnvFn();
+    } catch (e) {
+      this.logger.error(`buildRESTTestEnvTask: Error Encountered While Running Tests for ${generatedEnvID}`);
+      envResult.testSets = [];
+      envResult.error = e;
+      return envResult;
+    } finally {
+      try {
+        await this.envManager.stop(generatedEnvID);
+      } catch (e2) {
+        this.logger.error(`buildRESTTestEnvTask: Error Encountered While Stopping ${generatedEnvID}`);
+      }
+    }
   }
 
   /*
    TODO: use the GenericSuiteManager to kick off tests
    */
-  buildTestEnvTask(suiteID, suiteEnvID) {
-    this.logger.trace(`buildTestEnvTask ${suiteID} ${suiteEnvID}`);
+  async executeTestEnvTask(suiteID, suiteEnvID): Promise<EnvResult>  {
+    this.logger.trace(`executeTestEnvTask ${suiteID} ${suiteEnvID}`);
 
     let generatedEnvID = this.envManager.generateId();
-    return (cb) => {
-      let buildEnvFn = async() => {
-        await this.envManager.start(generatedEnvID, suiteID, suiteEnvID);
-        let currentEnv: SuiteEnvInfo = this.envManager.getCurrentEnv(generatedEnvID);
-        // create a GenericSuiteManager to handle coordinating these tests
-        let suiteManager = new GenericSuiteManager(this.conf, currentEnv, this.envManager);
-        let testSetResults = await suiteManager.runTestSets(generatedEnvID);
+    let envResult = EnvResult.new('USER_PROVIDED', suiteID, suiteEnvID);
 
-        return testSetResults;
+    let buildEnvFn = async () => {
+      await this.envManager.start(generatedEnvID, suiteID, suiteEnvID);
+      let currentEnv: SuiteEnvInfo = this.envManager.getCurrentEnv(generatedEnvID);
+      // create a GenericSuiteManager to handle coordinating these tests
+      let suiteManager = new GenericSuiteManager(this.conf, currentEnv, this.envManager);
+      let testSetResults = await suiteManager.runTestSets(generatedEnvID);
+      
+      envResult.testSets = testSetResults;
+      return envResult;
+    }
+
+    try {
+      return await buildEnvFn();
+    } catch (e) {
+      this.logger.error("buildTestEnvTask: ERROR CAUGHT WHILE RUNNING TEST SETS");
+      this.logger.error(e);
+      envResult.testSets = [];
+      envResult.error = e;
+
+      return envResult;
+    } finally {
+      try {
+        await this.envManager.stop(generatedEnvID);
+      } catch (e2) {
+        this.logger.error(`buildRESTTestEnvTask: Error Encountered While Stopping ${generatedEnvID}`);
       }
+    }
+  }
 
-      buildEnvFn()
-        .then((testSetResults) => {
-          this.logger.trace("TEST SET SUCCESS");
-          this.envManager.stop(generatedEnvID)
-            .then(() => {
-              cb(null, testSetResults);
-            })
-            .catch((err) => {
-              cb(err);
-            });
-        })
-        .catch((err) => {
-          this.logger.error("buildTestEnvTask: ERROR CAUGHT WHILE RUNNING TEST SETS");
-          this.logger.error(err);
-          this.envManager.stop(generatedEnvID)
-            .then(() => {
-              cb(err);
-            })
-            .catch((err2) => cb(err2));
-        });
-    };
+  getTestWebSockerServer():TestWebSocketServer {
+    return this.wsServer;
   }
 }

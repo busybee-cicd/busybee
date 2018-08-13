@@ -156,7 +156,7 @@ ava_1.default("ports in use", function (t) { return __awaiter(_this, void 0, voi
                 loggerConf = new busybee_util_1.LoggerConf(loggerClazz, process.env.LOG_LEVEL, t.log.bind(t));
                 logger = new busybee_util_1.Logger(loggerConf);
                 server = http.createServer();
-                server.listen(7777);
+                server.listen(8888);
                 // wait for service to begin listening
                 return [4 /*yield*/, new Promise(function (resolve, reject) {
                         server.on('listening', function () { return __awaiter(_this, void 0, void 0, function () {
@@ -175,11 +175,11 @@ ava_1.default("ports in use", function (t) { return __awaiter(_this, void 0, voi
                 childEnv = Object.assign({}, process.env, { LOG_LEVEL: 'TRACE' });
                 testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/ports-in-use')], { env: childEnv });
                 expected = {
-                    'TRACE:EnvManager: arePortsInUseByBusybee  | 7777,7778': 1,
-                    'TRACE:EnvManager: 7778 is available': 2,
-                    'TRACE:EnvManager: 7777 is in use': 1,
-                    'TRACE:EnvManager: ports identified: {"ports":[7778,7779],"portOffset":1}': 1,
-                    'TRACE:EnvManager: ports identified: {"ports":[7780,7781],"portOffset":3}': 1,
+                    'TRACE:EnvManager: arePortsInUseByBusybee  | 8888,8889': 1,
+                    'TRACE:EnvManager: 8889 is available': 2,
+                    'TRACE:EnvManager: 8888 is in use': 1,
+                    'TRACE:EnvManager: ports identified: {"ports":[8889,8890],"portOffset":1}': 1,
+                    'TRACE:EnvManager: ports identified: {"ports":[8891,8892],"portOffset":3}': 1,
                     'INFO:Object: Tests finished in': 1
                 };
                 return [4 /*yield*/, ITUtil_1.ITUtil.analyzeOutputFrequency(testCmd, expected, logger)];
@@ -219,7 +219,7 @@ ava_1.default("USER_PROVIDED happy path", function (t) { return __awaiter(_this,
                     'DEBUG:EnvManager: startData is neat',
                     'DEBUG:EnvManager: runData rules',
                     'DEBUG:EnvManager: stopData is also neat',
-                    'RESULTS: [{"pass":true}]'
+                    'RESULTS: [{"testSets":[{"id":"ts1","pass":true}],"pass":true,"type":"USER_PROVIDED","id":"USER_PROVIDED Happy Path"}]'
                 ];
                 return [4 /*yield*/, ITUtil_1.ITUtil.expectInOrder(testCmd, expected, t, false, logger)];
             case 1:
@@ -286,14 +286,15 @@ ava_1.default("REST mock mode", function (t) { return __awaiter(_this, void 0, v
     });
 }); });
 ava_1.default("REST variable exports", function (t) { return __awaiter(_this, void 0, void 0, function () {
-    var loggerConf, logger, expected, testCmd, result;
+    var loggerConf, logger, expected, childEnv, testCmd, result;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                loggerConf = new busybee_util_1.LoggerConf(loggerClazz, process.env.LOG_LEVEL, t.log.bind(t));
+                loggerConf = new busybee_util_1.LoggerConf(loggerClazz, 'DEBUG', t.log.bind(t));
                 logger = new busybee_util_1.Logger(loggerConf);
                 expected = ['Test Passed?: true'];
-                testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-variable-exports')]);
+                childEnv = Object.assign({}, process.env, { LOG_LEVEL: 'TRACE' });
+                testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-variable-exports')], { env: childEnv });
                 return [4 /*yield*/, ITUtil_1.ITUtil.expectInOrder(testCmd, expected, t, false, logger)];
             case 1:
                 result = _a.sent();

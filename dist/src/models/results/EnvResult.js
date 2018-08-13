@@ -5,7 +5,7 @@ var EnvResult = /** @class */ (function () {
     }
     EnvResult.new = function (type, suiteID, suiteEnvID) {
         var res = new this();
-        res.type = 'REST';
+        res.type = type;
         res.suiteID = suiteID;
         res.env = suiteEnvID;
         return res;

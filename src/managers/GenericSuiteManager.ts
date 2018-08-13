@@ -5,6 +5,7 @@ import {EnvManager} from "./EnvManager";
 import {ParsedTestSetConfig} from "../models/config/parsed/ParsedTestSetConfig";
 import {SuiteEnvInfo} from "../lib/SuiteEnvInfo";
 import {BusybeeParsedConfig} from "../models/config/BusybeeParsedConfig";
+import { TestSetResult } from '../models/results/TestSetResult';
 
 export class GenericSuiteManager {
 
@@ -34,7 +35,7 @@ export class GenericSuiteManager {
     return url;
   }
 
-  runTestSets(generatedEnvID) {
+  runTestSets(generatedEnvID): Promise<Array<TestSetResult>> {
     // TODO: logic for running TestSets in order
     return new Promise(async(resolve, reject) => {
       this.logger.trace(`runTestSets ${this.suiteEnvConf.suiteID} ${this.suiteEnvConf.suiteEnvID}`);
@@ -61,23 +62,46 @@ export class GenericSuiteManager {
 
   }
 
-  async runTestSet(testSet: ParsedTestSetConfig, generatedEnvID: string) {
+  async runTestSet(testSet: ParsedTestSetConfig, generatedEnvID: string): Promise<TestSetResult> {
     this.logger.trace(`runTestSet | ${this.suiteEnvConf.suiteID} | ${this.suiteEnvConf.suiteEnvID} | ${testSet.id}`);
     this.logger.trace(testSet, true);
-    // run the script via envManager
-    let busybeeDir = this.conf.filePaths.busybeeDir;
-    let scriptPath = path.join(busybeeDir, this.suiteEnvConf.runScript);
+    
+    let testSetResult = new TestSetResult();
+    testSetResult.id = testSet.id;
+    testSetResult.pass = true;
+    try {
+      // run the script via envManager. A script that writes to STDERR will be considered a TestSet failure.
+      let busybeeDir = this.conf.filePaths.busybeeDir;
+      let scriptPath = path.join(busybeeDir, this.suiteEnvConf.runScript);
 
-    let args = {
-      generatedEnvID: generatedEnvID,
-      protocol: this.suiteEnvConf.protocol,
-      hostName: this.suiteEnvConf.hostName,
-      ports: this.suiteEnvConf.ports,
-      busybeeDir: busybeeDir,
-      runData: testSet.runData
-    };
+      let args = {
+        generatedEnvID: generatedEnvID,
+        protocol: this.suiteEnvConf.protocol,
+        hostName: this.suiteEnvConf.hostName,
+        ports: this.suiteEnvConf.ports,
+        busybeeDir: busybeeDir,
+        runData: testSet.runData
+      };
 
-    return this.envManager.runScript(scriptPath, [JSON.stringify(args)]);
+      let returnData = await this.envManager.runScript(scriptPath, [JSON.stringify(args)]);
+      if (testSet.assertion) {
+        try {
+          // assertion() must explicity return false OR throw an Error to be considered failed
+          let assertionResult = testSet.assertion(returnData);
+          if (assertionResult === false) {
+            testSetResult.pass = false;
+          }
+        } catch (e) {
+          testSetResult.pass = false;
+          testSetResult.error = e;
+        }
+      }
+    } catch (e) {
+      testSetResult.pass = false
+      testSetResult.error = e;
+    }
+    
+    return testSetResult;
   }
 
 }

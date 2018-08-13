@@ -5,6 +5,7 @@ module.exports = {
             "id": "ts1"
         }
     ],
+    "delayRequest": 2000,
     "request": {
         "method": "GET",
         "path": "/body-assertion"

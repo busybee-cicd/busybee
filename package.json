@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "async": "^2.5.0",
+    "async-parallel": "^1.2.3",
     "body-parser": "^1.17.2",
     "busybee-util": "git://github.build.ge.com/Busybee/busybee-util.git",
     "commander": "^2.11.0",

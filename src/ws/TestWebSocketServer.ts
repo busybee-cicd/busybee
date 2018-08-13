@@ -31,4 +31,15 @@ export class TestWebSocketServer extends WebSocketServer {
     this.broadcast(JSON.stringify(msg));
   }
 
+  emitResult(result:any) {
+    this.logger.debug('emitResult');
+    let msg = {
+      type: MessageTypes.TEST_RUN_RESULT,
+      timestamp: new Date().getTime(),
+      data: result
+    };
+    this.logger.trace(msg);
+    this.broadcast(JSON.stringify(msg));
+  }
+
 }

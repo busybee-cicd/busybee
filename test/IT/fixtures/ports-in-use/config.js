@@ -11,7 +11,7 @@ module.exports = {
       "id": "Ports In Use",
       "skip": false,
       "protocol": "http",
-      "ports": [7777, 7778],
+      "ports": [8888, 8889],
       "testFolder": "test",
       "env": {
         "parallel": true,
@@ -23,7 +23,7 @@ module.exports = {
           "retries": 30,
           "request": {
             "path": "/200",
-            "port": 7777,
+            "port": 8888,
             "timeout": 5000
           }
         }
