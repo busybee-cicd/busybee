@@ -14,8 +14,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -36,18 +36,27 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var _ = require("lodash");
-var Logger_1 = require("../lib/Logger");
+var busybee_util_1 = require("busybee-util");
 var RESTSuiteManager_1 = require("./RESTSuiteManager");
 var GenericSuiteManager_1 = require("./GenericSuiteManager");
 var EnvResult_1 = require("../models/results/EnvResult");
+var TestWebSocketServer_1 = require("../ws/TestWebSocketServer");
 var TestManager = /** @class */ (function () {
     function TestManager(conf, envManager) {
         this.conf = _.cloneDeep(conf);
-        this.logger = new Logger_1.Logger(conf, this);
+        var loggerConf = new busybee_util_1.LoggerConf(this, conf.logLevel, null);
+        this.logger = new busybee_util_1.Logger(loggerConf);
         this.envManager = envManager;
         this.testSuiteTasks = {};
+        if (conf.webSocketPort) {
+            var wsConf = {
+                port: conf.webSocketPort,
+                logLevel: conf.logLevel
+            };
+            this.wsServer = new TestWebSocketServer_1.TestWebSocketServer(wsConf, this.envManager);
+        }
     }
-    TestManager.prototype.buildTestSuiteTasks = function () {
+    TestManager.prototype.executeTestSuiteTasks = function () {
         var _this = this;
         this.logger.trace('buildTestSuiteTasks');
         var conf = this.conf;
@@ -56,8 +65,7 @@ var TestManager = /** @class */ (function () {
                 return;
             }
             // parse the envs of this TestSuite
-            _this.testSuiteTasks[suiteID] = { envTasks: [] };
-            //conf.parsedTestSuites[suiteID].envTasks = [];
+            _this.testSuiteTasks[suiteID] = { envResults: [] };
             _this.logger.trace(suiteID);
             _this.logger.trace(testSuite);
             _this.logger.trace("Processing " + suiteID + " : type = " + testSuite.type);
@@ -72,7 +80,7 @@ var TestManager = /** @class */ (function () {
                     }
                 }
                 if (testSuite.type === 'USER_PROVIDED') {
-                    _this.testSuiteTasks[suiteID].envTasks.push(_this.buildTestEnvTask(suiteID, testEnv.suiteEnvID));
+                    _this.testSuiteTasks[suiteID].envResults.push(_this.executeTestEnvTask(suiteID, testEnv.suiteEnvID));
                 }
                 else if (testSuite.type === 'REST' || _.isUndefined(testSuite.type)) {
                     // 1. make sure testSets exist for this testEnv
@@ -92,119 +100,126 @@ var TestManager = /** @class */ (function () {
                         _this.logger.trace("testEnv " + testEnv.suiteEnvID + " contains 0 tests. skipping");
                         return;
                     }
-                    _this.testSuiteTasks[suiteID].envTasks.push(_this.buildRESTTestEnvTask(suiteID, testEnv.suiteEnvID));
+                    _this.testSuiteTasks[suiteID].envResults.push(_this.executeRESTTestEnvTask(suiteID, testEnv.suiteEnvID));
                 }
             });
         });
     };
-    TestManager.prototype.buildRESTTestEnvTask = function (suiteID, suiteEnvID) {
-        var _this = this;
-        this.logger.trace("buildRESTTestEnvTask " + suiteID + " " + suiteEnvID);
-        var generatedEnvID;
-        return function (cb) {
-            var currentEnv;
-            var restManager;
-            var testSetResults;
-            var _cb = _.once(cb); // ensure cb is only called once
-            var buildEnvFn = function () { return __awaiter(_this, void 0, void 0, function () {
-                var envResult;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0:
-                            generatedEnvID = this.envManager.generateId();
-                            return [4 /*yield*/, this.envManager.start(generatedEnvID, suiteID, suiteEnvID)];
-                        case 1:
-                            _a.sent();
-                            currentEnv = this.envManager.getCurrentEnv(generatedEnvID);
-                            // create a restmanager to handle these tests
-                            restManager = new RESTSuiteManager_1.RESTSuiteManager(this.conf, currentEnv);
-                            return [4 /*yield*/, restManager.runRESTApiTestSets(currentEnv)];
-                        case 2:
-                            testSetResults = _a.sent(); // returns an array of testSets
-                            envResult = EnvResult_1.EnvResult.new('REST', suiteID, suiteEnvID);
-                            envResult.testSets = testSetResults;
-                            return [2 /*return*/, envResult];
-                    }
-                });
-            }); };
-            // we never want to call the err cb from here. If the Test Env has a failure we will report it
-            buildEnvFn()
-                .then(function (envResult) {
-                _this.envManager.stop(generatedEnvID)
-                    .then(function () {
-                    _cb(null, envResult);
-                })
-                    .catch(function (err2) {
-                    _this.logger.error("buildRESTTestEnvTask: Error Encountered While Stopping " + generatedEnvID);
-                    _this.logger.error(err2);
-                    envResult.error = err2;
-                    _cb(null, envResult);
-                });
-            })
-                .catch(function (err2) {
-                _this.logger.error("buildRESTTestEnvTask: Error Encountered While Running Tests for " + generatedEnvID);
-                _this.logger.error(err2);
-                var envResult = EnvResult_1.EnvResult.new('REST', suiteID, suiteEnvID);
-                envResult.testSets = [];
-                envResult.error = err2;
-                _this.envManager.stop(generatedEnvID)
-                    .then(function () {
-                    _cb(null, envResult);
-                })
-                    .catch(function (err3) {
-                    _this.logger.error("buildRESTTestEnvTask: Error Encountered While Stopping " + generatedEnvID);
-                    _this.logger.error(err3);
-                    envResult.error = err3;
-                    _cb(null, envResult);
-                });
+    TestManager.prototype.executeRESTTestEnvTask = function (suiteID, suiteEnvID) {
+        return __awaiter(this, void 0, void 0, function () {
+            var generatedEnvID, currentEnv, restManager, testSetResults, envResult, buildEnvFn, e_1, e2_1;
+            var _this = this;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        this.logger.trace("executeRESTTestEnvTask " + suiteID + " " + suiteEnvID);
+                        envResult = EnvResult_1.EnvResult.new('REST', suiteID, suiteEnvID);
+                        buildEnvFn = function () { return __awaiter(_this, void 0, void 0, function () {
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0:
+                                        generatedEnvID = this.envManager.generateId();
+                                        return [4 /*yield*/, this.envManager.start(generatedEnvID, suiteID, suiteEnvID)];
+                                    case 1:
+                                        _a.sent();
+                                        currentEnv = this.envManager.getCurrentEnv(generatedEnvID);
+                                        // create a restmanager to handle these tests
+                                        restManager = new RESTSuiteManager_1.RESTSuiteManager(this.conf, currentEnv);
+                                        return [4 /*yield*/, restManager.runRESTApiTestSets(currentEnv)];
+                                    case 2:
+                                        testSetResults = _a.sent(); // returns an array of testSets
+                                        envResult.testSets = testSetResults;
+                                        return [2 /*return*/, envResult];
+                                }
+                            });
+                        }); };
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, 4, 8]);
+                        return [4 /*yield*/, buildEnvFn()];
+                    case 2: return [2 /*return*/, _a.sent()];
+                    case 3:
+                        e_1 = _a.sent();
+                        this.logger.error("buildRESTTestEnvTask: Error Encountered While Running Tests for " + generatedEnvID);
+                        envResult.testSets = [];
+                        envResult.error = e_1;
+                        return [2 /*return*/, envResult];
+                    case 4:
+                        _a.trys.push([4, 6, , 7]);
+                        return [4 /*yield*/, this.envManager.stop(generatedEnvID)];
+                    case 5:
+                        _a.sent();
+                        return [3 /*break*/, 7];
+                    case 6:
+                        e2_1 = _a.sent();
+                        this.logger.error("buildRESTTestEnvTask: Error Encountered While Stopping " + generatedEnvID);
+                        return [3 /*break*/, 7];
+                    case 7: return [7 /*endfinally*/];
+                    case 8: return [2 /*return*/];
+                }
             });
-        };
+        });
     };
     /*
      TODO: use the GenericSuiteManager to kick off tests
      */
-    TestManager.prototype.buildTestEnvTask = function (suiteID, suiteEnvID) {
-        var _this = this;
-        this.logger.trace("buildTestEnvTask " + suiteID + " " + suiteEnvID);
-        var generatedEnvID = this.envManager.generateId();
-        return function (cb) {
-            var buildEnvFn = function () { return __awaiter(_this, void 0, void 0, function () {
-                var currentEnv, suiteManager, testSetResults;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0: return [4 /*yield*/, this.envManager.start(generatedEnvID, suiteID, suiteEnvID)];
-                        case 1:
-                            _a.sent();
-                            currentEnv = this.envManager.getCurrentEnv(generatedEnvID);
-                            suiteManager = new GenericSuiteManager_1.GenericSuiteManager(this.conf, currentEnv, this.envManager);
-                            return [4 /*yield*/, suiteManager.runTestSets(generatedEnvID)];
-                        case 2:
-                            testSetResults = _a.sent();
-                            return [2 /*return*/, testSetResults];
-                    }
-                });
-            }); };
-            buildEnvFn()
-                .then(function (testSetResults) {
-                _this.logger.trace("TEST SET SUCCESS");
-                _this.envManager.stop(generatedEnvID)
-                    .then(function () {
-                    cb(null, testSetResults);
-                })
-                    .catch(function (err) {
-                    cb(err);
-                });
-            })
-                .catch(function (err) {
-                _this.logger.error("buildTestEnvTask: ERROR CAUGHT WHILE RUNNING TEST SETS");
-                _this.logger.error(err);
-                _this.envManager.stop(generatedEnvID)
-                    .then(function () {
-                    cb(err);
-                })
-                    .catch(function (err2) { return cb(err2); });
+    TestManager.prototype.executeTestEnvTask = function (suiteID, suiteEnvID) {
+        return __awaiter(this, void 0, void 0, function () {
+            var generatedEnvID, envResult, buildEnvFn, e_2, e2_2;
+            var _this = this;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        this.logger.trace("executeTestEnvTask " + suiteID + " " + suiteEnvID);
+                        generatedEnvID = this.envManager.generateId();
+                        envResult = EnvResult_1.EnvResult.new('USER_PROVIDED', suiteID, suiteEnvID);
+                        buildEnvFn = function () { return __awaiter(_this, void 0, void 0, function () {
+                            var currentEnv, suiteManager, testSetResults;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0: return [4 /*yield*/, this.envManager.start(generatedEnvID, suiteID, suiteEnvID)];
+                                    case 1:
+                                        _a.sent();
+                                        currentEnv = this.envManager.getCurrentEnv(generatedEnvID);
+                                        suiteManager = new GenericSuiteManager_1.GenericSuiteManager(this.conf, currentEnv, this.envManager);
+                                        return [4 /*yield*/, suiteManager.runTestSets(generatedEnvID)];
+                                    case 2:
+                                        testSetResults = _a.sent();
+                                        envResult.testSets = testSetResults;
+                                        return [2 /*return*/, envResult];
+                                }
+                            });
+                        }); };
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, 4, 8]);
+                        return [4 /*yield*/, buildEnvFn()];
+                    case 2: return [2 /*return*/, _a.sent()];
+                    case 3:
+                        e_2 = _a.sent();
+                        this.logger.error("buildTestEnvTask: ERROR CAUGHT WHILE RUNNING TEST SETS");
+                        this.logger.error(e_2);
+                        envResult.testSets = [];
+                        envResult.error = e_2;
+                        return [2 /*return*/, envResult];
+                    case 4:
+                        _a.trys.push([4, 6, , 7]);
+                        return [4 /*yield*/, this.envManager.stop(generatedEnvID)];
+                    case 5:
+                        _a.sent();
+                        return [3 /*break*/, 7];
+                    case 6:
+                        e2_2 = _a.sent();
+                        this.logger.error("buildRESTTestEnvTask: Error Encountered While Stopping " + generatedEnvID);
+                        return [3 /*break*/, 7];
+                    case 7: return [7 /*endfinally*/];
+                    case 8: return [2 /*return*/];
+                }
             });
-        };
+        });
+    };
+    TestManager.prototype.getTestWebSockerServer = function () {
+        return this.wsServer;
     };
     return TestManager;
 }());

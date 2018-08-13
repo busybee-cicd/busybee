@@ -14,8 +14,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -37,7 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var _async = require("async");
 var _ = require("lodash");
-var Logger_1 = require("../lib/Logger");
+var busybee_util_1 = require("busybee-util");
 var RESTClient_1 = require("../lib/RESTClient");
 var TestSetResult_1 = require("../models/results/TestSetResult");
 var IgnoreKeys_1 = require("../lib/assertionModifications/IgnoreKeys");
@@ -59,7 +59,8 @@ if (!('toJSON' in Error.prototype))
 var RESTSuiteManager = /** @class */ (function () {
     function RESTSuiteManager(conf, suiteEnvConf) {
         this.conf = _.cloneDeep(conf);
-        this.logger = new Logger_1.Logger(conf, this);
+        var loggerConf = new busybee_util_1.LoggerConf(this, conf.logLevel, null);
+        this.logger = new busybee_util_1.Logger(loggerConf);
         this.restClient = new RESTClient_1.RESTClient(conf, suiteEnvConf);
     }
     ///////// TestRunning
@@ -67,8 +68,8 @@ var RESTSuiteManager = /** @class */ (function () {
         var _this = this;
         // TODO: logic for running TestSets in order
         return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-            var _this = this;
             var testSetPromises, testSetResults, e_1;
+            var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -255,10 +256,13 @@ var RESTSuiteManager = /** @class */ (function () {
      */
     RESTSuiteManager.prototype.replaceVars = function (str, variableExports) {
         var _this = this;
+        this.logger.trace('replaceVars: current variableExports ->');
+        this.logger.trace(variableExports, true);
         // When the string startsWith #{ and endswith }
-        // we assume its a literal substitution.
+        // we assume its a literal substitution. ie) no coercion, not an object, not interpolated
         if (str.startsWith("#{") && str.endsWith("}")) {
             var varName = str.substr(2).slice(0, -1);
+            this.logger.trace;
             this.logger.trace("Setting literal " + variableExports[varName] + " for '" + varName + "'");
             return variableExports[varName];
         }
@@ -274,6 +278,7 @@ var RESTSuiteManager = /** @class */ (function () {
             return variableExports[match];
         });
         if (replaced.startsWith("OBJECT")) {
+            // set the key's value equal to an object stored in variableExports
             var key = replaced.substr(7);
             replaced = variableExports[key];
         }

@@ -5,11 +5,12 @@ var TypedMap_1 = require("../../../lib/TypedMap");
 var ParsedTestSetConfig_1 = require("./ParsedTestSetConfig");
 var EnvInstanceConfig_1 = require("../user/EnvInstanceConfig");
 var TestSetConfig_1 = require("../user/TestSetConfig");
-var Logger_1 = require("../../../lib/Logger");
+var busybee_util_1 = require("busybee-util");
 var _ = require("lodash");
 var ParsedTestSuite = /** @class */ (function () {
     function ParsedTestSuite(suite, mode, testSet2EnvMap, env2TestSuiteMap) {
-        this.logger = new Logger_1.Logger({ logLevel: process.env['BUSYBEE_LOG_LEVEL'] }, this);
+        var loggerConf = new busybee_util_1.LoggerConf(this, process.env['LOG_LEVEL'], null);
+        this.logger = new busybee_util_1.Logger(loggerConf);
         this.defaultRequestOpts = suite.defaultRequestOpts;
         this.env = suite.env;
         this.mockServer = suite.mockServer;

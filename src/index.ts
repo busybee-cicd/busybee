@@ -2,7 +2,7 @@
 
 import {BusybeeParsedConfig} from './models/config/BusybeeParsedConfig';
 require('source-map-support').install();
-import * as _async from 'async';
+import * as Parallel from 'async-parallel';
 import * as _ from 'lodash';
 import * as Commander from 'commander';
 import * as fs from 'fs';
@@ -12,7 +12,7 @@ import {ConfigParser} from  './lib/ConfigParser';
 import {EnvManager} from './managers/EnvManager';
 import {TestManager} from './managers/TestManager';
 import {MockServer} from './lib/MockServer';
-import {Logger} from './lib/Logger';
+import {Logger, LoggerConf} from 'busybee-util';
 import {EnvResult} from './models/results/EnvResult';
 import {TestSuiteResult} from './models/results/TestSuiteResult';
 let logger;
@@ -38,10 +38,13 @@ Commander
   .option('-k, --skipTestSuite <ids>', 'list of comma-separated TestSuite ids to skip')
   .option('-t, --testFiles <filenames>', 'list of comma-separated test files to run. ie) test.json,test2.json,users/mytest.json')
   .option('-e, --envInstances <ids>', 'list of comma-separated envInstance ids to run')
+  .option('-w, --wsserver <port>', 'enable a websocket server at the specified port')
   .action((options) => {
     let configParser = new ConfigParser(options);
     const conf: BusybeeParsedConfig = configParser.parse('test');
-    logger = new Logger(conf, this);
+    const loggerConf = new LoggerConf(this, conf.logLevel, null);
+    logger = new Logger(loggerConf);
+
     initTests(conf);
   });
 
@@ -54,6 +57,7 @@ Commander
   .option('-L, --logLevel <level>', '[DEBUG, INFO, WARN, ERROR]')
   .option('-n, --noProxy, Will ignore any userConfigFile.json proxy configuration and skip proxy attempts')
   .option('-t, --testSuite <id>', 'Required. The ID of the REST Api TestSuite that you would like to run a mock server for')
+  .option('-w, --wsserver <port>', 'enable a websocket server at the specified port')
   .action((options) => {
     if (!options.testSuite) {
       console.log(`'--testSuite' is a required argument, exiting`);
@@ -61,7 +65,8 @@ Commander
     }
     let configParser = new ConfigParser(options);
     const conf: BusybeeParsedConfig = configParser.parse('mock');
-    logger = new Logger(conf, this);
+    const loggerConf = new LoggerConf(this, conf.logLevel, null);
+    logger = new Logger(loggerConf);
 
 
     // identify the TestSuite.
@@ -96,7 +101,50 @@ Commander
 Commander.parse(process.argv);
 
 
-function initTests(conf: BusybeeParsedConfig) {
+function formatElapsed(start: number, end: number): string {
+  let elapsed = end - start;
+  let hours = 0;
+  let minutes = 0;
+  let seconds = 0;
+  let ret = `Tests finished in`;
+
+  if (Math.round(elapsed / ONE_HOUR) > 0) {
+    hours = Math.round(elapsed / ONE_HOUR);
+    elapsed = elapsed % ONE_HOUR;
+
+    ret += ` ${hours}`;
+    if (hours > 1) {
+      ret += ` hours`;
+    } else {
+      ret += ` hour`;
+    }
+  }
+  if (Math.round(elapsed / ONE_MINUTE) > 0) {
+    minutes = Math.round(elapsed / ONE_MINUTE);
+    elapsed = elapsed % ONE_MINUTE;
+
+    ret += ` ${minutes}`;
+    if (minutes > 1) {
+      ret += ` minutes`;
+    } else {
+      ret += ` minute`;
+    }
+  }
+  if (Math.round(elapsed / 1000) > 0) {
+    seconds = Math.round(elapsed / ONE_SECOND);
+
+    ret += ` ${seconds}`;
+    if (seconds > 1) {
+      ret += ` seconds`;
+    } else {
+      ret += ` second`;
+    }
+  }
+
+  return ret;
+}
+
+async function initTests(conf: BusybeeParsedConfig) {
   // 2. instantiate EnvManager and ApiManager. handle shutdown signals
   let envManager = new EnvManager(conf);
   let testManager = new TestManager(conf, envManager);
@@ -127,20 +175,22 @@ function initTests(conf: BusybeeParsedConfig) {
     shutdown(null);
   });
 
-  testManager.buildTestSuiteTasks();
+  testManager.executeTestSuiteTasks();
 
   // run the api tests
   // TODO: allow ordering of TestSuites and TestEnvs
-  let envTasks: any[] = [];
+  let envResultsPromises: Promise<EnvResult>[] = [];
   _.forEach(testManager.testSuiteTasks, (suiteTask) => {
-    suiteTask.envTasks.forEach((envTask) => {
-      envTasks.push(envTask);
+    suiteTask.envResults.forEach((envResultPromise) => {
+      envResultsPromises.push(envResultPromise);
     });
   });
 
   let start = Date.now();
-  _async.parallel(envTasks, (err, envResults: Array<EnvResult>) => {
-    let end = Date.now();
+  let end;
+  try {
+    const envResults: Array<EnvResult> = await Promise.all(envResultsPromises);
+    end = Date.now();
     // group the result sets by their Suite
     let suiteResults = {};
 
@@ -191,58 +241,38 @@ function initTests(conf: BusybeeParsedConfig) {
 
       try {
         logger.info(`Running onComplete: ${scriptPath}`);
-        require(scriptPath)(err, suiteResultsList);
+        require(scriptPath)(null, suiteResultsList);
       } catch (e) {
-        console.log(e);
+        logger.error(e);
       }
     } else {
-      logger.trace(err || suiteResultsList);
+      logger.trace(suiteResultsList);
       logger.info(formatElapsed(start, end));
     }
-  });
 
-  function formatElapsed(start: number, end: number): string {
-    let elapsed = end - start;
-    let hours = 0;
-    let minutes = 0;
-    let seconds = 0;
-    let ret = `Tests finished in`;
-
-    if (Math.round(elapsed / ONE_HOUR) > 0) {
-      hours = Math.round(elapsed / ONE_HOUR);
-      elapsed = elapsed % ONE_HOUR;
-
-      ret += ` ${hours}`;
-      if (hours > 1) {
-        ret += ` hours`;
-      } else {
-        ret += ` hour`;
-      }
-    }
-    if (Math.round(elapsed / ONE_MINUTE) > 0) {
-      minutes = Math.round(elapsed / ONE_MINUTE);
-      elapsed = elapsed % ONE_MINUTE;
-
-      ret += ` ${minutes}`;
-      if (minutes > 1) {
-        ret += ` minutes`;
-      } else {
-        ret += ` minute`;
-      }
-    }
-    if (Math.round(elapsed / 1000) > 0) {
-      seconds = Math.round(elapsed / ONE_SECOND);
-
-      ret += ` ${seconds}`;
-      if (seconds > 1) {
-        ret += ` seconds`;
-      } else {
-        ret += ` second`;
-      }
+    if (conf.webSocketPort) {
+      testManager.getTestWebSockerServer().emitResult({
+        runId: envManager.getRunId(),
+        runTimestamp: envManager.getRunTimestamp(),
+        results: suiteResultsList
+      });
     }
 
-    return ret;
+    process.exit();
+  } catch (err) {
+    if (conf.onComplete) {
+      let scriptPath = conf.onComplete = path.join(conf.filePaths.busybeeDir, conf.onComplete);
+
+      try {
+        logger.info(`Running onComplete: ${scriptPath}`);
+        require(scriptPath)(err);
+      } catch (e) {
+        logger.error(e, true);
+      }
+    } else {
+      logger.trace(err);
+      if (!end) { end = Date.now(); }
+      logger.info(formatElapsed(start, end));
+    }
   }
-
-  // run the ui tests
 }

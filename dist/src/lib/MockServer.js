@@ -14,8 +14,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -43,12 +43,13 @@ var hash = require("object-hash");
 var httpProxy = require("http-proxy");
 var restream = require('./restream');
 var qs = require("querystring");
-var Logger_1 = require("./Logger");
+var busybee_util_1 = require("busybee-util");
 var MockServer = /** @class */ (function () {
     function MockServer(testSuiteConf, conf) {
         this.conf = conf;
         this.testSuiteConf = testSuiteConf;
-        this.logger = new Logger_1.Logger(conf, this);
+        var loggerConf = new busybee_util_1.LoggerConf(this, conf.logLevel, null);
+        this.logger = new busybee_util_1.Logger(loggerConf);
         this.logger.info('Initializing Mock Server');
         this.routeMap = {}; // store the routes and all of the known request combos for each route
         var serverConf = this.testSuiteConf.mockServer;
@@ -162,12 +163,12 @@ var MockServer = /** @class */ (function () {
         this.logger.trace(mock, true);
         var path = mock.request.path;
         if (!_.isUndefined(mock.request.root)) {
-            if (mock.request.root) {
+            if (mock.request.root) { // allow users to set request.root to override mockServer.root && testSuiteConf.root when mocking
                 path = "" + mock.request.root + path;
             } // else they passed null or false and we should not prepend a root (effectively overwriting mockServer.root or testSuiteConf.root
         }
         else if (!_.isUndefined(this.testSuiteConf.mockServer.root)) {
-            if (this.testSuiteConf.mockServer.root != null) {
+            if (this.testSuiteConf.mockServer.root != null) { // allow users to set mockServer.root to false to override testSuiteConf.root when mocking
                 path = "" + this.testSuiteConf.mockServer.root + path;
             }
         }
@@ -238,8 +239,8 @@ var MockServer = /** @class */ (function () {
         _.forEach(reqMethodMap, function (statusMap, methodName) {
             // 1. build a controller
             var ctrl = function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-                var _this = this;
                 var requestedStatus, mocks, reqOpts, hashedReq, matchingMocks, mocksWithoutHeaders, mocksWithHeaders, mockToReturn, message, message, resHeaders, mockResponse, mockData, bodyToReturn;
+                var _this = this;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:

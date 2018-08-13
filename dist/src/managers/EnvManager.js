@@ -14,8 +14,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -41,16 +41,16 @@ var path = require("path");
 var _ = require("lodash");
 var _async = require("async");
 var portscanner = require("portscanner");
-var Logger_1 = require("../lib/Logger");
+var busybee_util_1 = require("busybee-util");
 var RESTClient_1 = require("../lib/RESTClient");
 var TypedMap_1 = require("../lib/TypedMap");
 var SuiteEnvInfo_1 = require("../lib/SuiteEnvInfo");
-var IOUtil_1 = require("../lib/IOUtil");
+var busybee_util_2 = require("busybee-util");
 var EnvManager = /** @class */ (function () {
     function EnvManager(conf) {
-        this.envStartRetries = {};
         this.conf = _.cloneDeep(conf);
-        this.logger = new Logger_1.Logger(conf, this);
+        var loggerConf = new busybee_util_1.LoggerConf(this, conf.logLevel, null);
+        this.logger = new busybee_util_1.Logger(loggerConf);
         if (conf.getSkipEnvProvisioning().length > 0) {
             this.skipEnvProvisioningList = conf.getSkipEnvProvisioning();
         }
@@ -236,8 +236,8 @@ var EnvManager = /** @class */ (function () {
             return __generator(this, function (_a) {
                 this.logger.trace('stopAll');
                 return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-                        var _this = this;
                         var stopFns, e_2;
+                        var _this = this;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
@@ -266,12 +266,35 @@ var EnvManager = /** @class */ (function () {
             });
         });
     };
+    EnvManager.prototype.retryStart = function (generatedEnvID, suiteID, suiteEnvID, failMsg) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        this.logger.trace("retryStart " + generatedEnvID);
+                        if (!(this.conf.parsedTestSuites.get(suiteID).testEnvs.get(suiteEnvID).retries < 3)) return [3 /*break*/, 2];
+                        this.conf.parsedTestSuites.get(suiteID).testEnvs.get(suiteEnvID).retries += 1;
+                        this.logger.info("Restart attempt number " + this.conf.parsedTestSuites.get(suiteID).testEnvs.get(suiteEnvID).retries + " for " + generatedEnvID);
+                        return [4 /*yield*/, this.start(generatedEnvID, suiteID, suiteEnvID)];
+                    case 1:
+                        _a.sent();
+                        return [3 /*break*/, 3];
+                    case 2:
+                        this.logger.trace("retryStart attempts exceeded. failing");
+                        // push to the back of the line and call start again.
+                        throw new Error(failMsg);
+                    case 3: return [2 /*return*/];
+                }
+            });
+        });
+    };
     EnvManager.prototype.start = function (generatedEnvID, suiteID, suiteEnvID) {
         return __awaiter(this, void 0, void 0, function () {
             var e_3, e_4, e_5;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        this.logger.trace("start " + generatedEnvID);
                         this.envsWaitingForProvision.push(generatedEnvID);
                         _a.label = 1;
                     case 1:
@@ -284,30 +307,39 @@ var EnvManager = /** @class */ (function () {
                         e_3 = _a.sent();
                         throw new Error(generatedEnvID + " failed to wait it's turn");
                     case 4:
-                        _a.trys.push([4, 6, , 7]);
+                        _a.trys.push([4, 6, , 9]);
                         return [4 /*yield*/, this.provisionEnv(generatedEnvID, suiteID, suiteEnvID)];
                     case 5:
                         _a.sent();
                         this.logger.trace(generatedEnvID + " provisioned successfully");
                         this.envsWaitingForProvision.shift();
-                        return [3 /*break*/, 7];
+                        return [3 /*break*/, 9];
                     case 6:
                         e_4 = _a.sent();
                         this.envsWaitingForProvision.shift();
-                        throw new Error(generatedEnvID + " failed to provision");
+                        return [4 /*yield*/, this.stop(generatedEnvID)];
                     case 7:
-                        this.logger.trace("envsWaitingForProvision updated to " + this.envsWaitingForProvision);
-                        _a.label = 8;
+                        _a.sent(); // allow the user to do any potential background cleanup if necessary/possible
+                        return [4 /*yield*/, this.retryStart(generatedEnvID, suiteID, suiteEnvID, generatedEnvID + " failed to provision")];
                     case 8:
-                        _a.trys.push([8, 10, , 11]);
-                        return [4 /*yield*/, this.confirmHealthcheck(generatedEnvID)];
-                    case 9:
                         _a.sent();
-                        return [3 /*break*/, 11];
+                        return [3 /*break*/, 9];
+                    case 9:
+                        this.logger.trace("envsWaitingForProvision updated to " + this.envsWaitingForProvision);
+                        _a.label = 10;
                     case 10:
+                        _a.trys.push([10, 12, , 14]);
+                        return [4 /*yield*/, this.confirmHealthcheck(generatedEnvID)];
+                    case 11:
+                        _a.sent();
+                        return [3 /*break*/, 14];
+                    case 12:
                         e_5 = _a.sent();
-                        throw new Error(generatedEnvID + " failed to confirm the healthcheck");
-                    case 11: return [2 /*return*/];
+                        return [4 /*yield*/, this.retryStart(generatedEnvID, suiteID, suiteEnvID, generatedEnvID + " failed to confirm the healthcheck")];
+                    case 13:
+                        _a.sent();
+                        return [3 /*break*/, 14];
+                    case 14: return [2 /*return*/];
                 }
             });
         });
@@ -418,8 +450,8 @@ var EnvManager = /** @class */ (function () {
     EnvManager.prototype.runScript = function (path, args) {
         var _this = this;
         return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-            var _this = this;
             var completeMessage, returned, script;
+            var _this = this;
             return __generator(this, function (_a) {
                 this.logger.info("runScript " + path + " <args>");
                 this.logger.debug(args);
@@ -447,7 +479,7 @@ var EnvManager = /** @class */ (function () {
                     if (returned || _.isEmpty(data)) {
                         return;
                     }
-                    var lines = IOUtil_1.IOUtil.parseDataBuffer(data);
+                    var lines = busybee_util_2.IOUtil.parseDataBuffer(data);
                     lines.forEach(function (l) {
                         _this.logger.debug(l);
                         if (l.includes(EnvManager.BUSYBEE_ERROR)) {
@@ -494,7 +526,6 @@ var EnvManager = /** @class */ (function () {
             return __generator(this, function (_a) {
                 return [2 /*return*/, new Promise(function (resolve, reject) {
                         _this.logger.trace("getAvailableHostName " + suiteID + " | " + suiteEnvID + " | " + generatedEnvID);
-                        _this.logger.trace(_this.conf.parsedTestSuites.get(suiteID));
                         var suiteConf = _this.conf.parsedTestSuites.get(suiteID);
                         var cost = suiteConf.env.resourceCost || 0;
                         var identifyHost = function (cb) {
@@ -572,8 +603,6 @@ var EnvManager = /** @class */ (function () {
                         return [4 /*yield*/, this.getReservedBusybeePorts(hostConf)];
                     case 2:
                         portsInUse = _b.sent();
-                        this.logger.trace('portsInUse');
-                        this.logger.trace(portsInUse);
                         parallelMode = false;
                         if (suiteConf.env && suiteConf.env.parallel) {
                             parallelMode = suiteConf.env.parallel;
@@ -581,8 +610,6 @@ var EnvManager = /** @class */ (function () {
                         return [4 /*yield*/, this.identifyPorts(generatedEnvID, hostName, portsInUse, suiteConf.ports, 0, parallelMode)];
                     case 3:
                         _a = _b.sent(), ports = _a.ports, portOffset = _a.portOffset;
-                        // 3. update global host and env info
-                        this.updateGlobalPortInfo(hostName, generatedEnvID, ports, portOffset);
                         // 4. resolve :)
                         resolve(ports);
                         return [3 /*break*/, 5];
@@ -622,6 +649,7 @@ var EnvManager = /** @class */ (function () {
     };
     /*
      Recursively check for available ports
+     TODO: Fix this to not care about parallelMode...it shouldn't be the job of this method to worry about that. it has been removed from the logic, not from the signature
   
      IF (parallelMode)
       IF (portsTaken)
@@ -634,7 +662,7 @@ var EnvManager = /** @class */ (function () {
      */
     EnvManager.prototype.identifyPorts = function (generatedEnvID, hostName, portsInUse, nextPorts, portOffset, parallelMode) {
         return __awaiter(this, void 0, void 0, function () {
-            var portsInUseByBusybee, oldPorts, portsTaken, oldPorts, ret, portsTaken, ret;
+            var portsInUseByBusybee, oldPorts, portsTaken, oldPorts, ret;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -644,7 +672,6 @@ var EnvManager = /** @class */ (function () {
                         portsInUseByBusybee = _a.sent();
                         this.logger.trace("portsInUseByBusybee: " + portsInUseByBusybee);
                         this.logger.trace("parallelMode: " + parallelMode);
-                        if (!parallelMode) return [3 /*break*/, 8];
                         if (!portsInUseByBusybee) return [3 /*break*/, 3];
                         oldPorts = nextPorts;
                         nextPorts = nextPorts.map(function (p) {
@@ -653,7 +680,10 @@ var EnvManager = /** @class */ (function () {
                         this.logger.info(generatedEnvID + " Ports " + oldPorts + " in use by Busybee, retrying with " + nextPorts);
                         return [4 /*yield*/, this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset + 1, parallelMode)];
                     case 2: return [2 /*return*/, _a.sent()];
-                    case 3: return [4 /*yield*/, this.arePortsTaken(hostName, nextPorts)];
+                    case 3:
+                        // first put a lock on these ports
+                        this.updateGlobalPortInfo(hostName, generatedEnvID, nextPorts, portOffset);
+                        return [4 /*yield*/, this.arePortsTaken(hostName, nextPorts)];
                     case 4:
                         portsTaken = _a.sent();
                         if (!portsTaken) return [3 /*break*/, 6];
@@ -671,29 +701,6 @@ var EnvManager = /** @class */ (function () {
                         };
                         this.logger.trace("ports identified: " + JSON.stringify(ret));
                         return [2 /*return*/, ret];
-                    case 7: return [3 /*break*/, 14];
-                    case 8:
-                        if (!portsInUseByBusybee) return [3 /*break*/, 10];
-                        this.logger.trace("parallelMode:false. Ports in use by Busybee, retrying...");
-                        this.logger.info(generatedEnvID + " Ports in use by Busybee, retrying " + nextPorts);
-                        return [4 /*yield*/, this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset, parallelMode)];
-                    case 9: return [2 /*return*/, _a.sent()];
-                    case 10: return [4 /*yield*/, this.arePortsTaken(hostName, nextPorts)];
-                    case 11:
-                        portsTaken = _a.sent();
-                        if (!portsTaken) return [3 /*break*/, 13];
-                        // DONT shift ports and try again
-                        this.logger.info(generatedEnvID + " Ports in use by an unknown service, retrying " + nextPorts);
-                        return [4 /*yield*/, this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset, parallelMode)];
-                    case 12: return [2 /*return*/, _a.sent()];
-                    case 13:
-                        ret = {
-                            ports: nextPorts,
-                            portOffset: portOffset
-                        };
-                        this.logger.trace("ports identified: " + JSON.stringify(ret));
-                        return [2 /*return*/, ret];
-                    case 14: return [2 /*return*/];
                 }
             });
         });
@@ -715,8 +722,8 @@ var EnvManager = /** @class */ (function () {
      */
     EnvManager.prototype.arePortsTaken = function (hostName, ports) {
         return __awaiter(this, void 0, void 0, function () {
-            var _this = this;
             var takenPorts, portCheckPromises, results;
+            var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -788,10 +795,12 @@ var EnvManager = /** @class */ (function () {
                 var portOffset = _this.currentHosts[suiteEnvConf.hostName].envs[generatedEnvID].portOffset;
                 healthcheckPort_1 += portOffset;
                 var opts_1 = restClient_1.buildRequest(requestConf, healthcheckPort_1);
-                // retries the healthcheck path every 3 seconds up to 20 times
+                // retries the healthcheck path every 3 seconds up to 50 times
                 // when successful calls the cb passed to confirmHealthcheck()
+                var attempt_1 = 0;
                 _async.retry({ times: healthcheckConf.retries || 50, interval: opts_1.timeout }, function (asyncCb) {
-                    _this.logger.info("Attempting healthcheck for " + generatedEnvID + " on port " + healthcheckPort_1);
+                    attempt_1 += 1;
+                    _this.logger.info("Attempting " + attempt_1 + " healthcheck for " + generatedEnvID + " on port " + healthcheckPort_1);
                     _this.logger.debug(opts_1);
                     restClient_1.makeRequest(opts_1)
                         .then(function (response) {
@@ -806,6 +815,7 @@ var EnvManager = /** @class */ (function () {
                         }
                     })
                         .catch(function (err) {
+                        _this.logger.error(err.message);
                         asyncCb("failed");
                     });
                 }, function (err, results) {
@@ -826,7 +836,18 @@ var EnvManager = /** @class */ (function () {
     EnvManager.prototype.getCurrentEnv = function (generatedEnvID) {
         return this.currentEnvs.get(generatedEnvID);
     };
-    EnvManager.ENV_START_MAX_RETRIES = 3;
+    EnvManager.prototype.getCurrentEnvs = function () {
+        return this.currentEnvs;
+    };
+    EnvManager.prototype.getCurrentHosts = function () {
+        return this.currentHosts;
+    };
+    EnvManager.prototype.getRunTimestamp = function () {
+        return this.conf.runTimestamp;
+    };
+    EnvManager.prototype.getRunId = function () {
+        return this.conf.runId;
+    };
     EnvManager.BUSYBEE_ERROR = 'BUSYBEE_ERROR';
     EnvManager.BUSYBEE_RETURN = 'BUSYBEE_RETURN';
     return EnvManager;

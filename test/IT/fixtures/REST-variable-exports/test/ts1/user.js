@@ -12,7 +12,11 @@ module.exports = [
         "path": "/user"
     },
     "expect": {
+        "status": 200,
         "body": (body, variableExports) => {
+          console.log('RUNNING ASSERTION');
+          if (!body.id) { throw new Error('NO ID! mockserver probably not ready'); }
+          console.log(body.id);
           variableExports.userId = body.id; // userId will be 12345
         }
     }

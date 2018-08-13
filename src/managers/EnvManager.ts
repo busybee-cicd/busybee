@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as _ from 'lodash';
 import * as _async from 'async';
 import * as portscanner from 'portscanner';
-import {Logger} from '../lib/Logger';
+import {Logger, LoggerConf} from 'busybee-util';
 import {RESTClient} from '../lib/RESTClient';
 import {BusybeeParsedConfig} from "../models/config/BusybeeParsedConfig";
 import {EnvResourceConfig} from "../models/config/common/EnvResourceConfig";
@@ -13,7 +13,7 @@ import {RequestOptsConfig} from "../models/config/common/RequestOptsConfig";
 import {TypedMap} from "../lib/TypedMap";
 import {ParsedTestSuite} from "../models/config/parsed/ParsedTestSuiteConfig";
 import {SuiteEnvInfo} from "../lib/SuiteEnvInfo";
-import { IOUtil } from "../lib/IOUtil";
+import { IOUtil } from "busybee-util";
 
 export class EnvManager {
   private conf: BusybeeParsedConfig;
@@ -22,14 +22,13 @@ export class EnvManager {
   private envsWaitingForProvision: string[];
   private currentHosts: any;
   private currentEnvs: TypedMap<SuiteEnvInfo>;
-  private envStartRetries: any = {};
-  private static ENV_START_MAX_RETRIES = 3;
   private static BUSYBEE_ERROR: string = 'BUSYBEE_ERROR';
   private static BUSYBEE_RETURN: string = 'BUSYBEE_RETURN';
 
   constructor(conf: BusybeeParsedConfig) {
     this.conf = _.cloneDeep(conf);
-    this.logger = new Logger(conf, this);
+    const loggerConf = new LoggerConf(this, conf.logLevel, null);
+    this.logger = new Logger(loggerConf);
     if (conf.getSkipEnvProvisioning().length > 0) {
       this.skipEnvProvisioningList = conf.getSkipEnvProvisioning();
     }
@@ -227,7 +226,21 @@ export class EnvManager {
     });
   }
 
-  async start(generatedEnvID, suiteID, suiteEnvID) {
+  async retryStart(generatedEnvID:string, suiteID:string, suiteEnvID: string, failMsg:string) {
+    this.logger.trace(`retryStart ${generatedEnvID}`);
+    if (this.conf.parsedTestSuites.get(suiteID).testEnvs.get(suiteEnvID).retries < 3) {
+      this.conf.parsedTestSuites.get(suiteID).testEnvs.get(suiteEnvID).retries += 1
+      this.logger.info(`Restart attempt number ${this.conf.parsedTestSuites.get(suiteID).testEnvs.get(suiteEnvID).retries} for ${generatedEnvID}`);
+      await this.start(generatedEnvID, suiteID, suiteEnvID);
+    } else {
+      this.logger.trace(`retryStart attempts exceeded. failing`);
+      // push to the back of the line and call start again.
+      throw new Error(failMsg);
+    }
+  }
+
+  async start(generatedEnvID:string, suiteID:string, suiteEnvID:string) {
+    this.logger.trace(`start ${generatedEnvID}`);
     this.envsWaitingForProvision.push(generatedEnvID);
     try {
       await this.waitForTurn(generatedEnvID);
@@ -241,7 +254,8 @@ export class EnvManager {
       this.envsWaitingForProvision.shift();
     } catch (e) {
       this.envsWaitingForProvision.shift();
-      throw new Error(`${generatedEnvID} failed to provision`);
+      await this.stop(generatedEnvID); // allow the user to do any potential background cleanup if necessary/possible
+      await this.retryStart(generatedEnvID, suiteID, suiteEnvID, `${generatedEnvID} failed to provision`);
     }
 
     this.logger.trace(`envsWaitingForProvision updated to ${this.envsWaitingForProvision}`);
@@ -251,7 +265,7 @@ export class EnvManager {
     try {
       await this.confirmHealthcheck(generatedEnvID);
     } catch (e) {
-      throw new Error(`${generatedEnvID} failed to confirm the healthcheck`);
+      await this.retryStart(generatedEnvID, suiteID, suiteEnvID, `${generatedEnvID} failed to confirm the healthcheck`);
     }
 
     return;
@@ -417,7 +431,6 @@ export class EnvManager {
   async getAvailableHostName(suiteID, suiteEnvID, generatedEnvID) {
     return new Promise((resolve, reject) => {
       this.logger.trace(`getAvailableHostName ${suiteID} | ${suiteEnvID} | ${generatedEnvID}`);
-      this.logger.trace(this.conf.parsedTestSuites.get(suiteID));
       let suiteConf: ParsedTestSuite = this.conf.parsedTestSuites.get(suiteID);
       let cost = suiteConf.env.resourceCost || 0;
 
@@ -490,8 +503,6 @@ export class EnvManager {
       // 1. find the current ports in use for this host
       try {
         let portsInUse = await this.getReservedBusybeePorts(hostConf);
-        this.logger.trace('portsInUse');
-        this.logger.trace(portsInUse);
         // 2. determine available ports
         let parallelMode = false;
         if (suiteConf.env && suiteConf.env.parallel) {
@@ -499,8 +510,6 @@ export class EnvManager {
         }
         let {ports, portOffset} =
           await this.identifyPorts(generatedEnvID, hostName, portsInUse, suiteConf.ports, 0, parallelMode);
-        // 3. update global host and env info
-        this.updateGlobalPortInfo(hostName, generatedEnvID, ports, portOffset);
 
         // 4. resolve :)
         resolve(ports);
@@ -539,6 +548,7 @@ export class EnvManager {
 
   /*
    Recursively check for available ports
+   TODO: Fix this to not care about parallelMode...it shouldn't be the job of this method to worry about that. it has been removed from the logic, not from the signature
 
    IF (parallelMode)
     IF (portsTaken)
@@ -555,60 +565,93 @@ export class EnvManager {
     this.logger.trace(`portsInUseByBusybee: ${portsInUseByBusybee}`);
     this.logger.trace(`parallelMode: ${parallelMode}`);
 
-    if (parallelMode) {
-      if (portsInUseByBusybee) {
+    if (portsInUseByBusybee) {
+      let oldPorts = nextPorts;
+      nextPorts = nextPorts.map((p) => {
+        return p + 1
+      });
+      this.logger.info(`${generatedEnvID} Ports ${oldPorts} in use by Busybee, retrying with ${nextPorts}`);
+      return await this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset + 1, parallelMode);
+    } else {
+      // first put a lock on these ports
+      this.updateGlobalPortInfo(hostName, generatedEnvID, nextPorts, portOffset);
+      // not in use by busybee. see if ports are in use by something else
+      let portsTaken = await this.arePortsTaken(hostName, nextPorts);
+      if (portsTaken) {
+        // shift ports and try again
         let oldPorts = nextPorts;
         nextPorts = nextPorts.map((p) => {
           return p + 1
         });
-        this.logger.info(`${generatedEnvID} Ports ${oldPorts} in use by Busybee, retrying with ${nextPorts}`);
+        this.logger.info(`${generatedEnvID} Ports ${oldPorts} in use by an unknown service, retrying with ${nextPorts}`);
         return await this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset + 1, parallelMode);
-      } else {
-        // not in use by busybee. see if ports are in use by something else
-        let portsTaken = await this.arePortsTaken(hostName, nextPorts);
-        if (portsTaken) {
-          // shift ports and try again
-          let oldPorts = nextPorts;
-          nextPorts = nextPorts.map((p) => {
-            return p + 1
-          });
-          this.logger.info(`${generatedEnvID} Ports ${oldPorts} in use by an unknown service, retrying with ${nextPorts}`);
-          return await this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset + 1, parallelMode);
-        }
-
-        // ports identified, resolve.
-        let ret = {
-          ports: nextPorts,
-          portOffset: portOffset
-        };
-
-        this.logger.trace(`ports identified: ${JSON.stringify(ret)}`);
-        return ret;
       }
-    } else {
-      if (portsInUseByBusybee) {
-        this.logger.trace(`parallelMode:false. Ports in use by Busybee, retrying...`);
-        this.logger.info(`${generatedEnvID} Ports in use by Busybee, retrying ${nextPorts}`);
-        return await this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset, parallelMode);
-      } else {
-        // not in use by busybee. see if ports are in use by something else
-        let portsTaken = await this.arePortsTaken(hostName, nextPorts);
-        if (portsTaken) {
-          // DONT shift ports and try again
-          this.logger.info(`${generatedEnvID} Ports in use by an unknown service, retrying ${nextPorts}`);
-          return await this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset, parallelMode);
-        }
 
-        // ports identified, resolve.
-        let ret = {
-          ports: nextPorts,
-          portOffset: portOffset
-        };
+      // ports identified, resolve.
+      let ret = {
+        ports: nextPorts,
+        portOffset: portOffset
+      };
 
-        this.logger.trace(`ports identified: ${JSON.stringify(ret)}`);
-        return ret;
-      }
+      this.logger.trace(`ports identified: ${JSON.stringify(ret)}`);
+      return ret;
     }
+
+    // if (parallelMode) {
+    //   if (portsInUseByBusybee) {
+    //     let oldPorts = nextPorts;
+    //     nextPorts = nextPorts.map((p) => {
+    //       return p + 1
+    //     });
+    //     this.logger.info(`${generatedEnvID} Ports ${oldPorts} in use by Busybee, retrying with ${nextPorts}`);
+    //     return await this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset + 1, parallelMode);
+    //   } else {
+    //     // not in use by busybee. see if ports are in use by something else
+    //     let portsTaken = await this.arePortsTaken(hostName, nextPorts);
+    //     if (portsTaken) {
+    //       // shift ports and try again
+    //       let oldPorts = nextPorts;
+    //       nextPorts = nextPorts.map((p) => {
+    //         return p + 1
+    //       });
+    //       this.logger.info(`${generatedEnvID} Ports ${oldPorts} in use by an unknown service, retrying with ${nextPorts}`);
+    //       return await this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset + 1, parallelMode);
+    //     }
+
+    //     // ports identified, resolve.
+    //     let ret = {
+    //       ports: nextPorts,
+    //       portOffset: portOffset
+    //     };
+
+    //     this.logger.trace(`ports identified: ${JSON.stringify(ret)}`);
+    //     return ret;
+    //   }
+    // } else {
+    //   // when not in parallel mode...we don't
+    //   if (portsInUseByBusybee) {
+    //     this.logger.trace(`parallelMode:false. Ports in use by Busybee, retrying...`);
+    //     this.logger.info(`${generatedEnvID} Ports in use by Busybee, retrying ${nextPorts}`);
+    //     return await this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset, parallelMode);
+    //   } else {
+    //     // not in use by busybee. see if ports are in use by something else
+    //     let portsTaken = await this.arePortsTaken(hostName, nextPorts);
+    //     if (portsTaken) {
+    //       // DONT shift ports and try again
+    //       this.logger.info(`${generatedEnvID} Ports in use by an unknown service, retrying ${nextPorts}`);
+    //       return await this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset, parallelMode);
+    //     }
+
+    //     // ports identified, resolve.
+    //     let ret = {
+    //       ports: nextPorts,
+    //       portOffset: portOffset
+    //     };
+
+    //     this.logger.trace(`ports identified: ${JSON.stringify(ret)}`);
+    //     return ret;
+    //   }
+    // }
   }
 
   /*
@@ -690,11 +733,13 @@ export class EnvManager {
         healthcheckPort += portOffset;
         let opts = restClient.buildRequest(requestConf, healthcheckPort);
 
-        // retries the healthcheck path every 3 seconds up to 20 times
+        // retries the healthcheck path every 3 seconds up to 50 times
         // when successful calls the cb passed to confirmHealthcheck()
+        let attempt = 0;
         _async.retry({times: healthcheckConf.retries || 50, interval: opts.timeout},
           (asyncCb) => {
-            this.logger.info(`Attempting healthcheck for ${generatedEnvID} on port ${healthcheckPort}`);
+            attempt += 1;
+            this.logger.info(`Attempting ${attempt} healthcheck for ${generatedEnvID} on port ${healthcheckPort}`);
             this.logger.debug(opts);
             restClient.makeRequest(opts)
               .then((response) => {
@@ -708,6 +753,7 @@ export class EnvManager {
                 }
               })
               .catch((err) => {
+                this.logger.error(err.message);
                 asyncCb("failed");
               });
           }
@@ -730,4 +776,19 @@ export class EnvManager {
     return this.currentEnvs.get(generatedEnvID);
   }
 
+  getCurrentEnvs(): TypedMap<SuiteEnvInfo> {
+    return this.currentEnvs;
+  }
+
+  getCurrentHosts(): any {
+    return this.currentHosts;
+  }
+
+  getRunTimestamp(): number {
+    return this.conf.runTimestamp;
+  }
+
+  getRunId(): string {
+    return this.conf.runId;
+  }
 }

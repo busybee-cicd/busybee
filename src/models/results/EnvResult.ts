@@ -13,7 +13,7 @@ export class EnvResult {
 
   static new(type: string, suiteID: string, suiteEnvID: string): EnvResult {
     let res = new this();
-    res.type = 'REST';
+    res.type = type;
     res.suiteID = suiteID;
     res.env = suiteEnvID;
 

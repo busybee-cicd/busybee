@@ -14,8 +14,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -37,13 +37,15 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var _ = require("lodash");
 var path = require("path");
-var Logger_1 = require("../lib/Logger");
+var busybee_util_1 = require("busybee-util");
+var TestSetResult_1 = require("../models/results/TestSetResult");
 var GenericSuiteManager = /** @class */ (function () {
     function GenericSuiteManager(conf, suiteEnvConf, envManager) {
         this.conf = _.cloneDeep(conf);
         this.suiteEnvConf = suiteEnvConf;
         this.envManager = envManager;
-        this.logger = new Logger_1.Logger(conf, this);
+        var loggerConf = new busybee_util_1.LoggerConf(this, conf.logLevel, null);
+        this.logger = new busybee_util_1.Logger(loggerConf);
     }
     GenericSuiteManager.prototype.buildUrl = function (port) {
         this.logger.trace("buildUrl " + port);
@@ -59,8 +61,8 @@ var GenericSuiteManager = /** @class */ (function () {
         var _this = this;
         // TODO: logic for running TestSets in order
         return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-            var _this = this;
             var testSetPromises, testSetResults, testSetErr, e_1;
+            var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -95,21 +97,51 @@ var GenericSuiteManager = /** @class */ (function () {
     };
     GenericSuiteManager.prototype.runTestSet = function (testSet, generatedEnvID) {
         return __awaiter(this, void 0, void 0, function () {
-            var busybeeDir, scriptPath, args;
+            var testSetResult, busybeeDir, scriptPath, args, returnData, assertionResult, e_2;
             return __generator(this, function (_a) {
-                this.logger.trace("runTestSet | " + this.suiteEnvConf.suiteID + " | " + this.suiteEnvConf.suiteEnvID + " | " + testSet.id);
-                this.logger.trace(testSet, true);
-                busybeeDir = this.conf.filePaths.busybeeDir;
-                scriptPath = path.join(busybeeDir, this.suiteEnvConf.runScript);
-                args = {
-                    generatedEnvID: generatedEnvID,
-                    protocol: this.suiteEnvConf.protocol,
-                    hostName: this.suiteEnvConf.hostName,
-                    ports: this.suiteEnvConf.ports,
-                    busybeeDir: busybeeDir,
-                    runData: testSet.runData
-                };
-                return [2 /*return*/, this.envManager.runScript(scriptPath, [JSON.stringify(args)])];
+                switch (_a.label) {
+                    case 0:
+                        this.logger.trace("runTestSet | " + this.suiteEnvConf.suiteID + " | " + this.suiteEnvConf.suiteEnvID + " | " + testSet.id);
+                        this.logger.trace(testSet, true);
+                        testSetResult = new TestSetResult_1.TestSetResult();
+                        testSetResult.id = testSet.id;
+                        testSetResult.pass = true;
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        busybeeDir = this.conf.filePaths.busybeeDir;
+                        scriptPath = path.join(busybeeDir, this.suiteEnvConf.runScript);
+                        args = {
+                            generatedEnvID: generatedEnvID,
+                            protocol: this.suiteEnvConf.protocol,
+                            hostName: this.suiteEnvConf.hostName,
+                            ports: this.suiteEnvConf.ports,
+                            busybeeDir: busybeeDir,
+                            runData: testSet.runData
+                        };
+                        return [4 /*yield*/, this.envManager.runScript(scriptPath, [JSON.stringify(args)])];
+                    case 2:
+                        returnData = _a.sent();
+                        if (testSet.assertion) {
+                            try {
+                                assertionResult = testSet.assertion(returnData);
+                                if (assertionResult === false) {
+                                    testSetResult.pass = false;
+                                }
+                            }
+                            catch (e) {
+                                testSetResult.pass = false;
+                                testSetResult.error = e;
+                            }
+                        }
+                        return [3 /*break*/, 4];
+                    case 3:
+                        e_2 = _a.sent();
+                        testSetResult.pass = false;
+                        testSetResult.error = e_2;
+                        return [3 /*break*/, 4];
+                    case 4: return [2 /*return*/, testSetResult];
+                }
             });
         });
     };

@@ -1,6 +1,6 @@
 import * as _async from 'async';
 import * as _ from 'lodash';
-import {Logger} from '../lib/Logger';
+import {Logger, LoggerConf} from 'busybee-util';
 import {RESTClient} from '../lib/RESTClient';
 import {SuiteEnvInfo} from "../lib/SuiteEnvInfo";
 import {ParsedTestSetConfig} from "../models/config/parsed/ParsedTestSetConfig";
@@ -41,7 +41,8 @@ export class RESTSuiteManager {
 
   constructor(conf: BusybeeParsedConfig, suiteEnvConf: SuiteEnvInfo) {
     this.conf = _.cloneDeep(conf);
-    this.logger = new Logger(conf, this);
+    const loggerConf = new LoggerConf(this, conf.logLevel, null);
+    this.logger = new Logger(loggerConf);
     this.restClient = new RESTClient(conf, suiteEnvConf);
   }
 
@@ -123,7 +124,7 @@ export class RESTSuiteManager {
     });
     return _.map(testsWithARequest, (test: RESTTest) => {
 
-      return async(cb) => {
+      return async (cb) => {
         // build request
         let port = currentEnv.ports[0]; // the REST api port should be passed first in the userConfigFile.
         let opts = this.restClient.buildRequest(test.request, port);
@@ -231,10 +232,13 @@ export class RESTSuiteManager {
    Parses strings formatted as "#{myVar}"
    */
   replaceVars(str: string, variableExports: any) {
+    this.logger.trace('replaceVars: current variableExports ->')
+    this.logger.trace(variableExports, true);
     // When the string startsWith #{ and endswith }
-    // we assume its a literal substitution.
+    // we assume its a literal substitution. ie) no coercion, not an object, not interpolated
     if (str.startsWith(`#{`) && str.endsWith(`}`)) {
       let varName = str.substr(2).slice(0, -1);
+      this.logger.trace
       this.logger.trace(`Setting literal ${variableExports[varName]} for '${varName}'`);
       return variableExports[varName];
     }
@@ -251,8 +255,8 @@ export class RESTSuiteManager {
       return variableExports[match];
     });
 
-
     if (replaced.startsWith("OBJECT")) {
+      // set the key's value equal to an object stored in variableExports
       let key = replaced.substr(7);
       replaced = variableExports[key];
     }

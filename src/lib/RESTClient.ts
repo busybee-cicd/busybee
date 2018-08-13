@@ -1,6 +1,6 @@
 import * as request from 'request-promise';
 import * as _ from 'lodash';
-import {Logger} from './Logger';
+import {Logger, LoggerConf} from 'busybee-util';
 import {RequestOptsConfig} from "../models/config/common/RequestOptsConfig";
 import {BusybeeParsedConfig} from "../models/config/BusybeeParsedConfig";
 
@@ -15,7 +15,8 @@ export class RESTClient {
   constructor(conf: BusybeeParsedConfig, suiteEnvConf) {
     this.conf = _.cloneDeep(conf);
     this.suiteEnvConf = _.cloneDeep(suiteEnvConf);
-    this.logger = new Logger(conf, this);
+    const loggerConf = new LoggerConf(this, conf.logLevel, null);
+    this.logger = new Logger(loggerConf);
     const standardRequestOpts = {
       json: true,
       resolveWithFullResponse: true, // don't resolve just the body (request-promise option)

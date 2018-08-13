@@ -21,9 +21,10 @@ module.exports = {
         "stopScript": "envStop.sh",
         "healthcheck": {
           "type": "REST",
-          "retries": 30,
+          "retries": 10,
           "request": {
-            "path": "/200",
+            "method": "POST",
+            "path": "/user",
             "port": 7777,
             "timeout": 5000
           }

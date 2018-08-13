@@ -9,6 +9,7 @@ var ParsedTestSetConfig = /** @class */ (function () {
         this.tests = [];
         this.testsUnordered = [];
         this.variableExports = {};
+        this.assertion = testSetConfig.assertion;
     }
     return ParsedTestSetConfig;
 }());

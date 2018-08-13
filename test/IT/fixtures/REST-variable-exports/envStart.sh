@@ -7,6 +7,8 @@ BUSYBEE_DIR=$(echo "$1" | jq -r ".busybeeDir")
 ###
 # spin up mock REST server in the background
 ###
+#exec 3< <(mockserver -p $API_PORT -m "${BUSYBEE_DIR}"/mock-responses)
 mockserver -p $API_PORT -m "${BUSYBEE_DIR}"/mock-responses &
 MOCK_SERVER_PID=$!
+
 echo "BUSYBEE_RETURN ${MOCK_SERVER_PID}"
