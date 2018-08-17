@@ -1,5 +1,6 @@
 import {KeyIdentifier} from "./KeyIdentifier";
 import * as _ from 'lodash';
+import { Logger } from 'busybee-util';
 
 /*
  Will only check that the collections specified are equal. Any child collections are ignored during the equality check.
@@ -77,7 +78,7 @@ import * as _ from 'lodash';
  */
 export class UnorderedCollections {
 
-  static process(config: any, expected: any, actual: any) {
+  static process(config: any, expected: any, actual: any, logger:Logger = null) {
     KeyIdentifier.process(config, expected, actual, (currentKey, _expected, _actual) => {
       // compare the 2 collections
       let expectedCol;

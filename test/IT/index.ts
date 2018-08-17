@@ -27,7 +27,7 @@ test.serial(`REST happy path`, (t) => {
   return new Promise((resolve, reject) => {
     let returned = false;
     const testCmd = spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-happy-path')]);
-    const expected = [{"testSets":[{"pass":true,"id":"ts1","tests":[{"pass":true,"id":"body assertion","status":{"pass":true,"actual":200},"headers":{"pass":true,"actual":[{"content-type":"application/json"},{"date":"Wed, 04 Jul 2018 15:15:16 GMT"},{"connection":"close"},{"transfer-encoding":"chunked"}],"expected":[]},"body":{"pass":true,"actual":{"hello":"world","object":{"1":"2","arr":[1,3,4],"nested":{"im":"nested","arr":[1,2,3,4]}},"arr":[1,2,3]}},"request":{"json":true,"method":"GET","url":"http://localhost:7777/body-assertion","timeout":30000,"resolveWithFullResponse":true,"simple":false}},{"pass":true,"id":"status assertion","status":{"pass":true,"actual":404},"headers":{"pass":true,"actual":[{"content-type":"application/json"},{"date":"Wed, 04 Jul 2018 15:15:16 GMT"},{"connection":"close"},{"transfer-encoding":"chunked"}],"expected":[]},"body":{"pass":true},"request":{"json":true,"method":"GET","url":"http://localhost:7777/status-assertion","timeout":30000,"resolveWithFullResponse":true,"simple":false}}]}],"pass":true,"type":"REST","id":"REST Happy Path"}];
+    const expected = [{"testSets":[{"pass":true,"id":"ts1","tests":[{"pass":true,"id":"body assertion","body":{"pass":true,"actual":{"hello":"world","object":{"1":"2","arr":[1,3,4],"nested":{"im":"nested","arr":[1,2,3,4]}},"arr":[1,2,3]}},"request":{"json":true,"resolveWithFullResponse":true,"simple":false,"method":"GET","url":"http://localhost:7777/body-assertion","timeout":30000}},{"pass":true,"id":"status assertion","status":{"pass":true,"actual":404},"request":{"json":true,"resolveWithFullResponse":true,"simple":false,"method":"GET","url":"http://localhost:7777/status-assertion","timeout":30000}}]}],"pass":true,"type":"REST","id":"REST Happy Path"}];
     let actual;
 
     testCmd.stdout.on('data', (data) => {
@@ -52,7 +52,6 @@ test.serial(`REST happy path`, (t) => {
       if (!returned) {
         returned = true;
         // remove the nested 'date' property from actual/expected since this will be different each run
-        IgnoreKeys.process(['*.testSets.tests.headers.actual.date'], expected, actual);
         t.deepEqual(actual, expected);
         resolve();
       }
@@ -213,12 +212,12 @@ test(`REST mock mode`, async (t) => {
 });
 
 test(`REST variable exports`, async (t) => {
-  const loggerConf = new LoggerConf(loggerClazz, 'DEBUG', t.log.bind(t));
+  const loggerConf = new LoggerConf(loggerClazz, process.env.LOG_LEVEL, t.log.bind(t));
   const logger = new Logger(loggerConf);
   const expected = ['Test Passed?: true'];
 
-  const childEnv = Object.assign({}, process.env, {LOG_LEVEL: 'TRACE'});
-  const testCmd = spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-variable-exports')], {env: childEnv});
+  //const childEnv = Object.assign({}, process.env, {LOG_LEVEL: 'TRACE'});
+  const testCmd = spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-variable-exports')]);
 
   let result = await ITUtil.expectInOrder(testCmd, expected, t, false, logger);
   t.is(result.length, 0);

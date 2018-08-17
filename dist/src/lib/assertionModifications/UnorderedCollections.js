@@ -79,7 +79,8 @@ var _ = require("lodash");
 var UnorderedCollections = /** @class */ (function () {
     function UnorderedCollections() {
     }
-    UnorderedCollections.process = function (config, expected, actual) {
+    UnorderedCollections.process = function (config, expected, actual, logger) {
+        if (logger === void 0) { logger = null; }
         KeyIdentifier_1.KeyIdentifier.process(config, expected, actual, function (currentKey, _expected, _actual) {
             // compare the 2 collections
             var expectedCol;

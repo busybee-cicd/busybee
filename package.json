@@ -50,9 +50,9 @@
     "start": "node ./dist/src/index.js",
     "docs": "typedoc --module commonjs --readme configuration.md --out docs/ src/models/RESTTest.ts src/models/config/BusybeeUserConfig.ts && touch docs/.nojekyll",
     "remoteIT": "node --inspect-brk=9222 ./dist/src/index.js mock -t 'CR Services IT' -d /Users/simontownsend/dev/config-reviewer/config-reviewer-it-api/busybee",
-    "IT": "npm run build && ava test/IT/index.js --verbose",
+    "IT": "npm run build && ava test/IT/index.js !dist/test/unit/util/**/*.js --verbose",
     "ITDebug": "export LOG_LEVEL=DEBUG && npm run build && ava test/IT/index.js --verbose && unset LOG_LEVEL",
-    "test": "npm run build && ava dist/test/**/*.js --verbose",
+    "test": "npm run build && ava dist/test/unit/**/*.js !dist/test/unit/util/**/*.js --verbose",
     "debugSingleTest": "node --interactive --inspect-brk node_modules/ava/profile.js dist/test/**/unorderedCollectionsTest.js"
   },
   "watch": {

@@ -314,8 +314,6 @@ export class RESTSuiteManager {
 
     if (test.expect.body) {
       testResult.body = new RESTTestPartResult();
-      // actual and expected should return the original info, not mutated by assertionModifications
-      testResult.body.actual = _.cloneDeep(res.body); // original returned body is never mutated
       let bodyPass = true;
       let customFnErr = null;
 
@@ -324,6 +322,7 @@ export class RESTSuiteManager {
       //  Run Assertions
       ///////////////////////////
 
+      let actual = _.cloneDeep(res.body);
       let expected;
       try {
         //  Assertion Modifications
@@ -339,7 +338,7 @@ export class RESTSuiteManager {
            Ultimately, when the assertions are run the 'expected' object set here will not
            be used and instead 'test.expect.body(actual)' will be evaluated.
            */
-          expected = _.cloneDeep(testResult.body.actual);
+          expected = _.cloneDeep(actual);
         } else {
           expected = _.cloneDeep(test.expect.body);
         }
@@ -348,7 +347,7 @@ export class RESTSuiteManager {
           testResult.assertionModifications = test.expect.assertionModifications;
 
           if (test.expect.assertionModifications.ignoreKeys) {
-            IgnoreKeys.process(test.expect.assertionModifications.ignoreKeys, expected, testResult.body.actual);
+            IgnoreKeys.process(test.expect.assertionModifications.ignoreKeys, expected, actual, this.logger);
           }
 
           if (test.expect.assertionModifications.unorderedCollections) {
@@ -367,7 +366,7 @@ export class RESTSuiteManager {
              We must do a first pass where we work from the outside -> in. We just check for equality while ignoring nested collections.
              On a second pass we remove the collections so that they don't appear in the body-assertion steps below
              */
-            UnorderedCollections.process(test.expect.assertionModifications.unorderedCollections, expected, testResult.body.actual);
+            UnorderedCollections.process(test.expect.assertionModifications.unorderedCollections, expected, actual);
           }
         }
         // /End Assertion Modifications
@@ -378,7 +377,7 @@ export class RESTSuiteManager {
         // Run Custom Function Assertion OR basic Pojo comparision
         if (_.isFunction(test.expect.body)) {
           // if the test has a custom function for assertion, run it.
-          let bodyResult = test.expect.body(testResult.body.actual, testSet.variableExports);
+          let bodyResult = test.expect.body(actual, testSet.variableExports);
           if (bodyResult === false) {
             bodyPass = false;
           } // else we pass it. ie) it doesn't return anything we assume it passed.
@@ -388,7 +387,7 @@ export class RESTSuiteManager {
             this.replaceVarsInObject(expected, testSet.variableExports);
           }
           // assert the body against the provided pojo body
-          bodyPass = _.isEqual(expected, testResult.body.actual);
+          bodyPass = _.isEqual(expected, actual);
         }
       } catch (e) {
         bodyPass = false;
@@ -399,6 +398,7 @@ export class RESTSuiteManager {
         };
       }
 
+      testResult.body.actual = actual;
       if (!bodyPass) {
         testResult.pass = false;
         testResult.body.pass = false;
