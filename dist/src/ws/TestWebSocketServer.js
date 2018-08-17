@@ -20,7 +20,7 @@ var TestWebSocketServer = /** @class */ (function (_super) {
         _this.envManager = envManager;
         var loggerConf = new busybee_util_1.LoggerConf(_this, conf.logLevel, null);
         _this.logger = new busybee_util_1.Logger(loggerConf);
-        setInterval(_this.emitStatus.bind(_this), 5000);
+        setInterval(_this.emitStatus.bind(_this), 1000);
         return _this;
     }
     TestWebSocketServer.prototype.emitStatus = function () {

@@ -272,6 +272,7 @@ export class RESTSuiteManager {
     let testResult = new RESTTestResult(test.id);
 
     if (test.expect.status) {
+      testResult.status = new RESTTestPartResult();
       let statusPass = res.statusCode == test.expect.status;
       testResult.status.actual = res.statusCode;
 
@@ -280,12 +281,14 @@ export class RESTSuiteManager {
         testResult.status.pass = false;
         testResult.status.expected = test.expect.status;
       }
-    } else {
-      // return the actual status by default
-      testResult.status.actual = res.statusCode;
     }
+    // else {
+    //   // return the actual status by default
+    //   testResult.status.actual = res.statusCode;
+    // }
 
     if (test.expect.headers) {
+      testResult.headers = new RESTTestHeaderResult();
       _.forEach(test.expect.headers, (v, headerName) => {
         if (res.headers[headerName] != v) {
           testResult.pass = false;
@@ -299,16 +302,18 @@ export class RESTSuiteManager {
         expected[headerName] = v;
         testResult.headers.expected.push(expected);
       });
-    } else {
-      // return the actual headers by default
-      _.forEach(res.headers, (v, headerName) => {
-        let actual = {};
-        actual[headerName] = v;
-        testResult.headers.actual.push(actual);
-      });
     }
+    // else {
+    //   // return the actual headers by default
+    //   _.forEach(res.headers, (v, headerName) => {
+    //     let actual = {};
+    //     actual[headerName] = v;
+    //     testResult.headers.actual.push(actual);
+    //   });
+    // }
 
     if (test.expect.body) {
+      testResult.body = new RESTTestPartResult();
       let bodyPass = true;
       let customFnErr = null;
 
@@ -342,7 +347,7 @@ export class RESTSuiteManager {
           testResult.assertionModifications = test.expect.assertionModifications;
 
           if (test.expect.assertionModifications.ignoreKeys) {
-            IgnoreKeys.process(test.expect.assertionModifications.ignoreKeys, expected, actual);
+            IgnoreKeys.process(test.expect.assertionModifications.ignoreKeys, expected, actual, this.logger);
           }
 
           if (test.expect.assertionModifications.unorderedCollections) {
@@ -393,8 +398,7 @@ export class RESTSuiteManager {
         };
       }
 
-      // actual and expected should return the original info, not mutated by assertionModifications
-      testResult.body.actual = actual; // original returned body is never mutated
+      testResult.body.actual = actual;
       if (!bodyPass) {
         testResult.pass = false;
         testResult.body.pass = false;
@@ -403,10 +407,11 @@ export class RESTSuiteManager {
           testResult.body.error = customFnErr;
         }
       }
-    } else {
-      // just return the body that was returned and consider it a pass
-      testResult.body.actual = _.cloneDeep(res.body);
     }
+    // else {
+    //   // just return the body that was returned and consider it a pass
+    //   testResult.body.actual = _.cloneDeep(res.body);
+    // }
 
     // attach the request info for reporting purposes
     testResult.request = reqOpts;

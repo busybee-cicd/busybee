@@ -254,7 +254,7 @@ async function initTests(conf: BusybeeParsedConfig) {
       testManager.getTestWebSockerServer().emitResult({
         runId: envManager.getRunId(),
         runTimestamp: envManager.getRunTimestamp(),
-        results: suiteResultsList
+        data: suiteResultsList
       });
     }
 

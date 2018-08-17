@@ -2,7 +2,7 @@ export class RESTTestHeaderResult {
 
   pass: boolean;
   actual: any[];
-  expected: any[];
+  expected: any[] | undefined;
 
   constructor() {
     this.pass = true;

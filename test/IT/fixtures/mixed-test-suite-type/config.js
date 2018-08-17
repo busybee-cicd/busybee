@@ -9,7 +9,7 @@ module.exports = {
   "onComplete": "onComplete.js",
   "testSuites" : [
     {
-      "id": "REST Happy Path",
+      "id": "REST TestSuite",
       "skip": false,
       "protocol": "http",
       "ports": [7777],
@@ -31,7 +31,7 @@ module.exports = {
       },
       "envInstances": [
         {
-          "id": "Env 1",
+          "id": "REST Env 1",
           "testSets": [
             {
               "id": "ts1"
@@ -39,7 +39,7 @@ module.exports = {
           ]
         },
         {
-          "id": "Env 2",
+          "id": "REST Env 2",
           "testSets": [
             {
               "id": "ts1"
@@ -47,7 +47,7 @@ module.exports = {
           ]
         },
         {
-          "id": "Env 3",
+          "id": "REST Env 3",
           "testSets": [
             {
               "id": "ts1"
@@ -55,7 +55,7 @@ module.exports = {
           ]
         },
         {
-          "id": "Env 4",
+          "id": "REST Env 4",
           "testSets": [
             {
               "id": "ts1"
@@ -65,7 +65,7 @@ module.exports = {
       ]
     },
     {
-      "id": "USER_PROVIDED Happy Path",
+      "id": "USER_PROVIDED TestSuite",
       "type": "USER_PROVIDED",
       "protocol": "http",
       "ports": [7777],
@@ -77,7 +77,7 @@ module.exports = {
       },
       "envInstances": [
         {
-          "id": "Env 1",
+          "id": "USER_PROVIDED Env 1",
           "startData": {
             "message": "startData is neat"
           },
@@ -100,7 +100,7 @@ module.exports = {
           ]
         },
         {
-          "id": "Env 2",
+          "id": "USER_PROVIDED Env 2",
           "startData": {
             "message": "startData is still neat"
           },
