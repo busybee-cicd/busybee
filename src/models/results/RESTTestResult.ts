@@ -15,9 +15,9 @@ export class RESTTestResult {
   constructor(id: string) {
     this.pass = true;
     this.id = id;
-    this.status = new RESTTestPartResult();
-    this.headers = new RESTTestHeaderResult();
-    this.body = new RESTTestPartResult();
+    this.status;
+    this.headers;
+    this.body;
   }
 
 }

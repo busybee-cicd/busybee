@@ -46,7 +46,7 @@
   },
   "scripts": {
     "build": "tsc && tsc -p test/IT",
-    "watch": "npm-watch build",
+    "dev": "npm-watch build",
     "start": "node ./dist/src/index.js",
     "docs": "typedoc --module commonjs --readme configuration.md --out docs/ src/models/RESTTest.ts src/models/config/BusybeeUserConfig.ts && touch docs/.nojekyll",
     "remoteIT": "node --inspect-brk=9222 ./dist/src/index.js mock -t 'CR Services IT' -d /Users/simontownsend/dev/config-reviewer/config-reviewer-it-api/busybee",

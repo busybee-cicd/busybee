@@ -279,7 +279,7 @@ function initTests(conf) {
                         testManager.getTestWebSockerServer().emitResult({
                             runId: envManager.getRunId(),
                             runTimestamp: envManager.getRunTimestamp(),
-                            results: suiteResultsList_1
+                            data: suiteResultsList_1
                         });
                     }
                     process.exit();

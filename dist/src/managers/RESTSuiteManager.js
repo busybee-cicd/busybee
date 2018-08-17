@@ -42,6 +42,8 @@ var RESTClient_1 = require("../lib/RESTClient");
 var TestSetResult_1 = require("../models/results/TestSetResult");
 var IgnoreKeys_1 = require("../lib/assertionModifications/IgnoreKeys");
 var UnorderedCollections_1 = require("../lib/assertionModifications/UnorderedCollections");
+var RESTTestPartResult_1 = require("../models/results/RESTTestPartResult");
+var RESTTestHeaderResult_1 = require("../models/results/RESTTestHeaderResult");
 var RESTTestResult_1 = require("../models/results/RESTTestResult");
 // support JSON.stringify on Error objects
 if (!('toJSON' in Error.prototype))
@@ -289,6 +291,7 @@ var RESTSuiteManager = /** @class */ (function () {
         // validate results
         var testResult = new RESTTestResult_1.RESTTestResult(test.id);
         if (test.expect.status) {
+            testResult.status = new RESTTestPartResult_1.RESTTestPartResult();
             var statusPass = res.statusCode == test.expect.status;
             testResult.status.actual = res.statusCode;
             if (!statusPass) {
@@ -297,11 +300,12 @@ var RESTSuiteManager = /** @class */ (function () {
                 testResult.status.expected = test.expect.status;
             }
         }
-        else {
-            // return the actual status by default
-            testResult.status.actual = res.statusCode;
-        }
+        // else {
+        //   // return the actual status by default
+        //   testResult.status.actual = res.statusCode;
+        // }
         if (test.expect.headers) {
+            testResult.headers = new RESTTestHeaderResult_1.RESTTestHeaderResult();
             _.forEach(test.expect.headers, function (v, headerName) {
                 if (res.headers[headerName] != v) {
                     testResult.pass = false;
@@ -315,21 +319,23 @@ var RESTSuiteManager = /** @class */ (function () {
                 testResult.headers.expected.push(expected);
             });
         }
-        else {
-            // return the actual headers by default
-            _.forEach(res.headers, function (v, headerName) {
-                var actual = {};
-                actual[headerName] = v;
-                testResult.headers.actual.push(actual);
-            });
-        }
+        // else {
+        //   // return the actual headers by default
+        //   _.forEach(res.headers, (v, headerName) => {
+        //     let actual = {};
+        //     actual[headerName] = v;
+        //     testResult.headers.actual.push(actual);
+        //   });
+        // }
         if (test.expect.body) {
+            testResult.body = new RESTTestPartResult_1.RESTTestPartResult();
+            // actual and expected should return the original info, not mutated by assertionModifications
+            testResult.body.actual = _.cloneDeep(res.body); // original returned body is never mutated
             var bodyPass = true;
             var customFnErr = null;
             ///////////////////////////
             //  Run Assertions
             ///////////////////////////
-            var actual = _.cloneDeep(res.body);
             var expected = void 0;
             try {
                 //  Assertion Modifications
@@ -344,7 +350,7 @@ var RESTSuiteManager = /** @class */ (function () {
                      Ultimately, when the assertions are run the 'expected' object set here will not
                      be used and instead 'test.expect.body(actual)' will be evaluated.
                      */
-                    expected = _.cloneDeep(actual);
+                    expected = _.cloneDeep(testResult.body.actual);
                 }
                 else {
                     expected = _.cloneDeep(test.expect.body);
@@ -352,7 +358,7 @@ var RESTSuiteManager = /** @class */ (function () {
                 if (test.expect.assertionModifications) {
                     testResult.assertionModifications = test.expect.assertionModifications;
                     if (test.expect.assertionModifications.ignoreKeys) {
-                        IgnoreKeys_1.IgnoreKeys.process(test.expect.assertionModifications.ignoreKeys, expected, actual);
+                        IgnoreKeys_1.IgnoreKeys.process(test.expect.assertionModifications.ignoreKeys, expected, testResult.body.actual);
                     }
                     if (test.expect.assertionModifications.unorderedCollections) {
                         this.logger.debug("Processing UnorderedCollections");
@@ -370,7 +376,7 @@ var RESTSuiteManager = /** @class */ (function () {
                          We must do a first pass where we work from the outside -> in. We just check for equality while ignoring nested collections.
                          On a second pass we remove the collections so that they don't appear in the body-assertion steps below
                          */
-                        UnorderedCollections_1.UnorderedCollections.process(test.expect.assertionModifications.unorderedCollections, expected, actual);
+                        UnorderedCollections_1.UnorderedCollections.process(test.expect.assertionModifications.unorderedCollections, expected, testResult.body.actual);
                     }
                 }
                 // /End Assertion Modifications
@@ -379,7 +385,7 @@ var RESTSuiteManager = /** @class */ (function () {
                 // Run Custom Function Assertion OR basic Pojo comparision
                 if (_.isFunction(test.expect.body)) {
                     // if the test has a custom function for assertion, run it.
-                    var bodyResult = test.expect.body(actual, testSet.variableExports);
+                    var bodyResult = test.expect.body(testResult.body.actual, testSet.variableExports);
                     if (bodyResult === false) {
                         bodyPass = false;
                     } // else we pass it. ie) it doesn't return anything we assume it passed.
@@ -390,7 +396,7 @@ var RESTSuiteManager = /** @class */ (function () {
                         this.replaceVarsInObject(expected, testSet.variableExports);
                     }
                     // assert the body against the provided pojo body
-                    bodyPass = _.isEqual(expected, actual);
+                    bodyPass = _.isEqual(expected, testResult.body.actual);
                 }
             }
             catch (e) {
@@ -401,8 +407,6 @@ var RESTSuiteManager = /** @class */ (function () {
                     stack: e.stack
                 };
             }
-            // actual and expected should return the original info, not mutated by assertionModifications
-            testResult.body.actual = actual; // original returned body is never mutated
             if (!bodyPass) {
                 testResult.pass = false;
                 testResult.body.pass = false;
@@ -412,10 +416,10 @@ var RESTSuiteManager = /** @class */ (function () {
                 }
             }
         }
-        else {
-            // just return the body that was returned and consider it a pass
-            testResult.body.actual = _.cloneDeep(res.body);
-        }
+        // else {
+        //   // just return the body that was returned and consider it a pass
+        //   testResult.body.actual = _.cloneDeep(res.body);
+        // }
         // attach the request info for reporting purposes
         testResult.request = reqOpts;
         cb(null, testResult);
