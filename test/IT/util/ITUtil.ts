@@ -4,6 +4,37 @@ import { Logger, IOUtil } from 'busybee-util';
 
 export class ITUtil {
 
+  static getResult(childProc: ChildProcess, logger = null): Promise<any> {
+    return new Promise((resolve, reject) => {
+      let returned = false;
+
+      childProc.stdout.on('data', (data) => {
+        let lines = IOUtil.parseDataBuffer(data);
+        lines.forEach((l) => {
+          if (l.startsWith('RESULTS:')) {
+            resolve(JSON.parse(l.replace('RESULTS: ', '')));
+          }
+        })
+      });
+
+      childProc.stderr.on('data', (data) => {
+        if (!returned) {
+          returned = true;
+          childProc.kill('SIGHUP');
+          reject();
+        }
+      });
+
+      childProc.on('close', () => {
+        if (!returned) {
+          returned = true;
+          // remove the nested 'date' property from actual/expected since this will be different each run
+          resolve();
+        }
+      });
+    });
+  }
+
   /**
    * looks for occurrences of strings in a stdout stream of a child process
    * when given an assertions object {stringToFind: numberOfOccurrences}

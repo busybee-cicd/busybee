@@ -4,6 +4,34 @@ var busybee_util_1 = require("busybee-util");
 var ITUtil = /** @class */ (function () {
     function ITUtil() {
     }
+    ITUtil.getResult = function (childProc, logger) {
+        if (logger === void 0) { logger = null; }
+        return new Promise(function (resolve, reject) {
+            var returned = false;
+            childProc.stdout.on('data', function (data) {
+                var lines = busybee_util_1.IOUtil.parseDataBuffer(data);
+                lines.forEach(function (l) {
+                    if (l.startsWith('RESULTS:')) {
+                        resolve(JSON.parse(l.replace('RESULTS: ', '')));
+                    }
+                });
+            });
+            childProc.stderr.on('data', function (data) {
+                if (!returned) {
+                    returned = true;
+                    childProc.kill('SIGHUP');
+                    reject();
+                }
+            });
+            childProc.on('close', function () {
+                if (!returned) {
+                    returned = true;
+                    // remove the nested 'date' property from actual/expected since this will be different each run
+                    resolve();
+                }
+            });
+        });
+    };
     /**
      * looks for occurrences of strings in a stdout stream of a child process
      * when given an assertions object {stringToFind: numberOfOccurrences}
