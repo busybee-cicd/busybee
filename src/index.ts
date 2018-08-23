@@ -15,6 +15,8 @@ import {MockServer} from './lib/MockServer';
 import {Logger, LoggerConf} from 'busybee-util';
 import {EnvResult} from './models/results/EnvResult';
 import {TestSuiteResult} from './models/results/TestSuiteResult';
+import {BusybeeTestResults} from './ws/TestWebSocketServer';
+
 let logger;
 const ONE_SECOND = 1000;
 const ONE_MINUTE = ONE_SECOND * 60;
@@ -175,7 +177,7 @@ async function initTests(conf: BusybeeParsedConfig) {
     shutdown(null);
   });
 
-  testManager.executeTestSuiteTasks();
+  testManager.buildTestSuiteTasksPromises();
 
   // run the api tests
   // TODO: allow ordering of TestSuites and TestEnvs
@@ -217,6 +219,11 @@ async function initTests(conf: BusybeeParsedConfig) {
 
     // for easier parsing lets return each suite as its own object in a list
     let suiteResultsList = [..._.values(suiteResults)];
+    const busybeeTestResults = {
+      runId: envManager.getRunId(),
+      runTimestamp: envManager.getRunTimestamp(),
+      data: suiteResultsList
+    };
 
     if (conf.reporters && !_.isEmpty(conf.reporters)) {
       logger.info('Running Reporters');
@@ -228,7 +235,7 @@ async function initTests(conf: BusybeeParsedConfig) {
             }
           }
 
-          r.run(suiteResultsList)
+          r.run(busybeeTestResults)
         } catch (e) {
           logger.error('Error encountered while running reporter');
           logger.error(e);
@@ -241,21 +248,17 @@ async function initTests(conf: BusybeeParsedConfig) {
 
       try {
         logger.info(`Running onComplete: ${scriptPath}`);
-        require(scriptPath)(null, suiteResultsList);
+        require(scriptPath)(null, busybeeTestResults);
       } catch (e) {
         logger.error(e);
       }
     } else {
-      logger.trace(suiteResultsList);
+      logger.trace(busybeeTestResults);
       logger.info(formatElapsed(start, end));
     }
 
     if (conf.webSocketPort) {
-      testManager.getTestWebSockerServer().emitResult({
-        runId: envManager.getRunId(),
-        runTimestamp: envManager.getRunTimestamp(),
-        data: suiteResultsList
-      });
+      testManager.getTestWebSockerServer().emitResult(busybeeTestResults);
     }
 
     process.exit();

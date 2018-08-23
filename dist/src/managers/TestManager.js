@@ -56,7 +56,7 @@ var TestManager = /** @class */ (function () {
             this.wsServer = new TestWebSocketServer_1.TestWebSocketServer(wsConf, this.envManager);
         }
     }
-    TestManager.prototype.executeTestSuiteTasks = function () {
+    TestManager.prototype.buildTestSuiteTasksPromises = function () {
         var _this = this;
         this.logger.trace('buildTestSuiteTasks');
         var conf = this.conf;

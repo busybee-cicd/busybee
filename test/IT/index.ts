@@ -27,7 +27,7 @@ test.serial(`REST happy path`, (t) => {
   return new Promise((resolve, reject) => {
     let returned = false;
     const testCmd = spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-happy-path')]);
-    const expected = [{"testSets":[{"pass":true,"id":"ts1","tests":[{"pass":true,"id":"body assertion","body":{"pass":true,"actual":{"hello":"world","object":{"1":"2","arr":[1,3,4],"nested":{"im":"nested","arr":[1,2,3,4]}},"arr":[1,2,3]}},"request":{"json":true,"resolveWithFullResponse":true,"simple":false,"method":"GET","url":"http://localhost:7777/body-assertion","timeout":30000}},{"pass":true,"id":"status assertion","status":{"pass":true,"actual":404},"request":{"json":true,"resolveWithFullResponse":true,"simple":false,"method":"GET","url":"http://localhost:7777/status-assertion","timeout":30000}}]}],"pass":true,"type":"REST","id":"REST Happy Path"}];
+    const expected = {"runId":"82148fd0-a709-11e8-9c57-3b02ed94a9b8","runTimestamp":1535051991373,"data":[{"testSets":[{"pass":true,"id":"ts1","tests":[{"pass":true,"id":"body assertion","body":{"pass":true,"actual":{"hello":"world","object":{"1":"2","arr":[1,3,4],"nested":{"im":"nested","arr":[1,2,3,4]}},"arr":[1,2,3]}},"request":{"json":true,"resolveWithFullResponse":true,"simple":false,"method":"GET","url":"http://localhost:7777/body-assertion","timeout":30000}},{"pass":true,"id":"status assertion","status":{"pass":true,"actual":404},"request":{"json":true,"resolveWithFullResponse":true,"simple":false,"method":"GET","url":"http://localhost:7777/status-assertion","timeout":30000}}]}],"pass":true,"type":"REST","id":"REST Happy Path"}]};
     let actual;
 
     testCmd.stdout.on('data', (data) => {
@@ -52,7 +52,7 @@ test.serial(`REST happy path`, (t) => {
       if (!returned) {
         returned = true;
         // remove the nested 'date' property from actual/expected since this will be different each run
-        t.deepEqual(actual, expected);
+        t.deepEqual(actual.data, expected.data);
         resolve();
       }
     });
@@ -156,11 +156,10 @@ test(`USER_PROVIDED happy path`, async (t) => {
   const expected = [
     'DEBUG:EnvManager: startData is neat',
     'DEBUG:EnvManager: runData rules',
-    'DEBUG:EnvManager: stopData is also neat',
-    'RESULTS: [{"testSets":[{"id":"ts1","pass":true}],"pass":true,"type":"USER_PROVIDED","id":"USER_PROVIDED Happy Path"}]'
+    'DEBUG:EnvManager: stopData is also neat'
   ];
+  const result = await ITUtil.expectInOrder(testCmd, expected, t, false, logger);
 
-  let result = await ITUtil.expectInOrder(testCmd, expected, t, false, logger);
   t.is(result.length, 0);
 });
 

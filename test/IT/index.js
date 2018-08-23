@@ -62,7 +62,7 @@ ava_1.default.serial("REST happy path", function (t) {
     return new Promise(function (resolve, reject) {
         var returned = false;
         var testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-happy-path')]);
-        var expected = [{ "testSets": [{ "pass": true, "id": "ts1", "tests": [{ "pass": true, "id": "body assertion", "body": { "pass": true, "actual": { "hello": "world", "object": { "1": "2", "arr": [1, 3, 4], "nested": { "im": "nested", "arr": [1, 2, 3, 4] } }, "arr": [1, 2, 3] } }, "request": { "json": true, "resolveWithFullResponse": true, "simple": false, "method": "GET", "url": "http://localhost:7777/body-assertion", "timeout": 30000 } }, { "pass": true, "id": "status assertion", "status": { "pass": true, "actual": 404 }, "request": { "json": true, "resolveWithFullResponse": true, "simple": false, "method": "GET", "url": "http://localhost:7777/status-assertion", "timeout": 30000 } }] }], "pass": true, "type": "REST", "id": "REST Happy Path" }];
+        var expected = { "runId": "82148fd0-a709-11e8-9c57-3b02ed94a9b8", "runTimestamp": 1535051991373, "data": [{ "testSets": [{ "pass": true, "id": "ts1", "tests": [{ "pass": true, "id": "body assertion", "body": { "pass": true, "actual": { "hello": "world", "object": { "1": "2", "arr": [1, 3, 4], "nested": { "im": "nested", "arr": [1, 2, 3, 4] } }, "arr": [1, 2, 3] } }, "request": { "json": true, "resolveWithFullResponse": true, "simple": false, "method": "GET", "url": "http://localhost:7777/body-assertion", "timeout": 30000 } }, { "pass": true, "id": "status assertion", "status": { "pass": true, "actual": 404 }, "request": { "json": true, "resolveWithFullResponse": true, "simple": false, "method": "GET", "url": "http://localhost:7777/status-assertion", "timeout": 30000 } }] }], "pass": true, "type": "REST", "id": "REST Happy Path" }] };
         var actual;
         testCmd.stdout.on('data', function (data) {
             var lines = busybee_util_1.IOUtil.parseDataBuffer(data);
@@ -84,7 +84,7 @@ ava_1.default.serial("REST happy path", function (t) {
             if (!returned) {
                 returned = true;
                 // remove the nested 'date' property from actual/expected since this will be different each run
-                t.deepEqual(actual, expected);
+                t.deepEqual(actual.data, expected.data);
                 resolve();
             }
         });
@@ -216,8 +216,7 @@ ava_1.default("USER_PROVIDED happy path", function (t) { return __awaiter(_this,
                 expected = [
                     'DEBUG:EnvManager: startData is neat',
                     'DEBUG:EnvManager: runData rules',
-                    'DEBUG:EnvManager: stopData is also neat',
-                    'RESULTS: [{"testSets":[{"id":"ts1","pass":true}],"pass":true,"type":"USER_PROVIDED","id":"USER_PROVIDED Happy Path"}]'
+                    'DEBUG:EnvManager: stopData is also neat'
                 ];
                 return [4 /*yield*/, ITUtil_1.ITUtil.expectInOrder(testCmd, expected, t, false, logger)];
             case 1:
@@ -283,7 +282,7 @@ ava_1.default("REST mock mode", function (t) { return __awaiter(_this, void 0, v
         }
     });
 }); });
-ava_1.default("REST variable exports", function (t) { return __awaiter(_this, void 0, void 0, function () {
+ava_1.default.only("REST variable exports", function (t) { return __awaiter(_this, void 0, void 0, function () {
     var loggerConf, logger, expected, testCmd, result;
     return __generator(this, function (_a) {
         switch (_a.label) {
