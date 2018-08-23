@@ -39,7 +39,7 @@ export class TestManager {
     }
   }
 
-  executeTestSuiteTasks() {
+  buildTestSuiteTasksPromises() {
     this.logger.trace('buildTestSuiteTasks');
     let conf = this.conf;
     conf.parsedTestSuites.forEach((testSuite: ParsedTestSuite, suiteID: string) => {
@@ -144,7 +144,7 @@ export class TestManager {
       // create a GenericSuiteManager to handle coordinating these tests
       let suiteManager = new GenericSuiteManager(this.conf, currentEnv, this.envManager);
       let testSetResults = await suiteManager.runTestSets(generatedEnvID);
-      
+
       envResult.testSets = testSetResults;
       return envResult;
     }

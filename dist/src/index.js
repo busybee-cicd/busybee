@@ -191,7 +191,7 @@ function initTests(conf) {
                 });
             });
         }
-        var envManager, testManager, envResultsPromises, start, end, envResults, suiteResults_1, suiteResultsList_1, scriptPath, err_1, scriptPath;
+        var envManager, testManager, envResultsPromises, start, end, envResults, suiteResults_1, suiteResultsList, busybeeTestResults_1, scriptPath, err_1, scriptPath;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -206,7 +206,7 @@ function initTests(conf) {
                     process.on('SIGINT', function () {
                         shutdown(null);
                     });
-                    testManager.executeTestSuiteTasks();
+                    testManager.buildTestSuiteTasksPromises();
                     envResultsPromises = [];
                     _.forEach(testManager.testSuiteTasks, function (suiteTask) {
                         suiteTask.envResults.forEach(function (envResultPromise) {
@@ -243,7 +243,12 @@ function initTests(conf) {
                         }
                         ;
                     });
-                    suiteResultsList_1 = _.values(suiteResults_1).slice();
+                    suiteResultsList = _.values(suiteResults_1).slice();
+                    busybeeTestResults_1 = {
+                        runId: envManager.getRunId(),
+                        runTimestamp: envManager.getRunTimestamp(),
+                        data: suiteResultsList
+                    };
                     if (conf.reporters && !_.isEmpty(conf.reporters)) {
                         logger.info('Running Reporters');
                         conf.reporters.forEach(function (r) {
@@ -253,7 +258,7 @@ function initTests(conf) {
                                         return;
                                     }
                                 }
-                                r.run(suiteResultsList_1);
+                                r.run(busybeeTestResults_1);
                             }
                             catch (e) {
                                 logger.error('Error encountered while running reporter');
@@ -265,22 +270,18 @@ function initTests(conf) {
                         scriptPath = conf.onComplete = path.join(conf.filePaths.busybeeDir, conf.onComplete);
                         try {
                             logger.info("Running onComplete: " + scriptPath);
-                            require(scriptPath)(null, suiteResultsList_1);
+                            require(scriptPath)(null, busybeeTestResults_1);
                         }
                         catch (e) {
                             logger.error(e);
                         }
                     }
                     else {
-                        logger.trace(suiteResultsList_1);
+                        logger.trace(busybeeTestResults_1);
                         logger.info(formatElapsed(start, end));
                     }
                     if (conf.webSocketPort) {
-                        testManager.getTestWebSockerServer().emitResult({
-                            runId: envManager.getRunId(),
-                            runTimestamp: envManager.getRunTimestamp(),
-                            data: suiteResultsList_1
-                        });
+                        testManager.getTestWebSockerServer().emitResult(busybeeTestResults_1);
                     }
                     process.exit();
                     return [3 /*break*/, 4];
