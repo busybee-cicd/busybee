@@ -59,7 +59,7 @@ test.serial(`REST happy path`, (t) => {
   });
 });
 
-test(`tests run in order`, async (t) => {
+test.only(`tests run in order`, async (t) => {
   const loggerConf = new LoggerConf(loggerClazz, process.env.LOG_LEVEL, t.log.bind(t));
   const logger = new Logger(loggerConf);
   const testCmd = spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-tests-run-in-order')]);

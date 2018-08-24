@@ -90,7 +90,7 @@ ava_1.default.serial("REST happy path", function (t) {
         });
     });
 });
-ava_1.default("tests run in order", function (t) { return __awaiter(_this, void 0, void 0, function () {
+ava_1.default.only("tests run in order", function (t) { return __awaiter(_this, void 0, void 0, function () {
     var loggerConf, logger, testCmd, expected, result;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -282,7 +282,7 @@ ava_1.default("REST mock mode", function (t) { return __awaiter(_this, void 0, v
         }
     });
 }); });
-ava_1.default.only("REST variable exports", function (t) { return __awaiter(_this, void 0, void 0, function () {
+ava_1.default("REST variable exports", function (t) { return __awaiter(_this, void 0, void 0, function () {
     var loggerConf, logger, expected, testCmd, result;
     return __generator(this, function (_a) {
         switch (_a.label) {
