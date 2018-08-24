@@ -1,5 +1,6 @@
 banzai {
     appName = 'busybee'
+    node = '8.11.4'
     sshCreds = ['sweeney-git-ssh']
     gitCredId = 'sweeney-git'
     gitAccount = 'Busybee'

@@ -402,7 +402,9 @@ export class RESTSuiteManager {
       if (!bodyPass) {
         testResult.pass = false;
         testResult.body.pass = false;
-        testResult.body.expected = expected;
+        if (!_.isFunction(test.expect.body)) {
+          testResult.body.expected = expected;
+        }
         if (customFnErr) {
           testResult.body.error = customFnErr;
         }

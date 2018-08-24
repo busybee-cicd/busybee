@@ -42,7 +42,7 @@ module.exports = {
           "id": "REST Env 2",
           "testSets": [
             {
-              "id": "ts1"
+              "id": "ts2"
             }
           ]
         },
@@ -58,7 +58,7 @@ module.exports = {
           "id": "REST Env 4",
           "testSets": [
             {
-              "id": "ts1"
+              "id": "ts2"
             }
           ]
         }
