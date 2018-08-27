@@ -90,7 +90,7 @@ ava_1.default.serial("REST happy path", function (t) {
         });
     });
 });
-ava_1.default.only("tests run in order", function (t) { return __awaiter(_this, void 0, void 0, function () {
+ava_1.default("tests run in order", function (t) { return __awaiter(_this, void 0, void 0, function () {
     var loggerConf, logger, testCmd, expected, result;
     return __generator(this, function (_a) {
         switch (_a.label) {
