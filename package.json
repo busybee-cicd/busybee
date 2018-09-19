@@ -1,6 +1,6 @@
 {
   "name": "busybee",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "it test coordinator",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -11,7 +11,7 @@
     "async": "^2.5.0",
     "async-parallel": "^1.2.3",
     "body-parser": "^1.17.2",
-    "busybee-util": "git+https://github.build.ge.com/Busybee/busybee-util.git",
+    "busybee-util": "1.0.1",
     "commander": "^2.11.0",
     "deepmerge": "^2.0.1",
     "express": "^4.15.3",
@@ -39,7 +39,7 @@
     "@types/uuid": "^3.4.3",
     "@types/ws": "^5.1.2",
     "ava": "^0.23.0",
-    "busybee-html-reporter": "git+https://github.build.ge.com/Busybee/busybee-html-reporter.git",
+    "busybee-html-reporter": "2.0.5",
     "npm-watch": "^0.3.0",
     "typedoc": "^0.11.1",
     "typescript": "^2.5.2"
@@ -67,7 +67,7 @@
   },
   "author": "Simon Townsend",
   "license": "ISC",
-  "publishConfig":{
-    "registry":"https://devcloud.swcoe.ge.com/artifactory/api/npm/OAMFZ/"
+  "publishConfig": {
+    "registry": "https://devcloud.swcoe.ge.com/artifactory/api/npm/OAMFZ/"
   }
 }
