@@ -360,7 +360,7 @@ export class EnvManager {
       this.logger.debug(args);
       const completeMessage = `${path} completed`;
       let returned = false;
-      const script = spawn('/bin/bash', [path, args]);
+      const script = spawn('/bin/bash', [path, args], {env: process.env});
 
       // listen to stderr for errors and reject
       script.stderr.on('data', (data) => {

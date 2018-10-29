@@ -457,7 +457,7 @@ var EnvManager = /** @class */ (function () {
                 this.logger.debug(args);
                 completeMessage = path + " completed";
                 returned = false;
-                script = child_process_1.spawn('/bin/bash', [path, args]);
+                script = child_process_1.spawn('/bin/bash', [path, args], { env: process.env });
                 // listen to stderr for errors and reject
                 script.stderr.on('data', function (data) {
                     if (returned) {
