@@ -152,9 +152,11 @@ test(`ports in use`, async (t) => {
 test(`USER_PROVIDED happy path`, async (t) => {
   const loggerConf = new LoggerConf(loggerClazz, process.env.LOG_LEVEL, t.log.bind(t));
   const logger = new Logger(loggerConf);
-  const testCmd = spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/USER_PROVIDED-happy-path'), '-D']);
+  const childEnv = Object.assign({}, process.env, {MY_ENV_VAR: 'MY_ENV_VAR Was Passed to run.sh'});
+  const testCmd = spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/USER_PROVIDED-happy-path'), '-D'], {env: childEnv});
   const expected = [
     'DEBUG:EnvManager: startData is neat',
+    'DEBUG:EnvManager: MY_ENV_VAR Was Passed to run.sh',
     'DEBUG:EnvManager: runData rules',
     'DEBUG:EnvManager: stopData is also neat'
   ];

@@ -358,6 +358,8 @@ export class EnvManager {
     return new Promise(async(resolve, reject) => {
       this.logger.info(`runScript ${path} <args>`);
       this.logger.debug(args);
+      this.logger.trace('With process.env');
+      this.logger.trace(process.env);
       const completeMessage = `${path} completed`;
       let returned = false;
       const script = spawn('/bin/bash', [path, args], {env: process.env});

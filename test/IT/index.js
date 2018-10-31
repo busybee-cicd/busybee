@@ -206,15 +206,17 @@ ava_1.default("ports in use", function (t) { return __awaiter(_this, void 0, voi
  *
  */
 ava_1.default("USER_PROVIDED happy path", function (t) { return __awaiter(_this, void 0, void 0, function () {
-    var loggerConf, logger, testCmd, expected, result;
+    var loggerConf, logger, childEnv, testCmd, expected, result;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 loggerConf = new busybee_util_1.LoggerConf(loggerClazz, process.env.LOG_LEVEL, t.log.bind(t));
                 logger = new busybee_util_1.Logger(loggerConf);
-                testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/USER_PROVIDED-happy-path'), '-D']);
+                childEnv = Object.assign({}, process.env, { MY_ENV_VAR: 'MY_ENV_VAR Was Passed to run.sh' });
+                testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/USER_PROVIDED-happy-path'), '-D'], { env: childEnv });
                 expected = [
                     'DEBUG:EnvManager: startData is neat',
+                    'DEBUG:EnvManager: MY_ENV_VAR Was Passed to run.sh',
                     'DEBUG:EnvManager: runData rules',
                     'DEBUG:EnvManager: stopData is also neat'
                 ];

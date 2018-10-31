@@ -455,6 +455,8 @@ var EnvManager = /** @class */ (function () {
             return __generator(this, function (_a) {
                 this.logger.info("runScript " + path + " <args>");
                 this.logger.debug(args);
+                this.logger.trace('With process.env');
+                this.logger.trace(process.env);
                 completeMessage = path + " completed";
                 returned = false;
                 script = child_process_1.spawn('/bin/bash', [path, args], { env: process.env });
