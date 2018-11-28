@@ -231,25 +231,28 @@ var RESTSuiteManager = /** @class */ (function () {
     };
     RESTSuiteManager.prototype.makeRequestWithRetries = function (opts, retries, retryMax) {
         return __awaiter(this, void 0, void 0, function () {
-            var err_2;
+            var response, err_2;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        _a.trys.push([0, 2, , 3]);
+                        _a.trys.push([0, 2, , 6]);
                         return [4 /*yield*/, this.restClient.makeRequest(opts)];
-                    case 1: return [2 /*return*/, _a.sent()];
+                    case 1:
+                        response = _a.sent();
+                        return [2 /*return*/, response];
                     case 2:
                         err_2 = _a.sent();
-                        if (retries > retryMax) {
-                            throw err_2;
-                        }
-                        else {
-                            retries += 1;
-                            this.logger.warn("REST request failed unexpectedly, retry attempt " + retries);
-                            this.makeRequestWithRetries(opts, retries, retryMax);
-                        }
-                        return [3 /*break*/, 3];
-                    case 3: return [2 /*return*/];
+                        if (!(retries > retryMax)) return [3 /*break*/, 3];
+                        throw err_2;
+                    case 3:
+                        retries += 1;
+                        this.logger.warn("REST request failed unexpectedly, retry attempt " + retries);
+                        return [4 /*yield*/, this.makeRequestWithRetries(opts, retries, retryMax)];
+                    case 4:
+                        _a.sent();
+                        _a.label = 5;
+                    case 5: return [3 /*break*/, 6];
+                    case 6: return [2 /*return*/];
                 }
             });
         });
