@@ -154,8 +154,6 @@ export class RESTSuiteManager {
           } else {
             testIndex = testSetConf.index;
           }
-          ;
-
         }
 
 
@@ -170,6 +168,7 @@ export class RESTSuiteManager {
           this.validateTestResult(testSet, test, Object.assign({}, this.restClient.getDefaultRequestOpts(), opts), response, cb);
         } catch (err) {
           this.logger.error(err, true);
+          // TODO: refactor a lot of this testResult building logic for re-use w/ the validation section
           let testResult = new RESTTestResult(test.id);
           testResult.pass = false;
           testResult.body.pass = false;
@@ -178,8 +177,25 @@ export class RESTSuiteManager {
             error: err.message,
             stack: err.stack
           }
-          testResult.headers.pass = false;
-          testResult.status.pass = false;
+          if (test.expect.status) {
+            testResult.status = new RESTTestPartResult();
+            testResult.status.pass = false;
+            testResult.status.expected = test.expect.status;
+          }
+          if (test.expect.headers) {
+            testResult.headers = new RESTTestHeaderResult();
+            testResult.headers.pass = false;
+            _.forEach(test.expect.headers, (v, headerName) => {
+              let expected = {};
+              expected[headerName] = v;
+              testResult.headers.expected.push(expected);
+            });
+          }
+          if (test.expect.body) {
+            testResult.body = new RESTTestPartResult();
+            testResult.body.pass = false;
+            testResult.body.expected = test.expect.body;
+          }
 
           return cb(null, testResult);
         }

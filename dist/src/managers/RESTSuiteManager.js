@@ -150,7 +150,7 @@ var RESTSuiteManager = /** @class */ (function () {
         });
         return _.map(testsWithARequest, function (test) {
             return function (cb) { return __awaiter(_this, void 0, void 0, function () {
-                var port, opts, testIndex, testSetConf, response, err_1, testResult;
+                var port, opts, testIndex, testSetConf, response, err_1, testResult_1;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
@@ -178,7 +178,6 @@ var RESTSuiteManager = /** @class */ (function () {
                                 else {
                                     testIndex = testSetConf.index;
                                 }
-                                ;
                             }
                             this.logger.info(testSet.id + ": " + testIndex + ": " + test.id);
                             if (!test.delayRequest) return [3 /*break*/, 2];
@@ -197,17 +196,34 @@ var RESTSuiteManager = /** @class */ (function () {
                         case 4:
                             err_1 = _a.sent();
                             this.logger.error(err_1, true);
-                            testResult = new RESTTestResult_1.RESTTestResult(test.id);
-                            testResult.pass = false;
-                            testResult.body.pass = false;
-                            testResult.body.error = {
+                            testResult_1 = new RESTTestResult_1.RESTTestResult(test.id);
+                            testResult_1.pass = false;
+                            testResult_1.body.pass = false;
+                            testResult_1.body.error = {
                                 type: 'error during request',
                                 error: err_1.message,
                                 stack: err_1.stack
                             };
-                            testResult.headers.pass = false;
-                            testResult.status.pass = false;
-                            return [2 /*return*/, cb(null, testResult)];
+                            if (test.expect.status) {
+                                testResult_1.status = new RESTTestPartResult_1.RESTTestPartResult();
+                                testResult_1.status.pass = false;
+                                testResult_1.status.expected = test.expect.status;
+                            }
+                            if (test.expect.headers) {
+                                testResult_1.headers = new RESTTestHeaderResult_1.RESTTestHeaderResult();
+                                testResult_1.headers.pass = false;
+                                _.forEach(test.expect.headers, function (v, headerName) {
+                                    var expected = {};
+                                    expected[headerName] = v;
+                                    testResult_1.headers.expected.push(expected);
+                                });
+                            }
+                            if (test.expect.body) {
+                                testResult_1.body = new RESTTestPartResult_1.RESTTestPartResult();
+                                testResult_1.body.pass = false;
+                                testResult_1.body.expected = test.expect.body;
+                            }
+                            return [2 /*return*/, cb(null, testResult_1)];
                         case 5: return [2 /*return*/];
                     }
                 });

@@ -1,6 +1,7 @@
 import {RESTTestHeaderResult} from "./RESTTestHeaderResult";
 import {RESTTestPartResult} from "./RESTTestPartResult";
 import {RESTTestAssertionModifications} from "../RESTTestAssertionModifications";
+import test from "ava";
 
 export class RESTTestResult {
 
