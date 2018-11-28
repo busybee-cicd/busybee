@@ -171,12 +171,6 @@ export class RESTSuiteManager {
           // TODO: refactor a lot of this testResult building logic for re-use w/ the validation section
           let testResult = new RESTTestResult(test.id);
           testResult.pass = false;
-          testResult.body.pass = false;
-          testResult.body.error = {
-            type: 'error during request',
-            error: err.message,
-            stack: err.stack
-          }
           if (test.expect.status) {
             testResult.status = new RESTTestPartResult();
             testResult.status.pass = false;
@@ -195,6 +189,11 @@ export class RESTSuiteManager {
             testResult.body = new RESTTestPartResult();
             testResult.body.pass = false;
             testResult.body.expected = test.expect.body;
+            testResult.body.error = {
+              type: 'error during request',
+              error: err.message,
+              stack: err.stack
+            }
           }
 
           return cb(null, testResult);

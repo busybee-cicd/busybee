@@ -198,12 +198,6 @@ var RESTSuiteManager = /** @class */ (function () {
                             this.logger.error(err_1, true);
                             testResult_1 = new RESTTestResult_1.RESTTestResult(test.id);
                             testResult_1.pass = false;
-                            testResult_1.body.pass = false;
-                            testResult_1.body.error = {
-                                type: 'error during request',
-                                error: err_1.message,
-                                stack: err_1.stack
-                            };
                             if (test.expect.status) {
                                 testResult_1.status = new RESTTestPartResult_1.RESTTestPartResult();
                                 testResult_1.status.pass = false;
@@ -222,6 +216,11 @@ var RESTSuiteManager = /** @class */ (function () {
                                 testResult_1.body = new RESTTestPartResult_1.RESTTestPartResult();
                                 testResult_1.body.pass = false;
                                 testResult_1.body.expected = test.expect.body;
+                                testResult_1.body.error = {
+                                    type: 'error during request',
+                                    error: err_1.message,
+                                    stack: err_1.stack
+                                };
                             }
                             return [2 /*return*/, cb(null, testResult_1)];
                         case 5: return [2 /*return*/];

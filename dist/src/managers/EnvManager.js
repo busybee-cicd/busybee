@@ -802,7 +802,7 @@ var EnvManager = /** @class */ (function () {
                 var attempt_1 = 0;
                 _async.retry({ times: healthcheckConf.retries || 50, interval: opts_1.timeout }, function (asyncCb) {
                     attempt_1 += 1;
-                    _this.logger.info("Attempting " + attempt_1 + " healthcheck for " + generatedEnvID + " on port " + healthcheckPort_1);
+                    _this.logger.info("Attempting healthcheck #" + attempt_1 + " for " + generatedEnvID + " on port " + healthcheckPort_1);
                     _this.logger.debug(opts_1);
                     restClient_1.makeRequest(opts_1)
                         .then(function (response) {
