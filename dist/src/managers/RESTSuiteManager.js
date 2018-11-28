@@ -188,7 +188,7 @@ var RESTSuiteManager = /** @class */ (function () {
                             _a.label = 2;
                         case 2:
                             _a.trys.push([2, 4, , 5]);
-                            return [4 /*yield*/, this.restClient.makeRequest(opts)];
+                            return [4 /*yield*/, this.makeRequestWithRetries(opts, 0, 3)];
                         case 3:
                             response = _a.sent();
                             this.validateTestResult(testSet, test, Object.assign({}, this.restClient.getDefaultRequestOpts(), opts), response, cb);
@@ -222,11 +222,36 @@ var RESTSuiteManager = /** @class */ (function () {
                                     stack: err_1.stack
                                 };
                             }
-                            return [2 /*return*/, cb(null, testResult_1)];
+                            return [3 /*break*/, 5];
                         case 5: return [2 /*return*/];
                     }
                 });
             }); };
+        });
+    };
+    RESTSuiteManager.prototype.makeRequestWithRetries = function (opts, retries, retryMax) {
+        return __awaiter(this, void 0, void 0, function () {
+            var err_2;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, this.restClient.makeRequest(opts)];
+                    case 1: return [2 /*return*/, _a.sent()];
+                    case 2:
+                        err_2 = _a.sent();
+                        if (retries > retryMax) {
+                            throw err_2;
+                        }
+                        else {
+                            retries += 1;
+                            this.logger.warn("REST request failed unexpectedly, retry attempt " + retries);
+                            this.makeRequestWithRetries(opts, retries, retryMax);
+                        }
+                        return [3 /*break*/, 3];
+                    case 3: return [2 /*return*/];
+                }
+            });
         });
     };
     RESTSuiteManager.prototype.wait = function (milliseconds) {

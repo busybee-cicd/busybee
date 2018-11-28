@@ -164,7 +164,7 @@ export class RESTSuiteManager {
         }
 
         try {
-          let response = await this.restClient.makeRequest(opts);
+          let response = await this.makeRequestWithRetries(opts, 0, 3);
           this.validateTestResult(testSet, test, Object.assign({}, this.restClient.getDefaultRequestOpts(), opts), response, cb);
         } catch (err) {
           this.logger.error(err, true);
@@ -195,11 +195,23 @@ export class RESTSuiteManager {
               stack: err.stack
             }
           }
-
-          return cb(null, testResult);
         }
       };
     });
+  }
+
+  async makeRequestWithRetries(opts, retries, retryMax) {
+    try {
+      return await this.restClient.makeRequest(opts);
+    } catch (err) {
+      if (retries > retryMax) {
+        throw err;
+      } else {
+        retries += 1;
+        this.logger.warn(`REST request failed unexpectedly, retry attempt ${retries}`);
+        this.makeRequestWithRetries(opts, retries, retryMax);
+      }
+    }
   }
 
   wait(milliseconds) {

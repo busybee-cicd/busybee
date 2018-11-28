@@ -72,7 +72,7 @@ ava_1.default.serial("REST happy path", function (t) {
                 }
             });
         });
-        testCmd.stderr.on('data', function (data) {
+        testCmd.stderr.on('data', function () {
             if (!returned) {
                 returned = true;
                 t.fail();

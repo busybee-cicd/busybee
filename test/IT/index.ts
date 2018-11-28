@@ -39,7 +39,7 @@ test.serial(`REST happy path`, (t) => {
       })
     });
 
-    testCmd.stderr.on('data', (data) => {
+    testCmd.stderr.on('data', () => {
       if (!returned) {
         returned = true;
         t.fail();
