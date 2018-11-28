@@ -741,7 +741,7 @@ export class EnvManager {
         _async.retry({times: healthcheckConf.retries || 50, interval: opts.timeout},
           (asyncCb) => {
             attempt += 1;
-            this.logger.info(`Attempting ${attempt} healthcheck for ${generatedEnvID} on port ${healthcheckPort}`);
+            this.logger.info(`Attempting healthcheck #${attempt} for ${generatedEnvID} on port ${healthcheckPort}`);
             this.logger.debug(opts);
             restClient.makeRequest(opts)
               .then((response) => {
