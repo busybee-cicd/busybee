@@ -241,6 +241,7 @@ var RESTSuiteManager = /** @class */ (function () {
                     case 2:
                         err_2 = _a.sent();
                         if (!(retries > retryMax)) return [3 /*break*/, 3];
+                        this.logger.error("REST request retry attempts exceeded");
                         throw err_2;
                     case 3:
                         retries += 1;
