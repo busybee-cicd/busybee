@@ -202,15 +202,15 @@ export class RESTSuiteManager {
 
   async makeRequestWithRetries(opts, retries, retryMax) {
     try {
-      let response = await this.restClient.makeRequest(opts);
-      return response;
+      return await this.restClient.makeRequest(opts);
     } catch (err) {
       if (retries > retryMax) {
+        this.logger.error(`REST request retry attempts exceeded`);
         throw err;
       } else {
         retries += 1;
         this.logger.warn(`REST request failed unexpectedly, retry attempt ${retries}`);
-        await this.makeRequestWithRetries(opts, retries, retryMax);
+        return await this.makeRequestWithRetries(opts, retries, retryMax);
       }
     }
   }
