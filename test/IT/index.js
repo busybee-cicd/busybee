@@ -117,7 +117,6 @@ ava_1.default("tests run in order", function (t) { return __awaiter(_this, void 
         }
     });
 }); });
-// TODO: re-write now that we have retries
 ava_1.default("env start failure", function (t) { return __awaiter(_this, void 0, void 0, function () {
     var loggerConf, logger, expected, testCmd, actual;
     return __generator(this, function (_a) {
@@ -137,6 +136,34 @@ ava_1.default("env start failure", function (t) { return __awaiter(_this, void 0
             case 1:
                 actual = _a.sent();
                 t.deepEqual(actual, expected);
+                return [2 /*return*/];
+        }
+    });
+}); });
+ava_1.default.serial("env healthcheck failure", function (t) { return __awaiter(_this, void 0, void 0, function () {
+    var loggerConf, logger, expected, testCmd, result;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                loggerConf = new busybee_util_1.LoggerConf(loggerClazz, process.env.LOG_LEVEL, t.log.bind(t));
+                logger = new busybee_util_1.Logger(loggerConf);
+                expected = [
+                    'INFO: Starting Environment: Env That Will Fail Healthcheck',
+                    'INFO: Stopping Environment: Env That Will Fail Healthcheck',
+                    'INFO: Starting Environment: Env That Will Pass Healthcheck',
+                    'INFO: Stopping Environment: Env That Will Pass Healthcheck',
+                    'INFO: Starting Environment: Env That Will Fail Healthcheck',
+                    'INFO: Stopping Environment: Env That Will Fail Healthcheck',
+                    'INFO: Starting Environment: Env That Will Fail Healthcheck',
+                    'INFO: Stopping Environment: Env That Will Fail Healthcheck',
+                    'INFO: Starting Environment: Env That Will Fail Healthcheck',
+                    'INFO: Stopping Environment: Env That Will Fail Healthcheck'
+                ];
+                testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/env-healthcheck-failure')]);
+                return [4 /*yield*/, ITUtil_1.ITUtil.expectInOrder(testCmd, expected, t, true, logger)];
+            case 1:
+                result = _a.sent();
+                t.is(result.length, 0);
                 return [2 /*return*/];
         }
     });

@@ -272,18 +272,21 @@ var EnvManager = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         this.logger.trace("retryStart " + generatedEnvID);
-                        if (!(this.conf.parsedTestSuites.get(suiteID).testEnvs.get(suiteEnvID).retries < 3)) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this.stop(generatedEnvID)];
+                    case 1:
+                        _a.sent(); // allow the user to do any potential background cleanup if necessary/possible and remove load from hosts
+                        if (!(this.conf.parsedTestSuites.get(suiteID).testEnvs.get(suiteEnvID).retries < 3)) return [3 /*break*/, 3];
                         this.conf.parsedTestSuites.get(suiteID).testEnvs.get(suiteEnvID).retries += 1;
                         this.logger.info("Restart attempt number " + this.conf.parsedTestSuites.get(suiteID).testEnvs.get(suiteEnvID).retries + " for " + generatedEnvID);
                         return [4 /*yield*/, this.start(generatedEnvID, suiteID, suiteEnvID)];
-                    case 1:
-                        _a.sent();
-                        return [3 /*break*/, 3];
                     case 2:
+                        _a.sent();
+                        return [3 /*break*/, 4];
+                    case 3:
                         this.logger.trace("retryStart attempts exceeded. failing");
                         // push to the back of the line and call start again.
                         throw new Error(failMsg);
-                    case 3: return [2 /*return*/];
+                    case 4: return [2 /*return*/];
                 }
             });
         });
@@ -307,39 +310,36 @@ var EnvManager = /** @class */ (function () {
                         e_3 = _a.sent();
                         throw new Error(generatedEnvID + " failed to wait it's turn");
                     case 4:
-                        _a.trys.push([4, 6, , 9]);
+                        _a.trys.push([4, 6, , 8]);
                         return [4 /*yield*/, this.provisionEnv(generatedEnvID, suiteID, suiteEnvID)];
                     case 5:
                         _a.sent();
                         this.logger.trace(generatedEnvID + " provisioned successfully");
                         this.envsWaitingForProvision.shift();
-                        return [3 /*break*/, 9];
+                        return [3 /*break*/, 8];
                     case 6:
                         e_4 = _a.sent();
                         this.envsWaitingForProvision.shift();
-                        return [4 /*yield*/, this.stop(generatedEnvID)];
-                    case 7:
-                        _a.sent(); // allow the user to do any potential background cleanup if necessary/possible
                         return [4 /*yield*/, this.retryStart(generatedEnvID, suiteID, suiteEnvID, generatedEnvID + " failed to provision")];
+                    case 7:
+                        _a.sent();
+                        return [3 /*break*/, 8];
                     case 8:
-                        _a.sent();
-                        return [3 /*break*/, 9];
-                    case 9:
                         this.logger.trace("envsWaitingForProvision updated to " + this.envsWaitingForProvision);
-                        _a.label = 10;
-                    case 10:
-                        _a.trys.push([10, 12, , 14]);
+                        _a.label = 9;
+                    case 9:
+                        _a.trys.push([9, 11, , 13]);
                         return [4 /*yield*/, this.confirmHealthcheck(generatedEnvID)];
-                    case 11:
+                    case 10:
                         _a.sent();
-                        return [3 /*break*/, 14];
-                    case 12:
+                        return [3 /*break*/, 13];
+                    case 11:
                         e_5 = _a.sent();
                         return [4 /*yield*/, this.retryStart(generatedEnvID, suiteID, suiteEnvID, generatedEnvID + " failed to confirm the healthcheck")];
-                    case 13:
+                    case 12:
                         _a.sent();
-                        return [3 /*break*/, 14];
-                    case 14: return [2 /*return*/];
+                        return [3 /*break*/, 13];
+                    case 13: return [2 /*return*/];
                 }
             });
         });
@@ -382,7 +382,7 @@ var EnvManager = /** @class */ (function () {
                             this.logger.info("Skipping Environment provisioning for Test Suite '" + suiteID + "'");
                         }
                         else {
-                            this.logger.info("Starting Environment: " + suiteEnvID + " - " + generatedEnvID);
+                            this.logger.info("Will Provision Environment: " + suiteEnvID + " - " + generatedEnvID);
                         }
                         _a.label = 1;
                     case 1:
@@ -418,6 +418,7 @@ var EnvManager = /** @class */ (function () {
                         _a.label = 5;
                     case 5:
                         _a.trys.push([5, 7, , 8]);
+                        this.logger.info("Starting Environment: " + suiteEnvID + " - " + generatedEnvID);
                         return [4 /*yield*/, this.runScript(path.join(busybeeDir, testSuiteConf.env.startScript), [JSON.stringify(args)])];
                     case 6:
                         returnData = _a.sent();
@@ -806,6 +807,7 @@ var EnvManager = /** @class */ (function () {
                     _this.logger.debug(opts_1);
                     restClient_1.makeRequest(opts_1)
                         .then(function (response) {
+                        _this.logger.debug(response);
                         if (response.statusCode === 200) {
                             _this.logger.info("Healthcheck Confirmed for " + generatedEnvID + "!");
                             asyncCb(null, true);

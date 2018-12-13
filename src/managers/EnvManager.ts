@@ -228,6 +228,8 @@ export class EnvManager {
 
   async retryStart(generatedEnvID:string, suiteID:string, suiteEnvID: string, failMsg:string) {
     this.logger.trace(`retryStart ${generatedEnvID}`);
+    await this.stop(generatedEnvID); // allow the user to do any potential background cleanup if necessary/possible and remove load from hosts
+    // in both cases we need to remove the load that was reserved from this env
     if (this.conf.parsedTestSuites.get(suiteID).testEnvs.get(suiteEnvID).retries < 3) {
       this.conf.parsedTestSuites.get(suiteID).testEnvs.get(suiteEnvID).retries += 1
       this.logger.info(`Restart attempt number ${this.conf.parsedTestSuites.get(suiteID).testEnvs.get(suiteEnvID).retries} for ${generatedEnvID}`);
@@ -254,7 +256,6 @@ export class EnvManager {
       this.envsWaitingForProvision.shift();
     } catch (e) {
       this.envsWaitingForProvision.shift();
-      await this.stop(generatedEnvID); // allow the user to do any potential background cleanup if necessary/possible
       await this.retryStart(generatedEnvID, suiteID, suiteEnvID, `${generatedEnvID} failed to provision`);
     }
 
@@ -299,7 +300,7 @@ export class EnvManager {
       if (this.shouldSkipProvisioning(suiteID)) {
         this.logger.info(`Skipping Environment provisioning for Test Suite '${suiteID}'`);
       } else {
-        this.logger.info(`Starting Environment: ${suiteEnvID} - ${generatedEnvID}`);
+        this.logger.info(`Will Provision Environment: ${suiteEnvID} - ${generatedEnvID}`);
       }
 
       try {
@@ -331,6 +332,7 @@ export class EnvManager {
         this.logger.trace(testSuiteConf.env.startScript);
         this.logger.trace(args);
         try {
+          this.logger.info(`Starting Environment: ${suiteEnvID} - ${generatedEnvID}`);
           let returnData = await this.runScript(path.join(busybeeDir, testSuiteConf.env.startScript), [JSON.stringify(args)]);
 
           if (returnData) {
@@ -745,6 +747,7 @@ export class EnvManager {
             this.logger.debug(opts);
             restClient.makeRequest(opts)
               .then((response) => {
+                this.logger.debug(response);
                 if (response.statusCode === 200) {
                   this.logger.info(`Healthcheck Confirmed for ${generatedEnvID}!`);
                   asyncCb(null, true);

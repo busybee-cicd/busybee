@@ -79,7 +79,6 @@ test(`tests run in order`, async (t) => {
   t.is(result.length, 0);
 });
 
-// TODO: re-write now that we have retries
 test(`env start failure`, async (t) => {
   const loggerConf = new LoggerConf(loggerClazz, process.env.LOG_LEVEL, t.log.bind(t));
   const logger = new Logger(loggerConf);
@@ -95,6 +94,28 @@ test(`env start failure`, async (t) => {
 
   let actual = await ITUtil.analyzeOutputFrequency(testCmd, expected, logger);
   t.deepEqual(actual, expected);
+});
+
+test.serial(`env healthcheck failure`, async (t) => {
+  const loggerConf = new LoggerConf(loggerClazz, process.env.LOG_LEVEL, t.log.bind(t));
+  const logger = new Logger(loggerConf);
+  const expected = [
+    'INFO: Starting Environment: Env That Will Fail Healthcheck',
+    'INFO: Stopping Environment: Env That Will Fail Healthcheck',
+    'INFO: Starting Environment: Env That Will Pass Healthcheck',
+    'INFO: Stopping Environment: Env That Will Pass Healthcheck',
+    'INFO: Starting Environment: Env That Will Fail Healthcheck',
+    'INFO: Stopping Environment: Env That Will Fail Healthcheck',
+    'INFO: Starting Environment: Env That Will Fail Healthcheck',
+    'INFO: Stopping Environment: Env That Will Fail Healthcheck',
+    'INFO: Starting Environment: Env That Will Fail Healthcheck',
+    'INFO: Stopping Environment: Env That Will Fail Healthcheck'
+  ];
+
+  const testCmd = spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/env-healthcheck-failure')]);
+
+  let result = await ITUtil.expectInOrder(testCmd, expected, t, true, logger);
+  t.is(result.length, 0);
 });
 
 /**
