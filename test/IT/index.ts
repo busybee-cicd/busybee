@@ -1,7 +1,6 @@
 import test from 'ava';
 import { spawn } from 'child_process';
 import * as path from 'path';
-import { IgnoreKeys } from '../../src/lib/assertionModifications/IgnoreKeys';
 import { ITUtil } from './util/ITUtil';
 import * as http from 'http';
 import * as request from 'request-promise';
@@ -20,14 +19,14 @@ process.env['NO_PROXY'] = 'localhost,127.0.0.1';
  * .serial modifier will force this test to run by itself. need this since we check for specific ports to be used
  * in the response.
  */
-test.serial(`REST happy path`, (t) => {
+test(`REST happy path`, (t) => {
   const loggerConf = new LoggerConf(loggerClazz, process.env.LOG_LEVEL, t.log.bind(t));
   const logger = new Logger(loggerConf);
 
   return new Promise((resolve, reject) => {
     let returned = false;
     const testCmd = spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-happy-path')]);
-    const expected = {"runId":"82148fd0-a709-11e8-9c57-3b02ed94a9b8","runTimestamp":1535051991373,"data":[{"testSets":[{"pass":true,"id":"ts1","tests":[{"pass":true,"id":"body assertion","body":{"pass":true,"actual":{"hello":"world","object":{"1":"2","arr":[1,3,4],"nested":{"im":"nested","arr":[1,2,3,4]}},"arr":[1,2,3]}},"request":{"json":true,"resolveWithFullResponse":true,"simple":false,"method":"GET","url":"http://localhost:7777/body-assertion","timeout":30000}},{"pass":true,"id":"status assertion","status":{"pass":true,"actual":404},"request":{"json":true,"resolveWithFullResponse":true,"simple":false,"method":"GET","url":"http://localhost:7777/status-assertion","timeout":30000}}]}],"pass":true,"type":"REST","id":"REST Happy Path"}]};
+    const expected = {"runId":"82148fd0-a709-11e8-9c57-3b02ed94a9b8","runTimestamp":1535051991373,"data":[{"testSets":[{"pass":true,"id":"ts1","tests":[{"pass":true,"id":"body assertion","body":{"pass":true,"actual":{"hello":"world","object":{"1":"2","arr":[1,3,4],"nested":{"im":"nested","arr":[1,2,3,4]}},"arr":[1,2,3]}},"request":{"json":true,"resolveWithFullResponse":true,"simple":false,"method":"GET","url":"http://localhost:7777/body-assertion","timeout":30000}},{"pass":true,"id":"status assertion","status":{"pass":true,"actual":404},"request":{"json":true,"resolveWithFullResponse":true,"simple":false,"method":"GET","url":"http://localhost:7777/status-assertion","timeout":30000}}]}],"pass":true,"type":"REST","id":"REST Happy Path", "summary": { "numberOfPassedTests": 2, "numberOfTestSets": 1, "numberOfTests": 2 }}]};
     let actual;
 
     testCmd.stdout.on('data', (data) => {

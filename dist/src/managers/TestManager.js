@@ -107,55 +107,45 @@ var TestManager = /** @class */ (function () {
     };
     TestManager.prototype.executeRESTTestEnvTask = function (suiteID, suiteEnvID) {
         return __awaiter(this, void 0, void 0, function () {
-            var generatedEnvID, currentEnv, restManager, testSetResults, envResult, buildEnvFn, e_1, e2_1;
-            var _this = this;
+            var generatedEnvID, currentEnv, restManager, testSetResults, envResult, e_1, e2_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         this.logger.trace("executeRESTTestEnvTask " + suiteID + " " + suiteEnvID);
+                        generatedEnvID = this.envManager.generateId();
                         envResult = EnvResult_1.EnvResult.new('REST', suiteID, suiteEnvID);
-                        buildEnvFn = function () { return __awaiter(_this, void 0, void 0, function () {
-                            return __generator(this, function (_a) {
-                                switch (_a.label) {
-                                    case 0:
-                                        generatedEnvID = this.envManager.generateId();
-                                        return [4 /*yield*/, this.envManager.start(generatedEnvID, suiteID, suiteEnvID)];
-                                    case 1:
-                                        _a.sent();
-                                        currentEnv = this.envManager.getCurrentEnv(generatedEnvID);
-                                        // create a restmanager to handle these tests
-                                        restManager = new RESTSuiteManager_1.RESTSuiteManager(this.conf, currentEnv);
-                                        return [4 /*yield*/, restManager.runRESTApiTestSets(currentEnv)];
-                                    case 2:
-                                        testSetResults = _a.sent(); // returns an array of testSets
-                                        envResult.testSets = testSetResults;
-                                        return [2 /*return*/, envResult];
-                                }
-                            });
-                        }); };
                         _a.label = 1;
                     case 1:
-                        _a.trys.push([1, 3, 4, 8]);
-                        return [4 /*yield*/, buildEnvFn()];
-                    case 2: return [2 /*return*/, _a.sent()];
+                        _a.trys.push([1, 4, 5, 9]);
+                        return [4 /*yield*/, this.envManager.start(generatedEnvID, suiteID, suiteEnvID)];
+                    case 2:
+                        _a.sent();
+                        currentEnv = this.envManager.getCurrentEnv(generatedEnvID);
+                        // create a restmanager to handle these tests
+                        restManager = new RESTSuiteManager_1.RESTSuiteManager(this.conf, currentEnv);
+                        return [4 /*yield*/, restManager.runRESTApiTestSets(currentEnv)];
                     case 3:
+                        testSetResults = _a.sent(); // returns an array of testSets
+                        envResult.testSets = testSetResults;
+                        return [2 /*return*/, envResult];
+                    case 4:
                         e_1 = _a.sent();
                         this.logger.error("buildRESTTestEnvTask: Error Encountered While Running Tests for " + generatedEnvID);
                         envResult.testSets = [];
                         envResult.error = e_1;
                         return [2 /*return*/, envResult];
-                    case 4:
-                        _a.trys.push([4, 6, , 7]);
-                        return [4 /*yield*/, this.envManager.stop(generatedEnvID)];
                     case 5:
-                        _a.sent();
-                        return [3 /*break*/, 7];
+                        _a.trys.push([5, 7, , 8]);
+                        return [4 /*yield*/, this.envManager.stop(generatedEnvID)];
                     case 6:
+                        _a.sent();
+                        return [3 /*break*/, 8];
+                    case 7:
                         e2_1 = _a.sent();
                         this.logger.error("buildRESTTestEnvTask: Error Encountered While Stopping " + generatedEnvID);
-                        return [3 /*break*/, 7];
-                    case 7: return [7 /*endfinally*/];
-                    case 8: return [2 /*return*/];
+                        return [3 /*break*/, 8];
+                    case 8: return [7 /*endfinally*/];
+                    case 9: return [2 /*return*/];
                 }
             });
         });

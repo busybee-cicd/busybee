@@ -5,17 +5,13 @@ import {RESTClient} from '../lib/RESTClient';
 import {SuiteEnvInfo} from "../lib/SuiteEnvInfo";
 import {ParsedTestSetConfig} from "../models/config/parsed/ParsedTestSetConfig";
 import {RESTTest} from "../models/RESTTest";
-import {IncomingMessage} from "http";
 import {TestSetResult} from "../models/results/TestSetResult";
 import {IgnoreKeys} from "../lib/assertionModifications/IgnoreKeys";
 import {UnorderedCollections} from "../lib/assertionModifications/UnorderedCollections";
 import {RESTTestPartResult} from "../models/results/RESTTestPartResult";
 import {RESTTestHeaderResult} from "../models/results/RESTTestHeaderResult";
 import {RESTTestResult} from "../models/results/RESTTestResult";
-import {TestSetConfig} from "../models/config/user/TestSetConfig";
-import {DeleteCollections} from "../lib/assertionModifications/DeleteCollections";
 import {BusybeeParsedConfig} from "../models/config/BusybeeParsedConfig";
-import {ParsedTestEnvConfig} from "../models/config/parsed/ParsedTestEnvConfig";
 
 // support JSON.stringify on Error objects
 if (!('toJSON' in Error.prototype))

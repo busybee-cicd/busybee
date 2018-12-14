@@ -56,13 +56,13 @@ process.env['NO_PROXY'] = 'localhost,127.0.0.1';
  * .serial modifier will force this test to run by itself. need this since we check for specific ports to be used
  * in the response.
  */
-ava_1.default.serial("REST happy path", function (t) {
+ava_1.default("REST happy path", function (t) {
     var loggerConf = new busybee_util_1.LoggerConf(loggerClazz, process.env.LOG_LEVEL, t.log.bind(t));
     var logger = new busybee_util_1.Logger(loggerConf);
     return new Promise(function (resolve, reject) {
         var returned = false;
         var testCmd = child_process_1.spawn(busybee, ['test', '-d', path.join(__dirname, 'fixtures/REST-happy-path')]);
-        var expected = { "runId": "82148fd0-a709-11e8-9c57-3b02ed94a9b8", "runTimestamp": 1535051991373, "data": [{ "testSets": [{ "pass": true, "id": "ts1", "tests": [{ "pass": true, "id": "body assertion", "body": { "pass": true, "actual": { "hello": "world", "object": { "1": "2", "arr": [1, 3, 4], "nested": { "im": "nested", "arr": [1, 2, 3, 4] } }, "arr": [1, 2, 3] } }, "request": { "json": true, "resolveWithFullResponse": true, "simple": false, "method": "GET", "url": "http://localhost:7777/body-assertion", "timeout": 30000 } }, { "pass": true, "id": "status assertion", "status": { "pass": true, "actual": 404 }, "request": { "json": true, "resolveWithFullResponse": true, "simple": false, "method": "GET", "url": "http://localhost:7777/status-assertion", "timeout": 30000 } }] }], "pass": true, "type": "REST", "id": "REST Happy Path" }] };
+        var expected = { "runId": "82148fd0-a709-11e8-9c57-3b02ed94a9b8", "runTimestamp": 1535051991373, "data": [{ "testSets": [{ "pass": true, "id": "ts1", "tests": [{ "pass": true, "id": "body assertion", "body": { "pass": true, "actual": { "hello": "world", "object": { "1": "2", "arr": [1, 3, 4], "nested": { "im": "nested", "arr": [1, 2, 3, 4] } }, "arr": [1, 2, 3] } }, "request": { "json": true, "resolveWithFullResponse": true, "simple": false, "method": "GET", "url": "http://localhost:7777/body-assertion", "timeout": 30000 } }, { "pass": true, "id": "status assertion", "status": { "pass": true, "actual": 404 }, "request": { "json": true, "resolveWithFullResponse": true, "simple": false, "method": "GET", "url": "http://localhost:7777/status-assertion", "timeout": 30000 } }] }], "pass": true, "type": "REST", "id": "REST Happy Path", "summary": { "numberOfPassedTests": 2, "numberOfTestSets": 1, "numberOfTests": 2 } }] };
         var actual;
         testCmd.stdout.on('data', function (data) {
             var lines = busybee_util_1.IOUtil.parseDataBuffer(data);

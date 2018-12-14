@@ -93,16 +93,13 @@ export class TestManager {
   async executeRESTTestEnvTask(suiteID: string, suiteEnvID: string): Promise<EnvResult>  {
     this.logger.trace(`executeRESTTestEnvTask ${suiteID} ${suiteEnvID}`);
 
-    var generatedEnvID;
-
+    let generatedEnvID = this.envManager.generateId();
     let currentEnv: SuiteEnvInfo;
     let restManager: RESTSuiteManager;
     let testSetResults;
     let envResult = EnvResult.new('REST', suiteID, suiteEnvID);
 
-    let buildEnvFn = async () => {
-      generatedEnvID = this.envManager.generateId();
-
+    try {
       await this.envManager.start(generatedEnvID, suiteID, suiteEnvID);
       currentEnv = this.envManager.getCurrentEnv(generatedEnvID);
       // create a restmanager to handle these tests
@@ -111,10 +108,6 @@ export class TestManager {
       envResult.testSets = testSetResults;
 
       return envResult;
-    };
-
-    try {
-      return await buildEnvFn();
     } catch (e) {
       this.logger.error(`buildRESTTestEnvTask: Error Encountered While Running Tests for ${generatedEnvID}`);
       envResult.testSets = [];

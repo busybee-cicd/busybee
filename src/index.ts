@@ -181,12 +181,13 @@ async function initTests(conf: BusybeeParsedConfig) {
 
   // run the api tests
   // TODO: allow ordering of TestSuites and TestEnvs
+  // flatten all env promises so that we can run them via Promise.all
   let envResultsPromises: Promise<EnvResult>[] = [];
-  _.forEach(testManager.testSuiteTasks, (suiteTask) => {
-    suiteTask.envResults.forEach((envResultPromise) => {
+  for (let suiteId in testManager.testSuiteTasks) {
+    testManager.testSuiteTasks[suiteId].envResults.forEach((envResultPromise) => {
       envResultsPromises.push(envResultPromise);
     });
-  });
+  }
 
   let start = Date.now();
   let end;
@@ -199,22 +200,12 @@ async function initTests(conf: BusybeeParsedConfig) {
     envResults.forEach((envResult: EnvResult) => {
       // todo use TestSuiteResult model instead of any
       if (!suiteResults[envResult.suiteID]) {
-        let sr = new TestSuiteResult();
-        sr.testSets = envResult.testSets;
-        sr.pass = true;
-        sr.type = envResult.type;
-        sr.id = envResult.suiteID;
+        // create suiteResult if this suite hasn't been seen yet
+        let sr = new TestSuiteResult(envResult.suiteID, envResult.type, envResult.testSets, true);
         suiteResults[envResult.suiteID] = sr;
       } else {
-        suiteResults[envResult.suiteID].testSets = suiteResults[envResult.suiteID].testSets.concat(envResult.testSets);
+        suiteResults[envResult.suiteID].addEnvResult(envResult);
       }
-
-      // mark the suite as failed if it contains atleast 1 env w/ a failure
-      if (_.find(envResult.testSets, ts => {
-          return !ts.pass;
-        })) {
-        suiteResults[envResult.suiteID].pass = false;
-      };
     });
 
     // for easier parsing lets return each suite as its own object in a list

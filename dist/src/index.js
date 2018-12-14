@@ -191,7 +191,7 @@ function initTests(conf) {
                 });
             });
         }
-        var envManager, testManager, envResultsPromises, start, end, envResults, suiteResults_1, suiteResultsList, busybeeTestResults_1, scriptPath, err_1, scriptPath;
+        var envManager, testManager, envResultsPromises, suiteId, start, end, envResults, suiteResults_1, suiteResultsList, busybeeTestResults_1, scriptPath, err_1, scriptPath;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -208,11 +208,11 @@ function initTests(conf) {
                     });
                     testManager.buildTestSuiteTasksPromises();
                     envResultsPromises = [];
-                    _.forEach(testManager.testSuiteTasks, function (suiteTask) {
-                        suiteTask.envResults.forEach(function (envResultPromise) {
+                    for (suiteId in testManager.testSuiteTasks) {
+                        testManager.testSuiteTasks[suiteId].envResults.forEach(function (envResultPromise) {
                             envResultsPromises.push(envResultPromise);
                         });
-                    });
+                    }
                     start = Date.now();
                     _a.label = 1;
                 case 1:
@@ -225,23 +225,13 @@ function initTests(conf) {
                     envResults.forEach(function (envResult) {
                         // todo use TestSuiteResult model instead of any
                         if (!suiteResults_1[envResult.suiteID]) {
-                            var sr = new TestSuiteResult_1.TestSuiteResult();
-                            sr.testSets = envResult.testSets;
-                            sr.pass = true;
-                            sr.type = envResult.type;
-                            sr.id = envResult.suiteID;
+                            // create suiteResult if this suite hasn't been seen yet
+                            var sr = new TestSuiteResult_1.TestSuiteResult(envResult.suiteID, envResult.type, envResult.testSets, true);
                             suiteResults_1[envResult.suiteID] = sr;
                         }
                         else {
-                            suiteResults_1[envResult.suiteID].testSets = suiteResults_1[envResult.suiteID].testSets.concat(envResult.testSets);
+                            suiteResults_1[envResult.suiteID].addEnvResult(envResult);
                         }
-                        // mark the suite as failed if it contains atleast 1 env w/ a failure
-                        if (_.find(envResult.testSets, function (ts) {
-                            return !ts.pass;
-                        })) {
-                            suiteResults_1[envResult.suiteID].pass = false;
-                        }
-                        ;
                     });
                     suiteResultsList = _.values(suiteResults_1).slice();
                     busybeeTestResults_1 = {
