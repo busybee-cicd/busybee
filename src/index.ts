@@ -177,6 +177,10 @@ async function initTests(conf: BusybeeParsedConfig) {
     shutdown(null);
   });
 
+  process.on('SIGTERM', () => {
+    shutdown(null);
+  });
+
   testManager.buildTestSuiteTasksPromises();
 
   // run the api tests

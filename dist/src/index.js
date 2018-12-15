@@ -206,6 +206,9 @@ function initTests(conf) {
                     process.on('SIGINT', function () {
                         shutdown(null);
                     });
+                    process.on('SIGTERM', function () {
+                        shutdown(null);
+                    });
                     testManager.buildTestSuiteTasksPromises();
                     envResultsPromises = [];
                     for (suiteId in testManager.testSuiteTasks) {
