@@ -1,0 +1,1 @@
+{"version":3,"file":"SuiteType.js","sourceRoot":"","sources":["../../../src/constants/SuiteType.ts"],"names":[],"mappings":";;AAAA,IAAY,SAGX;AAHD,WAAY,SAAS;IACnB,0BAAa,CAAA;IACb,4CAA+B,CAAA;AACjC,CAAC,EAHW,SAAS,GAAT,iBAAS,KAAT,iBAAS,QAGpB","sourcesContent":["export enum SuiteType {\r\n  REST = 'REST',\r\n  USER_PROVIDED = 'USER_PROVIDED'\r\n}\r\n"]}

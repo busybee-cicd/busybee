@@ -601,61 +601,6 @@ export class EnvManager {
       return ret;
     }
 
-    // if (parallelMode) {
-    //   if (portsInUseByBusybee) {
-    //     let oldPorts = nextPorts;
-    //     nextPorts = nextPorts.map((p) => {
-    //       return p + 1
-    //     });
-    //     this.logger.info(`${generatedEnvID} Ports ${oldPorts} in use by Busybee, retrying with ${nextPorts}`);
-    //     return await this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset + 1, parallelMode);
-    //   } else {
-    //     // not in use by busybee. see if ports are in use by something else
-    //     let portsTaken = await this.arePortsTaken(hostName, nextPorts);
-    //     if (portsTaken) {
-    //       // shift ports and try again
-    //       let oldPorts = nextPorts;
-    //       nextPorts = nextPorts.map((p) => {
-    //         return p + 1
-    //       });
-    //       this.logger.info(`${generatedEnvID} Ports ${oldPorts} in use by an unknown service, retrying with ${nextPorts}`);
-    //       return await this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset + 1, parallelMode);
-    //     }
-
-    //     // ports identified, resolve.
-    //     let ret = {
-    //       ports: nextPorts,
-    //       portOffset: portOffset
-    //     };
-
-    //     this.logger.trace(`ports identified: ${JSON.stringify(ret)}`);
-    //     return ret;
-    //   }
-    // } else {
-    //   // when not in parallel mode...we don't
-    //   if (portsInUseByBusybee) {
-    //     this.logger.trace(`parallelMode:false. Ports in use by Busybee, retrying...`);
-    //     this.logger.info(`${generatedEnvID} Ports in use by Busybee, retrying ${nextPorts}`);
-    //     return await this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset, parallelMode);
-    //   } else {
-    //     // not in use by busybee. see if ports are in use by something else
-    //     let portsTaken = await this.arePortsTaken(hostName, nextPorts);
-    //     if (portsTaken) {
-    //       // DONT shift ports and try again
-    //       this.logger.info(`${generatedEnvID} Ports in use by an unknown service, retrying ${nextPorts}`);
-    //       return await this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset, parallelMode);
-    //     }
-
-    //     // ports identified, resolve.
-    //     let ret = {
-    //       ports: nextPorts,
-    //       portOffset: portOffset
-    //     };
-
-    //     this.logger.trace(`ports identified: ${JSON.stringify(ret)}`);
-    //     return ret;
-    //   }
-    // }
   }
 
   /*

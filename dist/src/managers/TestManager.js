@@ -41,6 +41,7 @@ var RESTSuiteManager_1 = require("./RESTSuiteManager");
 var GenericSuiteManager_1 = require("./GenericSuiteManager");
 var EnvResult_1 = require("../models/results/EnvResult");
 var TestWebSocketServer_1 = require("../ws/TestWebSocketServer");
+var SuiteType_1 = require("../constants/SuiteType");
 var TestManager = /** @class */ (function () {
     function TestManager(conf, envManager) {
         this.conf = _.cloneDeep(conf);
@@ -79,10 +80,12 @@ var TestManager = /** @class */ (function () {
                         return;
                     }
                 }
-                if (testSuite.type === 'USER_PROVIDED') {
-                    _this.testSuiteTasks[suiteID].envResults.push(_this.executeTestEnvTask(suiteID, testEnv.suiteEnvID));
+                var envTask;
+                if (testSuite.type === SuiteType_1.SuiteType.USER_PROVIDED) {
+                    envTask = _this.buildEnvTask(suiteID, testEnv.suiteEnvID, SuiteType_1.SuiteType.USER_PROVIDED);
+                    _this.testSuiteTasks[suiteID].envResults.push(envTask);
                 }
-                else if (testSuite.type === 'REST' || _.isUndefined(testSuite.type)) {
+                else if (testSuite.type === SuiteType_1.SuiteType.REST || _.isUndefined(testSuite.type)) {
                     // 1. make sure testSets exist for this testEnv
                     if (_.isEmpty(testEnv.testSets)) {
                         _this.logger.trace("testEnv " + testEnv.suiteEnvID + " contains 0 testSets. skipping");
@@ -100,110 +103,64 @@ var TestManager = /** @class */ (function () {
                         _this.logger.trace("testEnv " + testEnv.suiteEnvID + " contains 0 tests. skipping");
                         return;
                     }
-                    _this.testSuiteTasks[suiteID].envResults.push(_this.executeRESTTestEnvTask(suiteID, testEnv.suiteEnvID));
+                    envTask = _this.buildEnvTask(suiteID, testEnv.suiteEnvID, SuiteType_1.SuiteType.REST);
+                    _this.testSuiteTasks[suiteID].envResults.push(envTask);
                 }
             });
         });
     };
-    TestManager.prototype.executeRESTTestEnvTask = function (suiteID, suiteEnvID) {
+    TestManager.prototype.buildEnvTask = function (suiteID, suiteEnvID, suiteType) {
         return __awaiter(this, void 0, void 0, function () {
-            var generatedEnvID, currentEnv, restManager, testSetResults, envResult, e_1, e2_1;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        this.logger.trace("executeRESTTestEnvTask " + suiteID + " " + suiteEnvID);
-                        generatedEnvID = this.envManager.generateId();
-                        envResult = EnvResult_1.EnvResult.new('REST', suiteID, suiteEnvID);
-                        _a.label = 1;
-                    case 1:
-                        _a.trys.push([1, 4, 5, 9]);
-                        return [4 /*yield*/, this.envManager.start(generatedEnvID, suiteID, suiteEnvID)];
-                    case 2:
-                        _a.sent();
-                        currentEnv = this.envManager.getCurrentEnv(generatedEnvID);
-                        // create a restmanager to handle these tests
-                        restManager = new RESTSuiteManager_1.RESTSuiteManager(this.conf, currentEnv);
-                        return [4 /*yield*/, restManager.runRESTApiTestSets(currentEnv)];
-                    case 3:
-                        testSetResults = _a.sent(); // returns an array of testSets
-                        envResult.testSets = testSetResults;
-                        return [2 /*return*/, envResult];
-                    case 4:
-                        e_1 = _a.sent();
-                        this.logger.error("buildRESTTestEnvTask: Error Encountered While Running Tests for " + generatedEnvID);
-                        envResult.testSets = [];
-                        envResult.error = e_1;
-                        return [2 /*return*/, envResult];
-                    case 5:
-                        _a.trys.push([5, 7, , 8]);
-                        return [4 /*yield*/, this.envManager.stop(generatedEnvID)];
-                    case 6:
-                        _a.sent();
-                        return [3 /*break*/, 8];
-                    case 7:
-                        e2_1 = _a.sent();
-                        this.logger.error("buildRESTTestEnvTask: Error Encountered While Stopping " + generatedEnvID);
-                        return [3 /*break*/, 8];
-                    case 8: return [7 /*endfinally*/];
-                    case 9: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    /*
-     TODO: use the GenericSuiteManager to kick off tests
-     */
-    TestManager.prototype.executeTestEnvTask = function (suiteID, suiteEnvID) {
-        return __awaiter(this, void 0, void 0, function () {
-            var generatedEnvID, envResult, buildEnvFn, e_2, e2_2;
-            var _this = this;
+            var generatedEnvID, envResult, currentEnv, suiteManager, testSetResults, e_1, e2_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         this.logger.trace("executeTestEnvTask " + suiteID + " " + suiteEnvID);
                         generatedEnvID = this.envManager.generateId();
-                        envResult = EnvResult_1.EnvResult.new('USER_PROVIDED', suiteID, suiteEnvID);
-                        buildEnvFn = function () { return __awaiter(_this, void 0, void 0, function () {
-                            var currentEnv, suiteManager, testSetResults;
-                            return __generator(this, function (_a) {
-                                switch (_a.label) {
-                                    case 0: return [4 /*yield*/, this.envManager.start(generatedEnvID, suiteID, suiteEnvID)];
-                                    case 1:
-                                        _a.sent();
-                                        currentEnv = this.envManager.getCurrentEnv(generatedEnvID);
-                                        suiteManager = new GenericSuiteManager_1.GenericSuiteManager(this.conf, currentEnv, this.envManager);
-                                        return [4 /*yield*/, suiteManager.runTestSets(generatedEnvID)];
-                                    case 2:
-                                        testSetResults = _a.sent();
-                                        envResult.testSets = testSetResults;
-                                        return [2 /*return*/, envResult];
-                                }
-                            });
-                        }); };
+                        envResult = EnvResult_1.EnvResult.new(suiteType, suiteID, suiteEnvID);
                         _a.label = 1;
                     case 1:
-                        _a.trys.push([1, 3, 4, 8]);
-                        return [4 /*yield*/, buildEnvFn()];
-                    case 2: return [2 /*return*/, _a.sent()];
-                    case 3:
-                        e_2 = _a.sent();
-                        this.logger.error("buildTestEnvTask: ERROR CAUGHT WHILE RUNNING TEST SETS");
-                        this.logger.error(e_2);
-                        envResult.testSets = [];
-                        envResult.error = e_2;
-                        return [2 /*return*/, envResult];
-                    case 4:
-                        _a.trys.push([4, 6, , 7]);
-                        return [4 /*yield*/, this.envManager.stop(generatedEnvID)];
-                    case 5:
+                        _a.trys.push([1, 7, 8, 12]);
+                        return [4 /*yield*/, this.envManager.start(generatedEnvID, suiteID, suiteEnvID)];
+                    case 2:
                         _a.sent();
-                        return [3 /*break*/, 7];
+                        currentEnv = this.envManager.getCurrentEnv(generatedEnvID);
+                        suiteManager = void 0;
+                        testSetResults = void 0;
+                        if (!(suiteType === SuiteType_1.SuiteType.REST)) return [3 /*break*/, 4];
+                        suiteManager = new RESTSuiteManager_1.RESTSuiteManager(this.conf, currentEnv);
+                        return [4 /*yield*/, suiteManager.runRESTApiTestSets(currentEnv)];
+                    case 3:
+                        testSetResults = _a.sent();
+                        return [3 /*break*/, 6];
+                    case 4:
+                        suiteManager = new GenericSuiteManager_1.GenericSuiteManager(this.conf, currentEnv, this.envManager);
+                        return [4 /*yield*/, suiteManager.runTestSets(generatedEnvID)];
+                    case 5:
+                        testSetResults = _a.sent();
+                        _a.label = 6;
                     case 6:
-                        e2_2 = _a.sent();
-                        this.logger.error("buildRESTTestEnvTask: Error Encountered While Stopping " + generatedEnvID);
-                        return [3 /*break*/, 7];
-                    case 7: return [7 /*endfinally*/];
-                    case 8: return [2 /*return*/];
+                        envResult.testSets = testSetResults;
+                        return [2 /*return*/, envResult];
+                    case 7:
+                        e_1 = _a.sent();
+                        this.logger.error("buildEnvTask: ERROR CAUGHT WHILE RUNNING TEST SETS");
+                        this.logger.error(e_1);
+                        envResult.testSets = [];
+                        envResult.error = e_1;
+                        return [2 /*return*/, envResult];
+                    case 8:
+                        _a.trys.push([8, 10, , 11]);
+                        return [4 /*yield*/, this.envManager.stop(generatedEnvID)];
+                    case 9:
+                        _a.sent();
+                        return [3 /*break*/, 11];
+                    case 10:
+                        e2_1 = _a.sent();
+                        this.logger.error("buildEnvTask: Error Encountered While Stopping " + generatedEnvID);
+                        return [3 /*break*/, 11];
+                    case 11: return [7 /*endfinally*/];
+                    case 12: return [2 /*return*/];
                 }
             });
         });
