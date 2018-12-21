@@ -9,3 +9,7 @@ yarn.lock
 .editorconfig
 .banzai
 banzai-build.sh
+*.map
+.vscode/launch.json
+README.md
+configuration.mdproxy
