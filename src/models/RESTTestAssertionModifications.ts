@@ -1,6 +1,6 @@
-import {RequestOptsConfig} from "./config/common/RequestOptsConfig";
-import {deserialize} from 'json-typescript-mapper';
-import {ResponseBody} from "./ResponseBody";
+import { RequestOptsConfig } from './config/common/RequestOptsConfig';
+import { deserialize } from 'json-typescript-mapper';
+import { ResponseBody } from './ResponseBody';
 
 export class RESTTestAssertionModifications {
   ignoreKeys: any;

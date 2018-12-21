@@ -3,7 +3,6 @@ import { EnvManager } from '../managers/EnvManager';
 import { Logger, LoggerConf } from 'busybee-util';
 import { MessageTypes } from './MessageTypes';
 
-
 export interface BusybeeTestResults {
   runId: string;
   runTimestamp: number;
@@ -11,9 +10,9 @@ export interface BusybeeTestResults {
 }
 
 export class TestWebSocketServer extends WebSocketServer {
-  private envManager:EnvManager;
+  private envManager: EnvManager;
 
-  constructor(conf:any, envManager:EnvManager) {
+  constructor(conf: any, envManager: EnvManager) {
     super(conf);
     this.envManager = envManager;
     const loggerConf = new LoggerConf(this, conf.logLevel, null);
@@ -38,7 +37,7 @@ export class TestWebSocketServer extends WebSocketServer {
     this.broadcast(JSON.stringify(msg));
   }
 
-  emitResult(result:BusybeeTestResults) {
+  emitResult(result: BusybeeTestResults) {
     this.logger.debug('emitResult');
     let msg = {
       type: MessageTypes.TEST_RUN_RESULT,
@@ -48,5 +47,4 @@ export class TestWebSocketServer extends WebSocketServer {
     this.logger.trace(msg);
     this.broadcast(JSON.stringify(msg));
   }
-
 }

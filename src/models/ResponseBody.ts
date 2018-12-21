@@ -8,5 +8,4 @@ export class ResponseBody {
     this.status = void 0;
     this.body = void 0;
   }
-
 }

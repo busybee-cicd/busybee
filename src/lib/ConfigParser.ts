@@ -1,11 +1,10 @@
-import {deserialize} from 'json-typescript-mapper';
-import {BusybeeUserConfig} from "../models/config/BusybeeUserConfig";
-import {BusybeeParsedConfig} from "../models/config/BusybeeParsedConfig";
-import {FilePathsConfig} from "../models/config/parsed/FilePathsConfig";
+import { deserialize } from 'json-typescript-mapper';
+import { BusybeeUserConfig } from '../models/config/BusybeeUserConfig';
+import { BusybeeParsedConfig } from '../models/config/BusybeeParsedConfig';
+import { FilePathsConfig } from '../models/config/parsed/FilePathsConfig';
 import * as _ from 'lodash';
 
 export class ConfigParser {
-
   private cmdOpts: any;
   private logLevel: string;
   private filePaths: FilePathsConfig;
@@ -16,8 +15,10 @@ export class ConfigParser {
   }
 
   parse(mode): BusybeeParsedConfig {
-    let userConfig: BusybeeUserConfig = deserialize(BusybeeUserConfig, require(this.filePaths.userConfigFile));
+    let userConfig: BusybeeUserConfig = deserialize(
+      BusybeeUserConfig,
+      require(this.filePaths.userConfigFile)
+    );
     return new BusybeeParsedConfig(userConfig, this.cmdOpts, mode);
   }
-
 }

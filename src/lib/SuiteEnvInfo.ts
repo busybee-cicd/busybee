@@ -1,10 +1,10 @@
 /*
 Models a specific instance of an Environment of a TestSuite.
 */
-import {ParsedTestSuite} from "../models/config/parsed/ParsedTestSuiteConfig";
-import {ParsedTestSetConfig} from "../models/config/parsed/ParsedTestSetConfig";
-import {RequestOptsConfig} from "../models/config/common/RequestOptsConfig";
-import {TypedMap} from "./TypedMap";
+import { ParsedTestSuite } from '../models/config/parsed/ParsedTestSuiteConfig';
+import { ParsedTestSetConfig } from '../models/config/parsed/ParsedTestSetConfig';
+import { RequestOptsConfig } from '../models/config/common/RequestOptsConfig';
+import { TypedMap } from './TypedMap';
 export class SuiteEnvInfo {
   startScript: string;
   private startScriptReturnData: string;
@@ -24,7 +24,12 @@ export class SuiteEnvInfo {
   startData: any;
   stopData: any;
 
-  constructor(suiteConf: ParsedTestSuite, suiteEnvID: string, resourceCost: number, hostName: string) {
+  constructor(
+    suiteConf: ParsedTestSuite,
+    suiteEnvID: string,
+    resourceCost: number,
+    hostName: string
+  ) {
     this.suiteID = suiteConf.suiteID;
     this.suiteEnvID = suiteEnvID;
     this.resourceCost = resourceCost;

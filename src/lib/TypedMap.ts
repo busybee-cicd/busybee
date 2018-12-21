@@ -1,11 +1,10 @@
 export class TypedMap<T> {
-
   private _keys: string[];
   private _values: T[];
 
   constructor() {
-    this._keys = <string[]> [];
-    this._values = <T[]> [];
+    this._keys = <string[]>[];
+    this._values = <T[]>[];
   }
 
   set(key: string, value: T): void {
@@ -58,5 +57,4 @@ export class TypedMap<T> {
       fn(this._values[i], k);
     });
   }
-
 }

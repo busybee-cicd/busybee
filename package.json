@@ -38,13 +38,17 @@
     "@types/ws": "^5.1.2",
     "ava": "^0.23.0",
     "busybee-html-reporter": "2.0.5",
+    "husky": "^1.2.1",
     "npm-watch": "^0.3.0",
+    "onchange": "^5.2.0",
+    "prettier": "1.15.3",
+    "pretty-quick": "^1.8.0",
     "typedoc": "^0.11.1",
     "typescript": "^2.5.2"
   },
   "scripts": {
     "build": "tsc && tsc -p test/IT",
-    "dev": "npm-watch build",
+    "dev": "onchange 'src/**/*.ts' 'test/**/*.ts' -- prettier --write {{changed}} && npm run build",
     "start": "node ./dist/src/index.js",
     "docs": "typedoc --module commonjs --readme configuration.md --out docs/ src/models/RESTTest.ts src/models/config/BusybeeUserConfig.ts && touch docs/.nojekyll",
     "remoteIT": "node --inspect-brk=9222 ./dist/src/index.js mock -t 'CR Services IT' -d /Users/simontownsend/dev/config-reviewer/config-reviewer-it-api/busybee",
@@ -61,6 +65,11 @@
       ],
       "extensions": "ts",
       "quiet": false
+    }
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged"
     }
   },
   "author": "Simon Townsend",

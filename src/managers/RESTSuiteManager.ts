@@ -1,26 +1,26 @@
 import * as _ from 'lodash';
 import * as promiseTools from 'promise-tools';
-import {Logger, LoggerConf} from 'busybee-util';
-import {RESTClient} from '../lib/RESTClient';
-import {SuiteEnvInfo} from "../lib/SuiteEnvInfo";
-import {ParsedTestSetConfig} from "../models/config/parsed/ParsedTestSetConfig";
-import {RESTTest} from "../models/RESTTest";
-import {TestSetResult} from "../models/results/TestSetResult";
-import {IgnoreKeys} from "../lib/assertionModifications/IgnoreKeys";
-import {UnorderedCollections} from "../lib/assertionModifications/UnorderedCollections";
-import {RESTTestPartResult} from "../models/results/RESTTestPartResult";
-import {RESTTestHeaderResult} from "../models/results/RESTTestHeaderResult";
-import {RESTTestResult} from "../models/results/RESTTestResult";
-import {BusybeeParsedConfig} from "../models/config/BusybeeParsedConfig";
+import { Logger, LoggerConf } from 'busybee-util';
+import { RESTClient } from '../lib/RESTClient';
+import { SuiteEnvInfo } from '../lib/SuiteEnvInfo';
+import { ParsedTestSetConfig } from '../models/config/parsed/ParsedTestSetConfig';
+import { RESTTest } from '../models/RESTTest';
+import { TestSetResult } from '../models/results/TestSetResult';
+import { IgnoreKeys } from '../lib/assertionModifications/IgnoreKeys';
+import { UnorderedCollections } from '../lib/assertionModifications/UnorderedCollections';
+import { RESTTestPartResult } from '../models/results/RESTTestPartResult';
+import { RESTTestHeaderResult } from '../models/results/RESTTestHeaderResult';
+import { RESTTestResult } from '../models/results/RESTTestResult';
+import { BusybeeParsedConfig } from '../models/config/BusybeeParsedConfig';
 import { PromiseGeneratingFunction } from 'promise-tools';
 
 // support JSON.stringify on Error objects
 if (!('toJSON' in Error.prototype))
   Object.defineProperty(Error.prototype, 'toJSON', {
-    value: function () {
+    value: function() {
       var alt = {};
 
-      Object.getOwnPropertyNames(this).forEach(function (key) {
+      Object.getOwnPropertyNames(this).forEach(function(key) {
         alt[key] = this[key];
       }, this);
 
@@ -31,7 +31,6 @@ if (!('toJSON' in Error.prototype))
   });
 
 export class RESTSuiteManager {
-
   private conf: BusybeeParsedConfig;
   private logger: Logger;
   private restClient: RESTClient;
@@ -49,23 +48,37 @@ export class RESTSuiteManager {
   runRESTApiTestSets(currentEnv: SuiteEnvInfo): Promise<Array<TestSetResult>> {
     // TODO: logic for running TestSets in order
     return new Promise<Array<TestSetResult>>(async (resolve, reject) => {
-      this.logger.trace(`runRESTApiTestSets ${currentEnv.suiteID} ${currentEnv.suiteEnvID}`);
-      let testSetPromises = _.map(currentEnv.testSets.values(), (testSet: ParsedTestSetConfig) => {
-        return () => { return this.runRESTApiTestSet(currentEnv, testSet) }; // wrap promise in empty fn for promiseTools
-      });
+      this.logger.trace(
+        `runRESTApiTestSets ${currentEnv.suiteID} ${currentEnv.suiteEnvID}`
+      );
+      let testSetPromises = _.map(
+        currentEnv.testSets.values(),
+        (testSet: ParsedTestSetConfig) => {
+          return () => {
+            return this.runRESTApiTestSet(currentEnv, testSet);
+          }; // wrap promise in empty fn for promiseTools
+        }
+      );
 
       try {
-        let testSetResults: Array<TestSetResult> = await promiseTools.parallel(testSetPromises, 2);
+        let testSetResults: Array<TestSetResult> = await promiseTools.parallel(
+          testSetPromises,
+          2
+        );
         resolve(testSetResults);
       } catch (e) {
-        this.logger.trace(`runRESTApiTestSets ERROR encountered while running testSetPromises`);
+        this.logger.trace(
+          `runRESTApiTestSets ERROR encountered while running testSetPromises`
+        );
         return reject(e);
       }
     });
-
   }
 
-  async runRESTApiTestSet(currentEnv: SuiteEnvInfo, testSet: ParsedTestSetConfig): Promise<TestSetResult> {
+  async runRESTApiTestSet(
+    currentEnv: SuiteEnvInfo,
+    testSet: ParsedTestSetConfig
+  ): Promise<TestSetResult> {
     this.logger.trace(`runRESTApiTestSet ${currentEnv.ports} ${testSet.id}`);
 
     // build api test functions
@@ -97,8 +110,10 @@ export class RESTSuiteManager {
 
       // see if any tests failed and mark the set according
       let pass = _.find(testResults, (tr: any) => {
-        return tr.pass === false
-      }) ? false : true;
+        return tr.pass === false;
+      })
+        ? false
+        : true;
 
       let testSetResult = new TestSetResult();
       testSetResult.pass = pass;
@@ -115,28 +130,36 @@ export class RESTSuiteManager {
   }
 
   buildTestTasks(currentEnv: SuiteEnvInfo, testSet: ParsedTestSetConfig) {
-    this.logger.trace(`RESTSuiteManager:buildTestTasks <testSet> ${currentEnv.ports}`);
+    this.logger.trace(
+      `RESTSuiteManager:buildTestTasks <testSet> ${currentEnv.ports}`
+    );
     this.logger.trace(testSet);
 
     // filter out tests that do not contain .request object (shouldnt be required anymore) TODO: remove?
     let testsWithARequest = _.reject(testSet.tests, (test: RESTTest) => {
       if (_.isNil(test)) {
-        this.logger.trace("TestSet with NULL test detected");
+        this.logger.trace('TestSet with NULL test detected');
       }
       return _.isNil(test);
     });
 
     return _.map(testsWithARequest, (test: RESTTest) => {
-
       return async () => {
         // build request
         let port = currentEnv.ports[0]; // the REST api port should be passed first in the userConfigFile.
         let opts = this.restClient.buildRequest(test.request, port);
         // filter everything in the request opts for variables that should be set via variableExports
-        this.logger.trace('opts before processRequestOptsForVariableDeclarations');
+        this.logger.trace(
+          'opts before processRequestOptsForVariableDeclarations'
+        );
         this.logger.trace(opts);
-        opts = this.processRequestOptsForVariableDeclarations(opts, testSet.variableExports);
-        this.logger.trace('opts after processRequestOptsForVariableDeclarations');
+        opts = this.processRequestOptsForVariableDeclarations(
+          opts,
+          testSet.variableExports
+        );
+        this.logger.trace(
+          'opts after processRequestOptsForVariableDeclarations'
+        );
         this.logger.trace(opts);
 
         // figure out if this test is running at a specific index. (just nice for consoling)
@@ -148,7 +171,7 @@ export class RESTSuiteManager {
           // matching the current testSet
           let testSetConf = test.testSet;
           if (Array.isArray(testSetConf)) {
-            testSetConf = _.find(testSetConf, (c) => {
+            testSetConf = _.find(testSetConf, c => {
               return c.id == testSet.id;
             });
           }
@@ -160,16 +183,22 @@ export class RESTSuiteManager {
           }
         }
 
-
         this.logger.info(`${testSet.id}: ${testIndex}: ${test.id}`);
         if (test.delayRequest) {
-          this.logger.info(`Delaying request for ${test.delayRequest / 1000} second(s)`);
+          this.logger.info(
+            `Delaying request for ${test.delayRequest / 1000} second(s)`
+          );
           await this.wait(test.delayRequest);
         }
 
         try {
           let response = await this.makeRequestWithRetries(opts, 0, 3);
-          return await this.validateTestResult(testSet, test, Object.assign({}, this.restClient.getDefaultRequestOpts(), opts), response);
+          return await this.validateTestResult(
+            testSet,
+            test,
+            Object.assign({}, this.restClient.getDefaultRequestOpts(), opts),
+            response
+          );
         } catch (err) {
           this.logger.error(err, true);
           // TODO: refactor a lot of this testResult building logic for re-use w/ the validation section
@@ -197,7 +226,7 @@ export class RESTSuiteManager {
               type: 'error during request',
               error: err.message,
               stack: err.stack
-            }
+            };
           }
         }
       };
@@ -213,7 +242,9 @@ export class RESTSuiteManager {
         throw err;
       } else {
         retries += 1;
-        this.logger.warn(`REST request failed unexpectedly, retry attempt ${retries}`);
+        this.logger.warn(
+          `REST request failed unexpectedly, retry attempt ${retries}`
+        );
         await this.wait(2000);
         return await this.makeRequestWithRetries(opts, retries, retryMax);
       }
@@ -221,15 +252,18 @@ export class RESTSuiteManager {
   }
 
   wait(milliseconds) {
-    this.logger.debug(`wait ${milliseconds/1000} second(s)`);
-    return new Promise((resolve) => setTimeout(resolve, milliseconds))
+    this.logger.debug(`wait ${milliseconds / 1000} second(s)`);
+    return new Promise(resolve => setTimeout(resolve, milliseconds));
   }
 
   /*
    Iterates through the request opts and relaces all instances of #{myVar}
    with properties of the same name on variableExports
    */
-  processRequestOptsForVariableDeclarations(opts: any, variableExports: any): any {
+  processRequestOptsForVariableDeclarations(
+    opts: any,
+    variableExports: any
+  ): any {
     // check url
     opts.url = this.replaceVars(opts.url, variableExports);
     let objBasedPropsToCheck = ['qs', 'headers', 'body'];
@@ -237,7 +271,7 @@ export class RESTSuiteManager {
       if (opts[prop]) {
         opts[prop] = this.replaceVarsInObject(opts[prop], variableExports);
       }
-    })
+    });
 
     return opts;
   }
@@ -266,18 +300,20 @@ export class RESTSuiteManager {
    Parses strings formatted as "#{myVar}"
    */
   replaceVars(str: string, variableExports: any) {
-    this.logger.trace('replaceVars: current variableExports ->')
+    this.logger.trace('replaceVars: current variableExports ->');
     this.logger.trace(variableExports, true);
     // When the string startsWith #{ and endswith }
     // we assume its a literal substitution. ie) no coercion, not an object, not interpolated
     if (str.startsWith(`#{`) && str.endsWith(`}`)) {
       let varName = str.substr(2).slice(0, -1);
-      this.logger.trace
-      this.logger.trace(`Setting literal ${variableExports[varName]} for '${varName}'`);
+      this.logger.trace;
+      this.logger.trace(
+        `Setting literal ${variableExports[varName]} for '${varName}'`
+      );
       return variableExports[varName];
     }
 
-    let replaced = str.replace(/#{\w+}/g, (match) => {
+    let replaced = str.replace(/#{\w+}/g, match => {
       match = match.substr(2).slice(0, -1); // remove #{}
       this.logger.trace(`Setting ${match} for '${str}'`);
       this.logger.trace(variableExports, true);
@@ -289,7 +325,7 @@ export class RESTSuiteManager {
       return variableExports[match];
     });
 
-    if (replaced.startsWith("OBJECT")) {
+    if (replaced.startsWith('OBJECT')) {
       // set the key's value equal to an object stored in variableExports
       let key = replaced.substr(7);
       replaced = variableExports[key];
@@ -298,8 +334,12 @@ export class RESTSuiteManager {
     return replaced;
   }
 
-
-  async validateTestResult(testSet: ParsedTestSetConfig, test: RESTTest, reqOpts: any, res) {
+  async validateTestResult(
+    testSet: ParsedTestSetConfig,
+    test: RESTTest,
+    reqOpts: any,
+    res
+  ) {
     this.logger.trace(`validateTestResult`);
 
     // validate results
@@ -351,7 +391,6 @@ export class RESTSuiteManager {
       let bodyPass = true;
       let customFnErr = null;
 
-
       ///////////////////////////
       //  Run Assertions
       ///////////////////////////
@@ -378,10 +417,16 @@ export class RESTSuiteManager {
         }
 
         if (test.expect.assertionModifications) {
-          testResult.assertionModifications = test.expect.assertionModifications;
+          testResult.assertionModifications =
+            test.expect.assertionModifications;
 
           if (test.expect.assertionModifications.ignoreKeys) {
-            IgnoreKeys.process(test.expect.assertionModifications.ignoreKeys, expected, actual, this.logger);
+            IgnoreKeys.process(
+              test.expect.assertionModifications.ignoreKeys,
+              expected,
+              actual,
+              this.logger
+            );
           }
 
           if (test.expect.assertionModifications.unorderedCollections) {
@@ -400,7 +445,11 @@ export class RESTSuiteManager {
              We must do a first pass where we work from the outside -> in. We just check for equality while ignoring nested collections.
              On a second pass we remove the collections so that they don't appear in the body-assertion steps below
              */
-            UnorderedCollections.process(test.expect.assertionModifications.unorderedCollections, expected, actual);
+            UnorderedCollections.process(
+              test.expect.assertionModifications.unorderedCollections,
+              expected,
+              actual
+            );
           }
         }
         // /End Assertion Modifications
@@ -454,5 +503,4 @@ export class RESTSuiteManager {
 
     return testResult;
   }
-
 }

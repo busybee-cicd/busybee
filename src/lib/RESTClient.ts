@@ -1,11 +1,10 @@
 import * as request from 'request-promise';
 import * as _ from 'lodash';
-import {Logger, LoggerConf} from 'busybee-util';
-import {RequestOptsConfig} from "../models/config/common/RequestOptsConfig";
-import {BusybeeParsedConfig} from "../models/config/BusybeeParsedConfig";
+import { Logger, LoggerConf } from 'busybee-util';
+import { RequestOptsConfig } from '../models/config/common/RequestOptsConfig';
+import { BusybeeParsedConfig } from '../models/config/BusybeeParsedConfig';
 
 export class RESTClient {
-
   conf: BusybeeParsedConfig;
   suiteEnvConf: any;
   apiRequest: any;
@@ -22,7 +21,11 @@ export class RESTClient {
       resolveWithFullResponse: true, // don't resolve just the body (request-promise option)
       simple: false // only reject() if the request fails for technical reasons (not status code other than 200, request-promise option).
     };
-    this.defaultRequestOpts = Object.assign({}, standardRequestOpts, this.suiteEnvConf.defaultRequestOpts);
+    this.defaultRequestOpts = Object.assign(
+      {},
+      standardRequestOpts,
+      this.suiteEnvConf.defaultRequestOpts
+    );
     this.apiRequest = request.defaults(this.defaultRequestOpts);
 
     // if (conf.debug) {
@@ -49,8 +52,7 @@ export class RESTClient {
       if (requestConf.root != null) {
         url += requestConf.root;
       }
-    }
-    else if (this.suiteEnvConf.root) {
+    } else if (this.suiteEnvConf.root) {
       // else use root from resApi conf
       url += this.suiteEnvConf.root;
     }
@@ -64,7 +66,7 @@ export class RESTClient {
 
     let url = this.buildBaseUrl(requestConf, port);
     if (requestConf.path) {
-      if (requestConf.path.startsWith("/")) {
+      if (requestConf.path.startsWith('/')) {
         url += requestConf.path;
       } else {
         url += `/${requestConf.path}`;
@@ -74,7 +76,7 @@ export class RESTClient {
     let req = {
       method: requestConf.method || 'GET',
       url: url,
-      timeout: requestConf.timeout || 30000, // default 30 seconds
+      timeout: requestConf.timeout || 30000 // default 30 seconds
     };
 
     if (requestConf.query) {
@@ -89,7 +91,6 @@ export class RESTClient {
 
     return req;
   }
-
 
   makeRequest(opts) {
     // run the test

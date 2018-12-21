@@ -7,16 +7,15 @@ import * as httpProxy from 'http-proxy';
 let restream = require('./restream');
 import * as qs from 'querystring';
 import { Logger, LoggerConf } from 'busybee-util';
-import {ParsedTestSuite} from "../models/config/parsed/ParsedTestSuiteConfig";
-import {BusybeeParsedConfig} from "../models/config/BusybeeParsedConfig";
-import {MockServerConfig} from "../models/config/common/MockServerConfig";
-import {ParsedTestEnvConfig} from "../models/config/parsed/ParsedTestEnvConfig";
-import {ParsedTestSetConfig} from "../models/config/parsed/ParsedTestSetConfig";
-import {RESTTest} from "../models/RESTTest";
+import { ParsedTestSuite } from '../models/config/parsed/ParsedTestSuiteConfig';
+import { BusybeeParsedConfig } from '../models/config/BusybeeParsedConfig';
+import { MockServerConfig } from '../models/config/common/MockServerConfig';
+import { ParsedTestEnvConfig } from '../models/config/parsed/ParsedTestEnvConfig';
+import { ParsedTestSetConfig } from '../models/config/parsed/ParsedTestSetConfig';
+import { RESTTest } from '../models/RESTTest';
 import { RESTMock } from '../models/RESTMock';
 
 export class MockServer {
-
   private conf: BusybeeParsedConfig;
   private testSuiteConf: ParsedTestSuite;
   private logger: Logger;
@@ -34,8 +33,14 @@ export class MockServer {
     let serverConf: MockServerConfig = this.testSuiteConf.mockServer;
     if (serverConf && serverConf.proxy && !conf.noProxy) {
       this.logger.info(`Proxy config detected`);
-      if (!serverConf.proxy.protocol || !serverConf.proxy.host || !serverConf.proxy.port) {
-        this.logger.warn(`WARNING: mockServer proxy configuration does not contain required properties 'protocol', 'host' and 'port' \n Requests will not be proxied`);
+      if (
+        !serverConf.proxy.protocol ||
+        !serverConf.proxy.host ||
+        !serverConf.proxy.port
+      ) {
+        this.logger.warn(
+          `WARNING: mockServer proxy configuration does not contain required properties 'protocol', 'host' and 'port' \n Requests will not be proxied`
+        );
       } else {
         let proto = serverConf.proxy.protocol;
         let host = serverConf.proxy.host;
@@ -57,7 +62,7 @@ export class MockServer {
     server.set('etag', false);
     server.use(bodyParser.json()); // for parsing application/json
     server.use(restream(null));
-    server.use(bodyParser.urlencoded({extended: true})); // for parsing application/x-www-form-urlencoded
+    server.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
     if (this.corsActive()) {
       server.use((req, res, next) => {
         res.append('Access-Control-Allow-Origin', req.header('origin'));
@@ -69,7 +74,7 @@ export class MockServer {
 
     let port = this.getServerPort();
     server.listen(port, () => {
-      this.logger.info(`Mock Server listening on ${port}`)
+      this.logger.info(`Mock Server listening on ${port}`);
     });
   }
 
@@ -84,7 +89,7 @@ export class MockServer {
   }
 
   corsActive() {
-    return this.testSuiteConf.mockServer.cors !== false
+    return this.testSuiteConf.mockServer.cors !== false;
   }
 
   buildRoutes() {
@@ -96,9 +101,11 @@ export class MockServer {
         let headers = {
           'busybee-mock': true,
           'Access-Control-Allow-Methods': 'GET,POST,DELETE,PUT,OPTIONS',
-          'Access-Control-Allow-Headers': req.header('Access-Control-Request-Headers'),
+          'Access-Control-Allow-Headers': req.header(
+            'Access-Control-Request-Headers'
+          ),
           'Access-Control-Max-Age': 86400
-        }
+        };
 
         _.forEach(headers, (v: string, k) => {
           res.append(k, v);
@@ -111,24 +118,32 @@ export class MockServer {
     // build the routeMap
     this.logger.trace('testSuiteConf');
     this.logger.trace(this.testSuiteConf.testEnvs, true);
-    this.testSuiteConf.testEnvs.forEach((testEnv: ParsedTestEnvConfig, envId: string) => {
-      testEnv.testSets.forEach((testSet: ParsedTestSetConfig, testSetName: string) => {
-        testSet.tests.forEach((test: RESTTest) => {
-          let pass = false;
-          if (test.expect && test.expect.status && !_.isFunction(test.expect.body)) {
-            pass = true;
-          } else if (test.mocks) {
-            pass = _.every(test.mocks, (m) => {
-              return (m.response && m.response.status)
+    this.testSuiteConf.testEnvs.forEach(
+      (testEnv: ParsedTestEnvConfig, envId: string) => {
+        testEnv.testSets.forEach(
+          (testSet: ParsedTestSetConfig, testSetName: string) => {
+            testSet.tests.forEach((test: RESTTest) => {
+              let pass = false;
+              if (
+                test.expect &&
+                test.expect.status &&
+                !_.isFunction(test.expect.body)
+              ) {
+                pass = true;
+              } else if (test.mocks) {
+                pass = _.every(test.mocks, m => {
+                  return m.response && m.response.status;
+                });
+              }
+
+              if (pass) {
+                this.updateRouteMap(test);
+              }
             });
           }
-
-          if (pass) {
-            this.updateRouteMap(test);
-          }
-        });
-      });
-    })
+        );
+      }
+    );
 
     // iterate the routeMap and register each route to the server
     _.each(this.routeMap, (reqMethodMap, path) => {
@@ -154,11 +169,13 @@ export class MockServer {
 
     let path = mock.request.path;
     if (!_.isUndefined(mock.request.root)) {
-      if (mock.request.root) { // allow users to set request.root to override mockServer.root && testSuiteConf.root when mocking
+      if (mock.request.root) {
+        // allow users to set request.root to override mockServer.root && testSuiteConf.root when mocking
         path = `${mock.request.root}${path}`;
       } // else they passed null or false and we should not prepend a root (effectively overwriting mockServer.root or testSuiteConf.root
     } else if (!_.isUndefined(this.testSuiteConf.mockServer.root)) {
-      if (this.testSuiteConf.mockServer.root != null) { // allow users to set mockServer.root to false to override testSuiteConf.root when mocking
+      if (this.testSuiteConf.mockServer.root != null) {
+        // allow users to set mockServer.root to false to override testSuiteConf.root when mocking
         path = `${this.testSuiteConf.mockServer.root}${path}`;
       }
     } else if (this.testSuiteConf.root) {
@@ -180,12 +197,12 @@ export class MockServer {
     let path = this.getEndpoint(mock);
     if (!this.routeMap[path]) {
       this.routeMap[path] = {
-        get: {200: []},
-        post: {200: []},
-        put: {200: []},
-        delete: {200: []},
-        head: {200: []},
-        options: {200: []}
+        get: { 200: [] },
+        post: { 200: [] },
+        put: { 200: [] },
+        delete: { 200: [] },
+        head: { 200: [] },
+        options: { 200: [] }
       };
     }
     // 1. see if this req has already been recorded (could be in multiple sets)
@@ -208,22 +225,28 @@ export class MockServer {
 
     if (this.routeMap[path][method]) {
       if (this.routeMap[path][method][resStatus]) {
-        if (_.find(this.routeMap[path][method], (reqInfo) => {
-            return reqInfo.hash === hashedReq
-          })) {
+        if (
+          _.find(this.routeMap[path][method], reqInfo => {
+            return reqInfo.hash === hashedReq;
+          })
+        ) {
           // skip this one it exists
-          return
+          return;
         }
       } else {
-        this.routeMap[path][method][resStatus] = []
+        this.routeMap[path][method][resStatus] = [];
       }
     } else {
-      this.logger.info(`The method ${method} is not currently support for mocks`);
-      return
+      this.logger.info(
+        `The method ${method} is not currently support for mocks`
+      );
+      return;
     }
 
     // 2. register the request info for this route
-    this.routeMap[path][method][resStatus].push(Object.assign({}, mock, {hash: hashedReq}, {matcherOpts: requestOpts}));
+    this.routeMap[path][method][resStatus].push(
+      Object.assign({}, mock, { hash: hashedReq }, { matcherOpts: requestOpts })
+    );
   }
 
   addRoute(path, reqMethodMap) {
@@ -231,14 +254,20 @@ export class MockServer {
 
     _.forEach(reqMethodMap, (statusMap, methodName) => {
       // 1. build a controller
-      let ctrl = async(req, res) => {
+      let ctrl = async (req, res) => {
         this.logger.trace(req.path);
         // First we check to see if the requester wants a mockResponse with a specific status. If not, we default to 200
         let requestedStatus = 200;
         if (req.header('busybee-mock-status')) {
           requestedStatus = parseInt(req.header('busybee-mock-status'));
           if (!_.isInteger(requestedStatus)) {
-            return res.status(404).send(`busybee-mock-status must be an Integer, was '${req.header('busybee-mock-status')}'`)
+            return res
+              .status(404)
+              .send(
+                `busybee-mock-status must be an Integer, was '${req.header(
+                  'busybee-mock-status'
+                )}'`
+              );
           }
         }
 
@@ -250,7 +279,7 @@ export class MockServer {
         let hashedReq = hash(reqOpts);
 
         // find all mocks for this route and method that have the same hash of query/body params
-        let matchingMocks = _.filter(mocks, (m) => {
+        let matchingMocks = _.filter(mocks, m => {
           this.logger.trace('TESTING AGAINST');
           this.logger.trace(m.matcherOpts, true);
           this.logger.trace(`${m.hash} == ${hashedReq}`);
@@ -274,7 +303,7 @@ export class MockServer {
          */
         let mocksWithoutHeaders = [];
         let mocksWithHeaders = new Array<RESTTest>();
-        matchingMocks.forEach((m) => {
+        matchingMocks.forEach(m => {
           this.logger.trace('checking mock');
           // mocks that don't have headers defined don't need to match. IF this array only has 1 item
           // and we don't have any addition matchingMocks with header needs, it will get returned as a default.
@@ -290,18 +319,22 @@ export class MockServer {
 
           // to remove comparison errors, convert numbers to strings in both header objs
           reqHeaders = this.convertObjValuesToStrings(reqHeaders); // convert any numbers to strings
-          let mockHeaders = this.convertObjValuesToStrings(m.request.headers);  // convert any numbers to strings
+          let mockHeaders = this.convertObjValuesToStrings(m.request.headers); // convert any numbers to strings
           this.logger.trace('mockHeaders');
           this.logger.trace(mockHeaders, true);
           let headersPass = true;
           _.forEach(mockHeaders, (value, headerName) => {
             if (value == null) {
               // if the header is null then that implies that we don't want to check for this header
-              this.logger.trace(`mock headerName ${headerName} set to null, skipping match attempt`);
+              this.logger.trace(
+                `mock headerName ${headerName} set to null, skipping match attempt`
+              );
               return;
             }
             if (reqHeaders[headerName] !== value) {
-              this.logger.trace(`${headerName} - ${reqHeaders[headerName]} !== ${value}`);
+              this.logger.trace(
+                `${headerName} - ${reqHeaders[headerName]} !== ${value}`
+              );
               headersPass = false;
             }
           });
@@ -311,30 +344,35 @@ export class MockServer {
           }
         });
 
-
-        let mockToReturn:RESTTest;
-        this.logger.trace("mocksWithoutHeaders");
+        let mockToReturn: RESTTest;
+        this.logger.trace('mocksWithoutHeaders');
         this.logger.trace(mocksWithoutHeaders, true);
-        this.logger.trace("mocksWithHeaders");
+        this.logger.trace('mocksWithHeaders');
         this.logger.trace(mocksWithHeaders, true);
         if (mocksWithHeaders.length == 1) {
           // mocksWithHeaders matched more deeply with the request (query+body+headers)
           // we should prioritize these if we have an exact match
           mockToReturn = mocksWithHeaders[0];
-        }
-        else if (mocksWithoutHeaders.length == 1) {
+        } else if (mocksWithoutHeaders.length == 1) {
           // see if we have a single mockResponse without headers
           mockToReturn = mocksWithoutHeaders[0];
         } else {
           if (this.proxy) {
-            this.logger.info("No mock matches request but proxy available. Proxying request");
+            this.logger.info(
+              'No mock matches request but proxy available. Proxying request'
+            );
             return this.proxy.web(req, res);
           } else {
-            if (mocksWithoutHeaders.length == 0 && mocksWithHeaders.length == 0) {
-              let message = "This request did not match any mocks and no proxy is available.";
-              return res.status(404).json({err: message});
+            if (
+              mocksWithoutHeaders.length == 0 &&
+              mocksWithHeaders.length == 0
+            ) {
+              let message =
+                'This request did not match any mocks and no proxy is available.';
+              return res.status(404).json({ err: message });
             } else {
-              let message = "This request is ambiguous due to multiple mocks sharing the name header requirements.";
+              let message =
+                'This request is ambiguous due to multiple mocks sharing the name header requirements.';
               return res.status(404).json({
                 err: message,
                 mocksInQuestion: mocksWithoutHeaders.concat(mocksWithHeaders)
@@ -347,7 +385,7 @@ export class MockServer {
         res.append('busybee-mock', true);
         let resHeaders;
         let mockResponse;
-        let mockData:RESTMock; // will be populated if a mock is provided
+        let mockData: RESTMock; // will be populated if a mock is provided
         if (!_.isEmpty(mockToReturn.mocks)) {
           // in instances where more than 1 mock is provided
           // the user is signalling that they'd like to change the behavior for
@@ -380,7 +418,7 @@ export class MockServer {
 
         let bodyToReturn = mockResponse.body;
         return res.status(mockResponse.status).json(bodyToReturn);
-      } // end ctrl
+      }; // end ctrl
 
       // 2. register the route/method and ctrl
       this.logger.info(`Registering path ${path} : ${methodName}`);
@@ -392,18 +430,18 @@ export class MockServer {
     let opts = <any>{};
 
     if (!_.isEmpty(req.query)) {
-      opts.query = req.query
+      opts.query = req.query;
     }
 
     if (!_.isEmpty(req.body)) {
-      opts.body = req.body
+      opts.body = req.body;
     }
 
     return opts;
   }
 
   convertObjValuesToStrings(obj) {
-    let newObj = {}
+    let newObj = {};
     _.forEach(obj, (value, key) => {
       if (_.isObject(value)) {
         newObj[key] = this.convertObjValuesToStrings(value);
@@ -411,7 +449,7 @@ export class MockServer {
         if (!_.isNil(value)) {
           newObj[key] = value.toString();
           if (newObj[key]) {
-            newObj[key] = qs.unescape(newObj[key])
+            newObj[key] = qs.unescape(newObj[key]);
           }
         } else {
           newObj[key] = value;
@@ -426,10 +464,16 @@ export class MockServer {
     let mockServerConf = this.testSuiteConf.mockServer;
 
     if (mockServerConf.injectedRequestOpts) {
-      ['headers', 'query', 'body'].forEach((target) => {
+      ['headers', 'query', 'body'].forEach(target => {
         if (mockServerConf.injectedRequestOpts[target]) {
-          this.logger.trace(`injectedRequestOpts.${target} detected. Injecting ${target}`);
-          req[target] = Object.assign({}, mockServerConf.injectedRequestOpts[target], req[target]);
+          this.logger.trace(
+            `injectedRequestOpts.${target} detected. Injecting ${target}`
+          );
+          req[target] = Object.assign(
+            {},
+            mockServerConf.injectedRequestOpts[target],
+            req[target]
+          );
           this.logger.trace(`${target} injected`);
           this.logger.trace(req[target], true);
         }

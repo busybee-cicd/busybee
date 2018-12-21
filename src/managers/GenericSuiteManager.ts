@@ -1,20 +1,23 @@
 import * as _ from 'lodash';
 import * as path from 'path';
-import {Logger, LoggerConf} from 'busybee-util';
-import {EnvManager} from "./EnvManager";
-import {ParsedTestSetConfig} from "../models/config/parsed/ParsedTestSetConfig";
-import {SuiteEnvInfo} from "../lib/SuiteEnvInfo";
-import {BusybeeParsedConfig} from "../models/config/BusybeeParsedConfig";
+import { Logger, LoggerConf } from 'busybee-util';
+import { EnvManager } from './EnvManager';
+import { ParsedTestSetConfig } from '../models/config/parsed/ParsedTestSetConfig';
+import { SuiteEnvInfo } from '../lib/SuiteEnvInfo';
+import { BusybeeParsedConfig } from '../models/config/BusybeeParsedConfig';
 import { TestSetResult } from '../models/results/TestSetResult';
 
 export class GenericSuiteManager {
-
   private conf: BusybeeParsedConfig;
   private suiteEnvConf: SuiteEnvInfo;
   private envManager: EnvManager;
   private logger: Logger;
 
-  constructor(conf: BusybeeParsedConfig, suiteEnvConf: SuiteEnvInfo, envManager: EnvManager) {
+  constructor(
+    conf: BusybeeParsedConfig,
+    suiteEnvConf: SuiteEnvInfo,
+    envManager: EnvManager
+  ) {
     this.conf = _.cloneDeep(conf);
     this.suiteEnvConf = suiteEnvConf;
     this.envManager = envManager;
@@ -37,10 +40,14 @@ export class GenericSuiteManager {
 
   runTestSets(generatedEnvID): Promise<Array<TestSetResult>> {
     // TODO: logic for running TestSets in order
-    return new Promise(async(resolve, reject) => {
-      this.logger.trace(`runTestSets ${this.suiteEnvConf.suiteID} ${this.suiteEnvConf.suiteEnvID}`);
+    return new Promise(async (resolve, reject) => {
+      this.logger.trace(
+        `runTestSets ${this.suiteEnvConf.suiteID} ${
+          this.suiteEnvConf.suiteEnvID
+        }`
+      );
       this.logger.trace(this.suiteEnvConf, true);
-      let testSetPromises = this.suiteEnvConf.testSets.values().map((testSet) => {
+      let testSetPromises = this.suiteEnvConf.testSets.values().map(testSet => {
         return this.runTestSet(testSet, generatedEnvID);
       });
 
@@ -53,19 +60,27 @@ export class GenericSuiteManager {
       }
 
       if (testSetErr) {
-        this.logger.trace(`runTestSets ERROR encountered while running testSetPromises`);
+        this.logger.trace(
+          `runTestSets ERROR encountered while running testSetPromises`
+        );
         reject(testSetErr);
       } else {
         resolve(testSetResults);
       }
     });
-
   }
 
-  async runTestSet(testSet: ParsedTestSetConfig, generatedEnvID: string): Promise<TestSetResult> {
-    this.logger.trace(`runTestSet | ${this.suiteEnvConf.suiteID} | ${this.suiteEnvConf.suiteEnvID} | ${testSet.id}`);
+  async runTestSet(
+    testSet: ParsedTestSetConfig,
+    generatedEnvID: string
+  ): Promise<TestSetResult> {
+    this.logger.trace(
+      `runTestSet | ${this.suiteEnvConf.suiteID} | ${
+        this.suiteEnvConf.suiteEnvID
+      } | ${testSet.id}`
+    );
     this.logger.trace(testSet, true);
-    
+
     let testSetResult = new TestSetResult();
     testSetResult.id = testSet.id;
     testSetResult.pass = true;
@@ -83,7 +98,9 @@ export class GenericSuiteManager {
         runData: testSet.runData
       };
 
-      let returnData = await this.envManager.runScript(scriptPath, [JSON.stringify(args)]);
+      let returnData = await this.envManager.runScript(scriptPath, [
+        JSON.stringify(args)
+      ]);
       if (testSet.assertion) {
         try {
           // assertion() must explicity return false OR throw an Error to be considered failed
@@ -97,11 +114,10 @@ export class GenericSuiteManager {
         }
       }
     } catch (e) {
-      testSetResult.pass = false
+      testSetResult.pass = false;
       testSetResult.error = e;
     }
-    
+
     return testSetResult;
   }
-
 }

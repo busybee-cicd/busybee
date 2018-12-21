@@ -1,19 +1,19 @@
-import {spawn} from 'child_process';
+import { spawn } from 'child_process';
 import * as uuid from 'uuid';
 import * as path from 'path';
 import * as _ from 'lodash';
 import * as portscanner from 'portscanner';
 import * as promiseTools from 'promise-tools';
-import {Logger, LoggerConf} from 'busybee-util';
-import {RESTClient} from '../lib/RESTClient';
-import {BusybeeParsedConfig} from "../models/config/BusybeeParsedConfig";
-import {EnvResourceConfig} from "../models/config/common/EnvResourceConfig";
-import {HostConfig} from "../models/config/user/HostConfig";
-import {RequestOptsConfig} from "../models/config/common/RequestOptsConfig";
-import {TypedMap} from "../lib/TypedMap";
-import {ParsedTestSuite} from "../models/config/parsed/ParsedTestSuiteConfig";
-import {SuiteEnvInfo} from "../lib/SuiteEnvInfo";
-import { IOUtil } from "busybee-util";
+import { Logger, LoggerConf } from 'busybee-util';
+import { RESTClient } from '../lib/RESTClient';
+import { BusybeeParsedConfig } from '../models/config/BusybeeParsedConfig';
+import { EnvResourceConfig } from '../models/config/common/EnvResourceConfig';
+import { HostConfig } from '../models/config/user/HostConfig';
+import { RequestOptsConfig } from '../models/config/common/RequestOptsConfig';
+import { TypedMap } from '../lib/TypedMap';
+import { ParsedTestSuite } from '../models/config/parsed/ParsedTestSuiteConfig';
+import { SuiteEnvInfo } from '../lib/SuiteEnvInfo';
+import { IOUtil } from 'busybee-util';
 
 export class EnvManager {
   private conf: BusybeeParsedConfig;
@@ -122,7 +122,7 @@ export class EnvManager {
         load: 0,
         capacity: 100,
         envs: {}
-      }
+      };
     } else {
       conf.envResources.forEach((envConfig: EnvResourceConfig) => {
         envConfig.hosts.forEach((hostConfig: HostConfig) => {
@@ -130,7 +130,7 @@ export class EnvManager {
             load: 0,
             capacity: hostConfig.capacity || 100,
             envs: {}
-          }
+          };
         });
       });
     }
@@ -141,7 +141,7 @@ export class EnvManager {
 
   async stop(generatedEnvID: string) {
     this.logger.trace(`stop ${generatedEnvID}`);
-    return new Promise(async(resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       let envInfo = _.cloneDeep(this.currentEnvs.get(generatedEnvID));
       // remove the env from currentEnvs
       this.currentEnvs.remove(generatedEnvID);
@@ -151,15 +151,22 @@ export class EnvManager {
       }
 
       if (this.shouldSkipProvisioning(envInfo.suiteID)) {
-        this.logger.info(`Skipping shutdown of '${envInfo.suiteID}'s environment. Suite's Environment was not provisioned by Busybee`);
+        this.logger.info(
+          `Skipping shutdown of '${
+            envInfo.suiteID
+          }'s environment. Suite's Environment was not provisioned by Busybee`
+        );
         return resolve();
       }
 
-      this.logger.info(`Stopping Environment: ${envInfo.suiteEnvID} ${generatedEnvID}`);
+      this.logger.info(
+        `Stopping Environment: ${envInfo.suiteEnvID} ${generatedEnvID}`
+      );
 
       this.logger.trace('envInfo');
-      this.logger.trace(envInfo)
-      let ports = this.currentHosts[envInfo.hostName].envs[generatedEnvID].ports;
+      this.logger.trace(envInfo);
+      let ports = this.currentHosts[envInfo.hostName].envs[generatedEnvID]
+        .ports;
       let busybeeDir = this.conf.filePaths.busybeeDir;
       let args = {
         generatedEnvID: generatedEnvID,
@@ -182,7 +189,11 @@ export class EnvManager {
         await this.runScript(filePath, [JSON.stringify(args)]);
 
         // remove env info from the host
-        this.removeEnvFromHost(envInfo.hostName, envInfo.resourceCost, generatedEnvID);
+        this.removeEnvFromHost(
+          envInfo.hostName,
+          envInfo.resourceCost,
+          generatedEnvID
+        );
 
         this.logger.trace(`this.currentHosts after removing ${generatedEnvID}`);
         this.logger.trace(this.currentHosts, true);
@@ -196,10 +207,13 @@ export class EnvManager {
         return;
       }
     });
-
   }
 
-  removeEnvFromHost(hostName: string, resourceCost: number, generatedEnvID: string) {
+  removeEnvFromHost(
+    hostName: string,
+    resourceCost: number,
+    generatedEnvID: string
+  ) {
     // remove the load from the host
     this.currentHosts[hostName].load -= resourceCost;
     // remove the env from the currentHosts
@@ -209,13 +223,15 @@ export class EnvManager {
   async stopAll() {
     this.logger.trace('stopAll');
 
-    return new Promise(async(resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       this.logger.trace('currentEnvs');
       this.logger.trace(this.currentEnvs);
       let stopFns = [];
-      this.currentEnvs.forEach((envConf: SuiteEnvInfo, generatedEnvID: string) => {
-        stopFns.push(this.stop.call(this, generatedEnvID));
-      });
+      this.currentEnvs.forEach(
+        (envConf: SuiteEnvInfo, generatedEnvID: string) => {
+          stopFns.push(this.stop.call(this, generatedEnvID));
+        }
+      );
 
       try {
         await Promise.all(stopFns);
@@ -226,13 +242,28 @@ export class EnvManager {
     });
   }
 
-  async retryStart(generatedEnvID:string, suiteID:string, suiteEnvID: string, failMsg:string) {
+  async retryStart(
+    generatedEnvID: string,
+    suiteID: string,
+    suiteEnvID: string,
+    failMsg: string
+  ) {
     this.logger.trace(`retryStart ${generatedEnvID}`);
     await this.stop(generatedEnvID); // allow the user to do any potential background cleanup if necessary/possible and remove load from hosts
     // in both cases we need to remove the load that was reserved from this env
-    if (this.conf.parsedTestSuites.get(suiteID).testEnvs.get(suiteEnvID).retries < 3) {
-      this.conf.parsedTestSuites.get(suiteID).testEnvs.get(suiteEnvID).retries += 1
-      this.logger.info(`Restart attempt number ${this.conf.parsedTestSuites.get(suiteID).testEnvs.get(suiteEnvID).retries} for ${generatedEnvID}`);
+    if (
+      this.conf.parsedTestSuites.get(suiteID).testEnvs.get(suiteEnvID).retries <
+      3
+    ) {
+      this.conf.parsedTestSuites
+        .get(suiteID)
+        .testEnvs.get(suiteEnvID).retries += 1;
+      this.logger.info(
+        `Restart attempt number ${
+          this.conf.parsedTestSuites.get(suiteID).testEnvs.get(suiteEnvID)
+            .retries
+        } for ${generatedEnvID}`
+      );
       await this.start(generatedEnvID, suiteID, suiteEnvID);
     } else {
       this.logger.trace(`retryStart attempts exceeded. failing`);
@@ -241,7 +272,7 @@ export class EnvManager {
     }
   }
 
-  async start(generatedEnvID:string, suiteID:string, suiteEnvID:string) {
+  async start(generatedEnvID: string, suiteID: string, suiteEnvID: string) {
     this.logger.trace(`start ${generatedEnvID}`);
     this.envsWaitingForProvision.push(generatedEnvID);
     try {
@@ -256,30 +287,44 @@ export class EnvManager {
       this.envsWaitingForProvision.shift();
     } catch (e) {
       this.envsWaitingForProvision.shift();
-      await this.retryStart(generatedEnvID, suiteID, suiteEnvID, `${generatedEnvID} failed to provision`);
+      await this.retryStart(
+        generatedEnvID,
+        suiteID,
+        suiteEnvID,
+        `${generatedEnvID} failed to provision`
+      );
     }
 
-    this.logger.trace(`envsWaitingForProvision updated to ${this.envsWaitingForProvision}`);
+    this.logger.trace(
+      `envsWaitingForProvision updated to ${this.envsWaitingForProvision}`
+    );
 
     // should have some if logic here for the future when we support more than just api
 
     try {
       await this.confirmHealthcheck(generatedEnvID);
     } catch (e) {
-      await this.retryStart(generatedEnvID, suiteID, suiteEnvID, `${generatedEnvID} failed to confirm the healthcheck`);
+      await this.retryStart(
+        generatedEnvID,
+        suiteID,
+        suiteEnvID,
+        `${generatedEnvID} failed to confirm the healthcheck`
+      );
     }
 
     return;
   }
 
   async waitForTurn(generatedEnvID) {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       let wait = (timeout, cb) => {
-        this.logger.trace(`this.envsWaitingForProvision ${this.envsWaitingForProvision}`);
+        this.logger.trace(
+          `this.envsWaitingForProvision ${this.envsWaitingForProvision}`
+        );
         if (this.envsWaitingForProvision[0] != generatedEnvID) {
           this.logger.trace(`${generatedEnvID} waiting its turn`);
           setTimeout(() => {
-            wait(timeout, cb)
+            wait(timeout, cb);
           }, timeout);
         } else {
           cb();
@@ -289,28 +334,42 @@ export class EnvManager {
       wait(3000, () => {
         resolve();
       });
-    })
+    });
   }
 
   provisionEnv(generatedEnvID, suiteID, suiteEnvID) {
-    return new Promise(async(resolve, reject) => {
-      this.logger.trace(`provisionEnv ${generatedEnvID} ${suiteID} ${suiteEnvID}`);
+    return new Promise(async (resolve, reject) => {
+      this.logger.trace(
+        `provisionEnv ${generatedEnvID} ${suiteID} ${suiteEnvID}`
+      );
       this.logger.trace('currentHosts');
       this.logger.trace(this.currentHosts, true);
       if (this.shouldSkipProvisioning(suiteID)) {
-        this.logger.info(`Skipping Environment provisioning for Test Suite '${suiteID}'`);
+        this.logger.info(
+          `Skipping Environment provisioning for Test Suite '${suiteID}'`
+        );
       } else {
-        this.logger.info(`Will Provision Environment: ${suiteEnvID} - ${generatedEnvID}`);
+        this.logger.info(
+          `Will Provision Environment: ${suiteEnvID} - ${generatedEnvID}`
+        );
       }
 
       try {
         let testSuiteConf = this.conf.parsedTestSuites.get(suiteID);
         // 1. identify the host that this env should deploy to
-        let hostName = await this.getAvailableHostName(suiteID, suiteEnvID, generatedEnvID);
+        let hostName = await this.getAvailableHostName(
+          suiteID,
+          suiteEnvID,
+          generatedEnvID
+        );
         let ports;
         if (testSuiteConf.ports) {
           // 2. identify the ports that this env should use on this host
-          ports = await this.getAvailablePorts(hostName, suiteID, generatedEnvID);
+          ports = await this.getAvailablePorts(
+            hostName,
+            suiteID,
+            generatedEnvID
+          );
         }
 
         if (this.shouldSkipProvisioning(suiteID)) {
@@ -332,11 +391,18 @@ export class EnvManager {
         this.logger.trace(testSuiteConf.env.startScript);
         this.logger.trace(args);
         try {
-          this.logger.info(`Starting Environment: ${suiteEnvID} - ${generatedEnvID}`);
-          let returnData = await this.runScript(path.join(busybeeDir, testSuiteConf.env.startScript), [JSON.stringify(args)]);
+          this.logger.info(
+            `Starting Environment: ${suiteEnvID} - ${generatedEnvID}`
+          );
+          let returnData = await this.runScript(
+            path.join(busybeeDir, testSuiteConf.env.startScript),
+            [JSON.stringify(args)]
+          );
 
           if (returnData) {
-            this.currentEnvs.get(generatedEnvID).setStartScriptReturnData(returnData);
+            this.currentEnvs
+              .get(generatedEnvID)
+              .setStartScriptReturnData(returnData);
           }
         } catch (err) {
           /*
@@ -357,22 +423,22 @@ export class EnvManager {
   }
 
   runScript(path, args): Promise<string> {
-    return new Promise(async(resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       this.logger.info(`runScript ${path} <args>`);
       this.logger.debug(args);
       this.logger.trace('With process.env');
       this.logger.trace(process.env);
       const completeMessage = `${path} completed`;
       let returned = false;
-      const script = spawn('/bin/bash', [path, args], {env: process.env});
+      const script = spawn('/bin/bash', [path, args], { env: process.env });
 
       // listen to stderr for errors and reject
-      script.stderr.on('data', (data) => {
+      script.stderr.on('data', data => {
         if (returned) {
           return;
         }
         if (!data) {
-          data = "";
+          data = '';
         }
         let dataStr = data.toString();
         this.logger.debug(dataStr);
@@ -385,18 +451,20 @@ export class EnvManager {
       });
 
       // listen to stdout for data
-      script.stdout.on('data', (data) => {
+      script.stdout.on('data', data => {
         if (returned || _.isEmpty(data)) {
           return;
         }
 
         let lines = IOUtil.parseDataBuffer(data);
-        lines.forEach((l) => {
+        lines.forEach(l => {
           this.logger.debug(l);
 
           if (l.includes(EnvManager.BUSYBEE_ERROR)) {
             returned = true;
-            this.logger.error(`${EnvManager.BUSYBEE_ERROR} detected in ${path}`);
+            this.logger.error(
+              `${EnvManager.BUSYBEE_ERROR} detected in ${path}`
+            );
             reject(l.replace(`${EnvManager.BUSYBEE_ERROR} `, ''));
             script.kill();
           } else if (l.includes(EnvManager.BUSYBEE_RETURN)) {
@@ -407,7 +475,7 @@ export class EnvManager {
             resolve(returnedData);
             script.kill();
             this.logger.debug(completeMessage);
-          };
+          }
         });
       });
 
@@ -426,7 +494,10 @@ export class EnvManager {
   }
 
   shouldSkipProvisioning(suiteID: string) {
-    return this.skipEnvProvisioningList && (this.skipEnvProvisioningList.indexOf(suiteID) !== -1);
+    return (
+      this.skipEnvProvisioningList &&
+      this.skipEnvProvisioningList.indexOf(suiteID) !== -1
+    );
   }
 
   /*
@@ -434,11 +505,13 @@ export class EnvManager {
    */
   async getAvailableHostName(suiteID, suiteEnvID, generatedEnvID) {
     return new Promise((resolve, reject) => {
-      this.logger.trace(`getAvailableHostName ${suiteID} | ${suiteEnvID} | ${generatedEnvID}`);
+      this.logger.trace(
+        `getAvailableHostName ${suiteID} | ${suiteEnvID} | ${generatedEnvID}`
+      );
       let suiteConf: ParsedTestSuite = this.conf.parsedTestSuites.get(suiteID);
       let cost = suiteConf.env.resourceCost || 0;
 
-      let identifyHost = (cb) => {
+      let identifyHost = cb => {
         this.logger.trace(`identifyHost`);
         // see if we have a pre-determined host
         if (suiteConf.host) {
@@ -447,30 +520,43 @@ export class EnvManager {
           return cb('localhost');
         }
         // 1. calculate the capacity remaining for each host
-        let capacityHosts = _.map(this.currentHosts, (hostInfo: any, hostName) => {
-          return {
-            name: hostName,
-            remainingCapacity: hostInfo.capacity - hostInfo.load
+        let capacityHosts = _.map(
+          this.currentHosts,
+          (hostInfo: any, hostName) => {
+            return {
+              name: hostName,
+              remainingCapacity: hostInfo.capacity - hostInfo.load
+            };
           }
-        });
+        );
         this.logger.trace('Hosts with capacity');
         this.logger.trace(capacityHosts, true);
         // 2. order hosts by remainingCapacity
-        let freestHost = _.orderBy(capacityHosts, ['remainingCapacity'], 'desc')[0];
-        this.logger.info(`${generatedEnvID} Host with most capacity is ${freestHost.name}`);
+        let freestHost = _.orderBy(
+          capacityHosts,
+          ['remainingCapacity'],
+          'desc'
+        )[0];
+        this.logger.info(
+          `${generatedEnvID} Host with most capacity is ${freestHost.name}`
+        );
 
         // 3. if the capacity of the host with the most left is greater than the suite env cost. return.
         if (freestHost && freestHost.remainingCapacity >= cost) {
           cb(freestHost.name);
         } else {
-          this.logger.info(`${generatedEnvID} Host ${freestHost.name} remaining capacity is ${freestHost.remainingCapacity}. ${cost} is required. Retrying...`);
+          this.logger.info(
+            `${generatedEnvID} Host ${freestHost.name} remaining capacity is ${
+              freestHost.remainingCapacity
+            }. ${cost} is required. Retrying...`
+          );
           setTimeout(() => {
-            identifyHost(cb)
+            identifyHost(cb);
           }, 3000);
         }
       };
 
-      identifyHost((hostName) => {
+      identifyHost(hostName => {
         this.logger.trace('currentHosts');
         this.logger.trace(this.currentHosts, true);
         // 1. add the load to the host to reserve it;
@@ -492,8 +578,10 @@ export class EnvManager {
    Discover available ports for a given hostName and suite definition
    */
   getAvailablePorts(hostName, suiteID, generatedEnvID) {
-    return new Promise(async(resolve, reject) => {
-      this.logger.trace(`getAvailablePorts ${hostName} | ${suiteID} | ${generatedEnvID}`);
+    return new Promise(async (resolve, reject) => {
+      this.logger.trace(
+        `getAvailablePorts ${hostName} | ${suiteID} | ${generatedEnvID}`
+      );
       let hostConf = Object.assign({}, this.currentHosts[hostName]);
       let suiteConf = this.conf.parsedTestSuites.get(suiteID);
 
@@ -512,8 +600,14 @@ export class EnvManager {
         if (suiteConf.env && suiteConf.env.parallel) {
           parallelMode = suiteConf.env.parallel;
         }
-        let {ports, portOffset} =
-          await this.identifyPorts(generatedEnvID, hostName, portsInUse, suiteConf.ports, 0, parallelMode);
+        let { ports, portOffset } = await this.identifyPorts(
+          generatedEnvID,
+          hostName,
+          portsInUse,
+          suiteConf.ports,
+          0,
+          parallelMode
+        );
 
         // 4. resolve :)
         resolve(ports);
@@ -524,7 +618,12 @@ export class EnvManager {
     });
   }
 
-  updateGlobalPortInfo(hostName: string, generatedEnvID: string, ports: number[], portOffset: number) {
+  updateGlobalPortInfo(
+    hostName: string,
+    generatedEnvID: string,
+    ports: number[],
+    portOffset: number
+  ) {
     this.currentHosts[hostName].envs[generatedEnvID].ports = ports;
     this.currentHosts[hostName].envs[generatedEnvID].portOffset = portOffset;
     this.currentEnvs.get(generatedEnvID).ports = ports;
@@ -536,17 +635,17 @@ export class EnvManager {
       this.logger.trace(hostConf);
       let portsInUse = [];
       _.forEach(hostConf.envs, (envInfo, generatedEnvID) => {
-        this.logger.trace(`envInfo`)
+        this.logger.trace(`envInfo`);
         this.logger.trace(envInfo);
         if (envInfo.ports) {
-          envInfo.ports.forEach((port) => {
+          envInfo.ports.forEach(port => {
             this.logger.trace(`port in use ${port}`);
             portsInUse.push(port);
           });
         }
       });
 
-      resolve(portsInUse)
+      resolve(portsInUse);
     });
   }
 
@@ -563,32 +662,67 @@ export class EnvManager {
     IF (portsTaken)
       do not increment ports, try again
    */
-  async identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset, parallelMode) {
-    this.logger.trace(`identifyPorts: ${generatedEnvID} ${hostName}, ${portsInUse}, ${nextPorts}, ${portOffset}, ${parallelMode}`);
-    let portsInUseByBusybee = await this.arePortsInUseByBusybee(portsInUse, nextPorts);
+  async identifyPorts(
+    generatedEnvID,
+    hostName,
+    portsInUse,
+    nextPorts,
+    portOffset,
+    parallelMode
+  ) {
+    this.logger.trace(
+      `identifyPorts: ${generatedEnvID} ${hostName}, ${portsInUse}, ${nextPorts}, ${portOffset}, ${parallelMode}`
+    );
+    let portsInUseByBusybee = await this.arePortsInUseByBusybee(
+      portsInUse,
+      nextPorts
+    );
     this.logger.trace(`portsInUseByBusybee: ${portsInUseByBusybee}`);
     this.logger.trace(`parallelMode: ${parallelMode}`);
 
     if (portsInUseByBusybee) {
       let oldPorts = nextPorts;
-      nextPorts = nextPorts.map((p) => {
-        return p + 1
+      nextPorts = nextPorts.map(p => {
+        return p + 1;
       });
-      this.logger.info(`${generatedEnvID} Ports ${oldPorts} in use by Busybee, retrying with ${nextPorts}`);
-      return await this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset + 1, parallelMode);
+      this.logger.info(
+        `${generatedEnvID} Ports ${oldPorts} in use by Busybee, retrying with ${nextPorts}`
+      );
+      return await this.identifyPorts(
+        generatedEnvID,
+        hostName,
+        portsInUse,
+        nextPorts,
+        portOffset + 1,
+        parallelMode
+      );
     } else {
       // first put a lock on these ports
-      this.updateGlobalPortInfo(hostName, generatedEnvID, nextPorts, portOffset);
+      this.updateGlobalPortInfo(
+        hostName,
+        generatedEnvID,
+        nextPorts,
+        portOffset
+      );
       // not in use by busybee. see if ports are in use by something else
       let portsTaken = await this.arePortsTaken(hostName, nextPorts);
       if (portsTaken) {
         // shift ports and try again
         let oldPorts = nextPorts;
-        nextPorts = nextPorts.map((p) => {
-          return p + 1
+        nextPorts = nextPorts.map(p => {
+          return p + 1;
         });
-        this.logger.info(`${generatedEnvID} Ports ${oldPorts} in use by an unknown service, retrying with ${nextPorts}`);
-        return await this.identifyPorts(generatedEnvID, hostName, portsInUse, nextPorts, portOffset + 1, parallelMode);
+        this.logger.info(
+          `${generatedEnvID} Ports ${oldPorts} in use by an unknown service, retrying with ${nextPorts}`
+        );
+        return await this.identifyPorts(
+          generatedEnvID,
+          hostName,
+          portsInUse,
+          nextPorts,
+          portOffset + 1,
+          parallelMode
+        );
       }
 
       // ports identified, resolve.
@@ -600,7 +734,6 @@ export class EnvManager {
       this.logger.trace(`ports identified: ${JSON.stringify(ret)}`);
       return ret;
     }
-
   }
 
   /*
@@ -618,7 +751,7 @@ export class EnvManager {
   async arePortsTaken(hostName, ports) {
     this.logger.trace(`arePortsTaken ${hostName} ${ports}`);
     let takenPorts = [];
-    let portCheckPromises = ports.map((p) => {
+    let portCheckPromises = ports.map(p => {
       return this.isPortTaken(hostName, p);
     });
 
@@ -642,7 +775,7 @@ export class EnvManager {
           this.logger.trace(`${port} is available`);
           resolve(false);
         }
-      })
+      });
     });
   }
 
@@ -656,7 +789,7 @@ export class EnvManager {
     let healthcheckConf = suiteEnvConf.healthcheck;
 
     if (!healthcheckConf) {
-      this.logger.info("No Healthcheck provided. Moving on.");
+      this.logger.info('No Healthcheck provided. Moving on.');
       return;
     }
 
@@ -665,7 +798,7 @@ export class EnvManager {
       return;
     }
 
-    if (healthcheckConf.type.toUpperCase() === "REST") {
+    if (healthcheckConf.type.toUpperCase() === 'REST') {
       let restClient = new RESTClient(this.conf, suiteEnvConf);
       let requestConf: RequestOptsConfig = healthcheckConf.request;
 
@@ -677,17 +810,22 @@ export class EnvManager {
         healthcheckPort = suiteEnvConf.ports[0]; // default to restapi path
       }
       // 2. get the port offset, apply.
-      let portOffset = this.currentHosts[suiteEnvConf.hostName].envs[generatedEnvID].portOffset
+      let portOffset = this.currentHosts[suiteEnvConf.hostName].envs[
+        generatedEnvID
+      ].portOffset;
       healthcheckPort += portOffset;
       let opts = restClient.buildRequest(requestConf, healthcheckPort);
 
       // retries the healthcheck path every 3 seconds up to 50 times
       // when successful calls the cb passed to confirmHealthcheck()
       let attempt = 0;
-      return await promiseTools.retry({times: healthcheckConf.retries || 50, interval: opts.timeout},
+      return await promiseTools.retry(
+        { times: healthcheckConf.retries || 50, interval: opts.timeout },
         async () => {
           attempt += 1;
-          this.logger.info(`Attempting healthcheck #${attempt} for ${generatedEnvID} on port ${healthcheckPort}`);
+          this.logger.info(
+            `Attempting healthcheck #${attempt} for ${generatedEnvID} on port ${healthcheckPort}`
+          );
           this.logger.debug(opts);
           let response = await restClient.makeRequest(opts);
           this.logger.debug(response);
@@ -699,9 +837,12 @@ export class EnvManager {
             this.logger.trace(response, true);
             throw new Error(`Healthcheck failed for ${generatedEnvID}`);
           }
-        });
+        }
+      );
     } else {
-      this.logger.info("Healthcheck 'type' not recognized. Skipping Healthcheck");
+      this.logger.info(
+        "Healthcheck 'type' not recognized. Skipping Healthcheck"
+      );
       return;
     }
   }

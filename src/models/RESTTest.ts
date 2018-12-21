@@ -1,10 +1,10 @@
-import {RequestOptsConfig} from "./config/common/RequestOptsConfig";
-import {deserialize} from 'json-typescript-mapper';
-import {RESTTestExpect} from "./RESTTestExpect";
-import {RESTTestSet} from './RESTTestSet';
+import { RequestOptsConfig } from './config/common/RequestOptsConfig';
+import { deserialize } from 'json-typescript-mapper';
+import { RESTTestExpect } from './RESTTestExpect';
+import { RESTTestSet } from './RESTTestSet';
 
 import * as _ from 'lodash';
-import { RESTMock } from "./RESTMock";
+import { RESTMock } from './RESTMock';
 
 /**
  * The definition of a REST Service Test. Also defines any additional mock behavior
@@ -68,7 +68,11 @@ export class RESTTest {
     this.id = data.id;
     this.description = data.description;
     if (data.testSet) {
-      this.testSet = _.isArray(data.testSet) ? _.map(data.testSet, (ts) => { return new RESTTestSet(ts); }) : new RESTTestSet(data.testSet);
+      this.testSet = _.isArray(data.testSet)
+        ? _.map(data.testSet, ts => {
+            return new RESTTestSet(ts);
+          })
+        : new RESTTestSet(data.testSet);
     }
     this.request = deserialize(RequestOptsConfig, data.request);
     if (data.expect) {
