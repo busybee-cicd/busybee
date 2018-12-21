@@ -7,7 +7,7 @@ import { SuiteEnvInfo } from '../lib/SuiteEnvInfo';
 import { BusybeeParsedConfig } from '../models/config/BusybeeParsedConfig';
 import { TestSetResult } from '../models/results/TestSetResult';
 
-export class GenericSuiteManager {
+export class UserProvidedSuiteManager {
   private conf: BusybeeParsedConfig;
   private suiteEnvConf: SuiteEnvInfo;
   private envManager: EnvManager;
@@ -38,36 +38,23 @@ export class GenericSuiteManager {
     return url;
   }
 
-  runTestSets(generatedEnvID): Promise<Array<TestSetResult>> {
-    // TODO: logic for running TestSets in order
-    return new Promise(async (resolve, reject) => {
-      this.logger.trace(
-        `runTestSets ${this.suiteEnvConf.suiteID} ${
-          this.suiteEnvConf.suiteEnvID
-        }`
-      );
-      this.logger.trace(this.suiteEnvConf, true);
-      let testSetPromises = this.suiteEnvConf.testSets.values().map(testSet => {
-        return this.runTestSet(testSet, generatedEnvID);
-      });
-
-      let testSetResults;
-      let testSetErr;
-      try {
-        testSetResults = await Promise.all(testSetPromises);
-      } catch (e) {
-        testSetErr = e;
-      }
-
-      if (testSetErr) {
-        this.logger.trace(
-          `runTestSets ERROR encountered while running testSetPromises`
-        );
-        reject(testSetErr);
-      } else {
-        resolve(testSetResults);
-      }
+  async runTestSets(generatedEnvID): Promise<Array<TestSetResult>> {
+    this.logger.trace(
+      `runTestSets ${this.suiteEnvConf.suiteID} ${this.suiteEnvConf.suiteEnvID}`
+    );
+    this.logger.trace(this.suiteEnvConf, true);
+    let testSetPromises = this.suiteEnvConf.testSets.values().map(testSet => {
+      return this.runTestSet(testSet, generatedEnvID);
     });
+
+    try {
+      return await Promise.all(testSetPromises);
+    } catch (e) {
+      this.logger.trace(
+        `runTestSets ERROR encountered while running testSetPromises`
+      );
+      throw e;
+    }
   }
 
   async runTestSet(

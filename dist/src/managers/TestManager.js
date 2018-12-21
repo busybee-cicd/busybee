@@ -131,7 +131,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var _ = require('lodash');
 var busybee_util_1 = require('busybee-util');
 var RESTSuiteManager_1 = require('./RESTSuiteManager');
-var GenericSuiteManager_1 = require('./GenericSuiteManager');
+var UserProvidedSuiteManager_1 = require('./UserProvidedSuiteManager');
 var EnvResult_1 = require('../models/results/EnvResult');
 var TestWebSocketServer_1 = require('../ws/TestWebSocketServer');
 var SuiteType_1 = require('../constants/SuiteType');
@@ -269,7 +269,7 @@ var TestManager = /** @class */ (function() {
             testSetResults = _a.sent();
             return [3 /*break*/, 6];
           case 4:
-            suiteManager = new GenericSuiteManager_1.GenericSuiteManager(
+            suiteManager = new UserProvidedSuiteManager_1.UserProvidedSuiteManager(
               this.conf,
               currentEnv,
               this.envManager

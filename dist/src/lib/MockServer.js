@@ -521,7 +521,7 @@ var MockServer = /** @class */ (function() {
                 this.logger.info(
                   'lagging response for ' + mockData.lag + ' milliseconds'
                 );
-                return [4 /*yield*/, this.sleep(mockData.lag)];
+                return [4 /*yield*/, this.wait(mockData.lag)];
               case 1:
                 _a.sent();
                 _a.label = 2;
@@ -590,7 +590,7 @@ var MockServer = /** @class */ (function() {
     }
     return req;
   };
-  MockServer.prototype.sleep = function(ms) {
+  MockServer.prototype.wait = function(ms) {
     return new Promise(function(resolve) {
       return setTimeout(resolve, ms);
     });

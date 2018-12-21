@@ -413,7 +413,7 @@ export class MockServer {
         // check for a delay
         if (mockData && mockData.lag) {
           this.logger.info(`lagging response for ${mockData.lag} milliseconds`);
-          await this.sleep(mockData.lag);
+          await this.wait(mockData.lag);
         }
 
         let bodyToReturn = mockResponse.body;
@@ -483,7 +483,7 @@ export class MockServer {
     return req;
   }
 
-  sleep(ms) {
+  wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 }

@@ -159,48 +159,43 @@ var RESTSuiteManager = /** @class */ (function() {
     this.restClient = new RESTClient_1.RESTClient(conf, suiteEnvConf);
   }
   ///////// TestRunning
-  // TODO: refactor to async/await
   RESTSuiteManager.prototype.runRESTApiTestSets = function(currentEnv) {
-    var _this = this;
-    // TODO: logic for running TestSets in order
-    return new Promise(function(resolve, reject) {
-      return __awaiter(_this, void 0, void 0, function() {
-        var testSetPromises, testSetResults, e_1;
-        var _this = this;
-        return __generator(this, function(_a) {
-          switch (_a.label) {
-            case 0:
-              this.logger.trace(
-                'runRESTApiTestSets ' +
-                  currentEnv.suiteID +
-                  ' ' +
-                  currentEnv.suiteEnvID
-              );
-              testSetPromises = _.map(currentEnv.testSets.values(), function(
-                testSet
-              ) {
-                return function() {
-                  return _this.runRESTApiTestSet(currentEnv, testSet);
-                }; // wrap promise in empty fn for promiseTools
-              });
-              _a.label = 1;
-            case 1:
-              _a.trys.push([1, 3, , 4]);
-              return [4 /*yield*/, promiseTools.parallel(testSetPromises, 2)];
-            case 2:
-              testSetResults = _a.sent();
-              resolve(testSetResults);
-              return [3 /*break*/, 4];
-            case 3:
-              e_1 = _a.sent();
-              this.logger.trace(
-                'runRESTApiTestSets ERROR encountered while running testSetPromises'
-              );
-              return [2 /*return*/, reject(e_1)];
-            case 4:
-              return [2 /*return*/];
-          }
-        });
+    return __awaiter(this, void 0, void 0, function() {
+      var testSetPromises, testSetResults, e_1;
+      var _this = this;
+      return __generator(this, function(_a) {
+        switch (_a.label) {
+          case 0:
+            // TODO: logic for running TestSets in order
+            this.logger.trace(
+              'runRESTApiTestSets ' +
+                currentEnv.suiteID +
+                ' ' +
+                currentEnv.suiteEnvID
+            );
+            testSetPromises = _.map(currentEnv.testSets.values(), function(
+              testSet
+            ) {
+              return function() {
+                return _this.runRESTApiTestSet(currentEnv, testSet);
+              }; // wrap promise in empty fn for promiseTools
+            });
+            _a.label = 1;
+          case 1:
+            _a.trys.push([1, 3, , 4]);
+            return [4 /*yield*/, promiseTools.parallel(testSetPromises, 2)];
+          case 2:
+            testSetResults = _a.sent();
+            return [2 /*return*/, testSetResults];
+          case 3:
+            e_1 = _a.sent();
+            this.logger.trace(
+              'runRESTApiTestSets ERROR encountered while running testSetPromises'
+            );
+            throw e_1;
+          case 4:
+            return [2 /*return*/];
+        }
       });
     });
   };

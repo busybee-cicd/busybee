@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import { Logger, LoggerConf } from 'busybee-util';
 import { RESTSuiteManager } from './RESTSuiteManager';
-import { GenericSuiteManager } from './GenericSuiteManager';
+import { UserProvidedSuiteManager } from './UserProvidedSuiteManager';
 import { EnvManager } from './EnvManager';
 import { BusybeeParsedConfig } from '../models/config/BusybeeParsedConfig';
 import { SuiteEnvInfo } from '../lib/SuiteEnvInfo';
@@ -127,14 +127,14 @@ export class TestManager {
       let currentEnv: SuiteEnvInfo = this.envManager.getCurrentEnv(
         generatedEnvID
       );
-      // create a GenericSuiteManager to handle coordinating these tests
+      // create a UserProvidedSuiteManager to handle coordinating these tests
       let suiteManager;
       let testSetResults;
       if (suiteType === SuiteType.REST) {
         suiteManager = new RESTSuiteManager(this.conf, currentEnv);
         testSetResults = await suiteManager.runRESTApiTestSets(currentEnv);
       } else {
-        suiteManager = new GenericSuiteManager(
+        suiteManager = new UserProvidedSuiteManager(
           this.conf,
           currentEnv,
           this.envManager

@@ -44,35 +44,34 @@ export class RESTSuiteManager {
 
   ///////// TestRunning
 
-  // TODO: refactor to async/await
-  runRESTApiTestSets(currentEnv: SuiteEnvInfo): Promise<Array<TestSetResult>> {
+  async runRESTApiTestSets(
+    currentEnv: SuiteEnvInfo
+  ): Promise<Array<TestSetResult>> {
     // TODO: logic for running TestSets in order
-    return new Promise<Array<TestSetResult>>(async (resolve, reject) => {
-      this.logger.trace(
-        `runRESTApiTestSets ${currentEnv.suiteID} ${currentEnv.suiteEnvID}`
-      );
-      let testSetPromises = _.map(
-        currentEnv.testSets.values(),
-        (testSet: ParsedTestSetConfig) => {
-          return () => {
-            return this.runRESTApiTestSet(currentEnv, testSet);
-          }; // wrap promise in empty fn for promiseTools
-        }
-      );
-
-      try {
-        let testSetResults: Array<TestSetResult> = await promiseTools.parallel(
-          testSetPromises,
-          2
-        );
-        resolve(testSetResults);
-      } catch (e) {
-        this.logger.trace(
-          `runRESTApiTestSets ERROR encountered while running testSetPromises`
-        );
-        return reject(e);
+    this.logger.trace(
+      `runRESTApiTestSets ${currentEnv.suiteID} ${currentEnv.suiteEnvID}`
+    );
+    let testSetPromises = _.map(
+      currentEnv.testSets.values(),
+      (testSet: ParsedTestSetConfig) => {
+        return () => {
+          return this.runRESTApiTestSet(currentEnv, testSet);
+        }; // wrap promise in empty fn for promiseTools
       }
-    });
+    );
+
+    try {
+      let testSetResults: Array<TestSetResult> = await promiseTools.parallel(
+        testSetPromises,
+        2
+      );
+      return testSetResults;
+    } catch (e) {
+      this.logger.trace(
+        `runRESTApiTestSets ERROR encountered while running testSetPromises`
+      );
+      throw e;
+    }
   }
 
   async runRESTApiTestSet(
