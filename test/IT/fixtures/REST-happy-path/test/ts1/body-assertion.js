@@ -1,5 +1,6 @@
 module.exports = {
     "id": "body assertion",
+    "delayRequest": 1000,
     "testSet": [
         {
             "id": "ts1"

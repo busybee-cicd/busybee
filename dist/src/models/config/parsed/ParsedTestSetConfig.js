@@ -4,6 +4,7 @@ var ParsedTestSetConfig = /** @class */ (function () {
     function ParsedTestSetConfig(testSetConfig) {
         this.id = testSetConfig.id;
         this.controlFlow = testSetConfig.controlFlow;
+        this.controlFlowLimit = testSetConfig.controlFlowLimit;
         this.description = testSetConfig.description;
         this.runData = testSetConfig.runData;
         this.tests = [];

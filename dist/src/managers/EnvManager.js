@@ -39,8 +39,8 @@ var child_process_1 = require("child_process");
 var uuid = require("uuid");
 var path = require("path");
 var _ = require("lodash");
-var _async = require("async");
 var portscanner = require("portscanner");
+var promiseTools = require("promise-tools");
 var busybee_util_1 = require("busybee-util");
 var RESTClient_1 = require("../lib/RESTClient");
 var TypedMap_1 = require("../lib/TypedMap");
@@ -769,72 +769,68 @@ var EnvManager = /** @class */ (function () {
      TODO: support multiple healthcheck types
      */
     EnvManager.prototype.confirmHealthcheck = function (generatedEnvID) {
-        var _this = this;
-        return new Promise(function (resolve, reject) {
-            _this.logger.trace("confirmHealthcheck " + generatedEnvID);
-            var suiteEnvConf = _this.currentEnvs.get(generatedEnvID); // current-env-specific conf
-            _this.logger.trace(suiteEnvConf);
-            var healthcheckConf = suiteEnvConf.healthcheck;
-            if (!healthcheckConf) {
-                _this.logger.info("No Healthcheck provided. Moving on.");
-                return resolve();
-            }
-            if (!healthcheckConf.type) {
-                _this.logger.info("Healthcheck 'type' not provided. Skipping Healthcheck");
-                return resolve();
-            }
-            if (healthcheckConf.type.toUpperCase() === "REST") {
-                var restClient_1 = new RESTClient_1.RESTClient(_this.conf, suiteEnvConf);
-                var requestConf = healthcheckConf.request;
-                // 1. get the initial healthcheckport definition from the
-                var healthcheckPort_1;
-                if (requestConf.port) {
-                    healthcheckPort_1 = requestConf.port;
-                }
-                else {
-                    healthcheckPort_1 = suiteEnvConf.ports[0]; // default to restapi path
-                }
-                // 2. get the port offset, apply.
-                var portOffset = _this.currentHosts[suiteEnvConf.hostName].envs[generatedEnvID].portOffset;
-                healthcheckPort_1 += portOffset;
-                var opts_1 = restClient_1.buildRequest(requestConf, healthcheckPort_1);
-                // retries the healthcheck path every 3 seconds up to 50 times
-                // when successful calls the cb passed to confirmHealthcheck()
-                var attempt_1 = 0;
-                _async.retry({ times: healthcheckConf.retries || 50, interval: opts_1.timeout }, function (asyncCb) {
-                    attempt_1 += 1;
-                    _this.logger.info("Attempting healthcheck #" + attempt_1 + " for " + generatedEnvID + " on port " + healthcheckPort_1);
-                    _this.logger.debug(opts_1);
-                    restClient_1.makeRequest(opts_1)
-                        .then(function (response) {
-                        _this.logger.debug(response);
-                        if (response.statusCode === 200) {
-                            _this.logger.info("Healthcheck Confirmed for " + generatedEnvID + "!");
-                            asyncCb(null, true);
+        return __awaiter(this, void 0, void 0, function () {
+            var suiteEnvConf, healthcheckConf, restClient_1, requestConf, healthcheckPort_1, portOffset, opts_1, attempt_1;
+            var _this = this;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        this.logger.trace("confirmHealthcheck " + generatedEnvID);
+                        suiteEnvConf = this.currentEnvs.get(generatedEnvID);
+                        this.logger.trace(suiteEnvConf);
+                        healthcheckConf = suiteEnvConf.healthcheck;
+                        if (!healthcheckConf) {
+                            this.logger.info("No Healthcheck provided. Moving on.");
+                            return [2 /*return*/];
+                        }
+                        if (!healthcheckConf.type) {
+                            this.logger.info("Healthcheck 'type' not provided. Skipping Healthcheck");
+                            return [2 /*return*/];
+                        }
+                        if (!(healthcheckConf.type.toUpperCase() === "REST")) return [3 /*break*/, 2];
+                        restClient_1 = new RESTClient_1.RESTClient(this.conf, suiteEnvConf);
+                        requestConf = healthcheckConf.request;
+                        if (requestConf.port) {
+                            healthcheckPort_1 = requestConf.port;
                         }
                         else {
-                            _this.logger.debug("Healthcheck returned: " + response.statusCode);
-                            _this.logger.trace(response, true);
-                            asyncCb("Healthcheck failed for " + generatedEnvID);
+                            healthcheckPort_1 = suiteEnvConf.ports[0]; // default to restapi path
                         }
-                    })
-                        .catch(function (err) {
-                        _this.logger.error(err.message);
-                        asyncCb("failed");
-                    });
-                }, function (err, results) {
-                    if (err) {
-                        reject(err);
-                    }
-                    else {
-                        resolve(results);
-                    }
-                });
-            }
-            else {
-                _this.logger.info("Healthcheck 'type' not recognized. Skipping Healthcheck");
-                resolve();
-            }
+                        portOffset = this.currentHosts[suiteEnvConf.hostName].envs[generatedEnvID].portOffset;
+                        healthcheckPort_1 += portOffset;
+                        opts_1 = restClient_1.buildRequest(requestConf, healthcheckPort_1);
+                        attempt_1 = 0;
+                        return [4 /*yield*/, promiseTools.retry({ times: healthcheckConf.retries || 50, interval: opts_1.timeout }, function () { return __awaiter(_this, void 0, void 0, function () {
+                                var response;
+                                return __generator(this, function (_a) {
+                                    switch (_a.label) {
+                                        case 0:
+                                            attempt_1 += 1;
+                                            this.logger.info("Attempting healthcheck #" + attempt_1 + " for " + generatedEnvID + " on port " + healthcheckPort_1);
+                                            this.logger.debug(opts_1);
+                                            return [4 /*yield*/, restClient_1.makeRequest(opts_1)];
+                                        case 1:
+                                            response = _a.sent();
+                                            this.logger.debug(response);
+                                            if (response.statusCode === 200) {
+                                                this.logger.info("Healthcheck Confirmed for " + generatedEnvID + "!");
+                                                return [2 /*return*/, true];
+                                            }
+                                            else {
+                                                this.logger.debug("Healthcheck returned: " + response.statusCode);
+                                                this.logger.trace(response, true);
+                                                throw new Error("Healthcheck failed for " + generatedEnvID);
+                                            }
+                                            return [2 /*return*/];
+                                    }
+                                });
+                            }); })];
+                    case 1: return [2 /*return*/, _a.sent()];
+                    case 2:
+                        this.logger.info("Healthcheck 'type' not recognized. Skipping Healthcheck");
+                        return [2 /*return*/];
+                }
+            });
         });
     };
     EnvManager.prototype.getCurrentEnv = function (generatedEnvID) {

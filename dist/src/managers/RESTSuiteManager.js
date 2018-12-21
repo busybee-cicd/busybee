@@ -35,8 +35,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var _async = require("async");
 var _ = require("lodash");
+var promiseTools = require("promise-tools");
 var busybee_util_1 = require("busybee-util");
 var RESTClient_1 = require("../lib/RESTClient");
 var TestSetResult_1 = require("../models/results/TestSetResult");
@@ -66,6 +66,7 @@ var RESTSuiteManager = /** @class */ (function () {
         this.restClient = new RESTClient_1.RESTClient(conf, suiteEnvConf);
     }
     ///////// TestRunning
+    // TODO: refactor to async/await
     RESTSuiteManager.prototype.runRESTApiTestSets = function (currentEnv) {
         var _this = this;
         // TODO: logic for running TestSets in order
@@ -77,12 +78,12 @@ var RESTSuiteManager = /** @class */ (function () {
                     case 0:
                         this.logger.trace("runRESTApiTestSets " + currentEnv.suiteID + " " + currentEnv.suiteEnvID);
                         testSetPromises = _.map(currentEnv.testSets.values(), function (testSet) {
-                            return _this.runRESTApiTestSet(currentEnv, testSet);
+                            return function () { return _this.runRESTApiTestSet(currentEnv, testSet); }; // wrap promise in empty fn for promiseTools
                         });
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, Promise.all(testSetPromises)];
+                        return [4 /*yield*/, promiseTools.parallel(testSetPromises, 2)];
                     case 2:
                         testSetResults = _a.sent();
                         resolve(testSetResults);
@@ -98,42 +99,53 @@ var RESTSuiteManager = /** @class */ (function () {
     };
     RESTSuiteManager.prototype.runRESTApiTestSet = function (currentEnv, testSet) {
         return __awaiter(this, void 0, void 0, function () {
-            var _this = this;
+            var testFns, controlFlow, testResults, limit, pass, testSetResult, err_1;
             return __generator(this, function (_a) {
-                this.logger.trace("runRESTApiTestSet " + currentEnv.ports + " " + testSet.id);
-                return [2 /*return*/, new Promise(function (resolve, reject) {
+                switch (_a.label) {
+                    case 0:
+                        this.logger.trace("runRESTApiTestSet " + currentEnv.ports + " " + testSet.id);
                         // build api test functions
                         if (!testSet.tests) {
-                            reject("testSet " + testSet.id + " has no tests");
-                            return;
+                            throw new Error("testSet " + testSet.id + " has no tests");
                         }
-                        var testFns = _this.buildTestTasks(currentEnv, testSet);
+                        testFns = this.buildTestTasks(currentEnv, testSet);
                         // run api test functions
-                        _this.logger.info("Running Test Set: " + testSet.id);
+                        this.logger.info("Running Test Set: " + testSet.id);
                         if (testSet.description) {
-                            _this.logger.info("" + testSet.description);
+                            this.logger.info("" + testSet.description);
                         }
-                        var controlFlow = testSet.controlFlow || "series";
-                        _this.logger.debug(testSet.id + ": controlFlow = " + controlFlow);
-                        _async[controlFlow](testFns, function (err2, testResults) {
-                            // see if any tests failed and mark the set according
-                            var pass = _.find(testResults, function (tr) {
-                                return tr.pass === false;
-                            }) ? false : true;
-                            var testSetResult = new TestSetResult_1.TestSetResult();
-                            testSetResult.pass = pass;
-                            testSetResult.id = testSet.id;
-                            testSetResult.tests = testResults;
-                            if (err2) {
-                                _this.logger.trace('runRESTApiTestSet ERROR while running tests');
-                                _this.logger.trace(err2);
-                                reject(err2);
-                            }
-                            else {
-                                resolve(testSetResult);
-                            }
-                        });
-                    })];
+                        controlFlow = testSet.controlFlow || "series";
+                        this.logger.debug(testSet.id + ": controlFlow = " + controlFlow);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 6, , 7]);
+                        testResults = void 0;
+                        if (!(controlFlow === 'parallel')) return [3 /*break*/, 3];
+                        limit = testSet.controlFlowLimit || 3;
+                        return [4 /*yield*/, promiseTools.parallel(testFns, limit)];
+                    case 2:
+                        testResults = _a.sent();
+                        return [3 /*break*/, 5];
+                    case 3: return [4 /*yield*/, promiseTools.series(testFns)];
+                    case 4:
+                        testResults = _a.sent();
+                        _a.label = 5;
+                    case 5:
+                        pass = _.find(testResults, function (tr) {
+                            return tr.pass === false;
+                        }) ? false : true;
+                        testSetResult = new TestSetResult_1.TestSetResult();
+                        testSetResult.pass = pass;
+                        testSetResult.id = testSet.id;
+                        testSetResult.tests = testResults;
+                        return [2 /*return*/, testSetResult];
+                    case 6:
+                        err_1 = _a.sent();
+                        this.logger.trace('runRESTApiTestSet ERROR while running tests');
+                        this.logger.trace(err_1);
+                        throw err_1;
+                    case 7: return [2 /*return*/];
+                }
             });
         });
     };
@@ -149,8 +161,8 @@ var RESTSuiteManager = /** @class */ (function () {
             return _.isNil(test);
         });
         return _.map(testsWithARequest, function (test) {
-            return function (cb) { return __awaiter(_this, void 0, void 0, function () {
-                var port, opts, testIndex, testSetConf, response, err_1, testResult_1;
+            return function () { return __awaiter(_this, void 0, void 0, function () {
+                var port, opts, testIndex, testSetConf, response, err_2, testResult_1;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
@@ -181,21 +193,21 @@ var RESTSuiteManager = /** @class */ (function () {
                             }
                             this.logger.info(testSet.id + ": " + testIndex + ": " + test.id);
                             if (!test.delayRequest) return [3 /*break*/, 2];
-                            this.logger.info("Delaying request for " + test.delayRequest / 1000 + " seconds.");
+                            this.logger.info("Delaying request for " + test.delayRequest / 1000 + " second(s)");
                             return [4 /*yield*/, this.wait(test.delayRequest)];
                         case 1:
                             _a.sent();
                             _a.label = 2;
                         case 2:
-                            _a.trys.push([2, 4, , 5]);
+                            _a.trys.push([2, 5, , 6]);
                             return [4 /*yield*/, this.makeRequestWithRetries(opts, 0, 3)];
                         case 3:
                             response = _a.sent();
-                            this.validateTestResult(testSet, test, Object.assign({}, this.restClient.getDefaultRequestOpts(), opts), response, cb);
-                            return [3 /*break*/, 5];
-                        case 4:
-                            err_1 = _a.sent();
-                            this.logger.error(err_1, true);
+                            return [4 /*yield*/, this.validateTestResult(testSet, test, Object.assign({}, this.restClient.getDefaultRequestOpts(), opts), response)];
+                        case 4: return [2 /*return*/, _a.sent()];
+                        case 5:
+                            err_2 = _a.sent();
+                            this.logger.error(err_2, true);
                             testResult_1 = new RESTTestResult_1.RESTTestResult(test.id);
                             testResult_1.pass = false;
                             if (test.expect.status) {
@@ -218,12 +230,12 @@ var RESTSuiteManager = /** @class */ (function () {
                                 testResult_1.body.expected = test.expect.body;
                                 testResult_1.body.error = {
                                     type: 'error during request',
-                                    error: err_1.message,
-                                    stack: err_1.stack
+                                    error: err_2.message,
+                                    stack: err_2.stack
                                 };
                             }
-                            return [3 /*break*/, 5];
-                        case 5: return [2 /*return*/];
+                            return [3 /*break*/, 6];
+                        case 6: return [2 /*return*/];
                     }
                 });
             }); };
@@ -231,31 +243,35 @@ var RESTSuiteManager = /** @class */ (function () {
     };
     RESTSuiteManager.prototype.makeRequestWithRetries = function (opts, retries, retryMax) {
         return __awaiter(this, void 0, void 0, function () {
-            var err_2;
+            var err_3;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        _a.trys.push([0, 2, , 6]);
+                        _a.trys.push([0, 2, , 7]);
                         return [4 /*yield*/, this.restClient.makeRequest(opts)];
                     case 1: return [2 /*return*/, _a.sent()];
                     case 2:
-                        err_2 = _a.sent();
+                        err_3 = _a.sent();
                         if (!(retries > retryMax)) return [3 /*break*/, 3];
                         this.logger.error("REST request retry attempts exceeded");
-                        throw err_2;
+                        throw err_3;
                     case 3:
                         retries += 1;
                         this.logger.warn("REST request failed unexpectedly, retry attempt " + retries);
+                        return [4 /*yield*/, this.wait(2000)];
+                    case 4:
+                        _a.sent();
                         return [4 /*yield*/, this.makeRequestWithRetries(opts, retries, retryMax)];
-                    case 4: return [2 /*return*/, _a.sent()];
-                    case 5: return [3 /*break*/, 6];
-                    case 6: return [2 /*return*/];
+                    case 5: return [2 /*return*/, _a.sent()];
+                    case 6: return [3 /*break*/, 7];
+                    case 7: return [2 /*return*/];
                 }
             });
         });
     };
     RESTSuiteManager.prototype.wait = function (milliseconds) {
-        return new Promise(function (resolve, reject) { return setTimeout(resolve, milliseconds); });
+        this.logger.debug("wait " + milliseconds / 1000 + " second(s)");
+        return new Promise(function (resolve) { return setTimeout(resolve, milliseconds); });
     };
     /*
      Iterates through the request opts and relaces all instances of #{myVar}
@@ -326,145 +342,145 @@ var RESTSuiteManager = /** @class */ (function () {
         }
         return replaced;
     };
-    RESTSuiteManager.prototype.validateTestResult = function (testSet, test, reqOpts, res, cb) {
-        this.logger.trace("validateTestResult");
-        // validate results
-        var testResult = new RESTTestResult_1.RESTTestResult(test.id);
-        if (test.expect.status) {
-            testResult.status = new RESTTestPartResult_1.RESTTestPartResult();
-            var statusPass = res.statusCode == test.expect.status;
-            testResult.status.actual = res.statusCode;
-            if (!statusPass) {
-                testResult.pass = false;
-                testResult.status.pass = false;
-                testResult.status.expected = test.expect.status;
-            }
-        }
-        // else {
-        //   // return the actual status by default
-        //   testResult.status.actual = res.statusCode;
-        // }
-        if (test.expect.headers) {
-            testResult.headers = new RESTTestHeaderResult_1.RESTTestHeaderResult();
-            _.forEach(test.expect.headers, function (v, headerName) {
-                if (res.headers[headerName] != v) {
-                    testResult.pass = false;
-                    testResult.headers.pass = false;
-                }
-                var actual = {};
-                actual[headerName] = res.headers[headerName];
-                testResult.headers.actual.push(actual);
-                var expected = {};
-                expected[headerName] = v;
-                testResult.headers.expected.push(expected);
-            });
-        }
-        // else {
-        //   // return the actual headers by default
-        //   _.forEach(res.headers, (v, headerName) => {
-        //     let actual = {};
-        //     actual[headerName] = v;
-        //     testResult.headers.actual.push(actual);
-        //   });
-        // }
-        if (test.expect.body) {
-            testResult.body = new RESTTestPartResult_1.RESTTestPartResult();
-            var bodyPass = true;
-            var customFnErr = null;
-            ///////////////////////////
-            //  Run Assertions
-            ///////////////////////////
-            var actual = _.cloneDeep(res.body);
-            var expected = void 0;
-            try {
-                //  Assertion Modifications
-                /*
-                 there are some assertion modifications that should alter the actual/expect prior to running an
-                 assertion function or doing a direct pojo comparision. run those here
-                 */
-                if (_.isFunction(test.expect.body)) {
-                    /*
-                     In the event that 'expect.body' is a custom fn, we'll make 'expected' == 'actual'
-                     assertionModification logic relies on 'expected' and 'actual' to both be objects.
-                     Ultimately, when the assertions are run the 'expected' object set here will not
-                     be used and instead 'test.expect.body(actual)' will be evaluated.
-                     */
-                    expected = _.cloneDeep(actual);
-                }
-                else {
-                    expected = _.cloneDeep(test.expect.body);
-                }
-                if (test.expect.assertionModifications) {
-                    testResult.assertionModifications = test.expect.assertionModifications;
-                    if (test.expect.assertionModifications.ignoreKeys) {
-                        IgnoreKeys_1.IgnoreKeys.process(test.expect.assertionModifications.ignoreKeys, expected, actual, this.logger);
+    RESTSuiteManager.prototype.validateTestResult = function (testSet, test, reqOpts, res) {
+        return __awaiter(this, void 0, void 0, function () {
+            var testResult, statusPass, bodyPass, customFnErr, actual, expected, bodyResult;
+            return __generator(this, function (_a) {
+                this.logger.trace("validateTestResult");
+                testResult = new RESTTestResult_1.RESTTestResult(test.id);
+                if (test.expect.status) {
+                    testResult.status = new RESTTestPartResult_1.RESTTestPartResult();
+                    statusPass = res.statusCode == test.expect.status;
+                    testResult.status.actual = res.statusCode;
+                    if (!statusPass) {
+                        testResult.pass = false;
+                        testResult.status.pass = false;
+                        testResult.status.expected = test.expect.status;
                     }
-                    if (test.expect.assertionModifications.unorderedCollections) {
-                        this.logger.debug("Processing UnorderedCollections");
+                }
+                // else {
+                //   // return the actual status by default
+                //   testResult.status.actual = res.statusCode;
+                // }
+                if (test.expect.headers) {
+                    testResult.headers = new RESTTestHeaderResult_1.RESTTestHeaderResult();
+                    _.forEach(test.expect.headers, function (v, headerName) {
+                        if (res.headers[headerName] != v) {
+                            testResult.pass = false;
+                            testResult.headers.pass = false;
+                        }
+                        var actual = {};
+                        actual[headerName] = res.headers[headerName];
+                        testResult.headers.actual.push(actual);
+                        var expected = {};
+                        expected[headerName] = v;
+                        testResult.headers.expected.push(expected);
+                    });
+                }
+                // else {
+                //   // return the actual headers by default
+                //   _.forEach(res.headers, (v, headerName) => {
+                //     let actual = {};
+                //     actual[headerName] = v;
+                //     testResult.headers.actual.push(actual);
+                //   });
+                // }
+                if (test.expect.body) {
+                    testResult.body = new RESTTestPartResult_1.RESTTestPartResult();
+                    bodyPass = true;
+                    customFnErr = null;
+                    actual = _.cloneDeep(res.body);
+                    expected = void 0;
+                    try {
+                        //  Assertion Modifications
                         /*
-                         Due to the scenario where unorderedCollections may contain unorderedCollections ie)
-                         [
-                         {
-                         subCollection: [1,2,3,4]
-                         },
-                         {
-                         subCollection: [5,6,7,8]
-                         }
-                         ]
-            
-                         We must do a first pass where we work from the outside -> in. We just check for equality while ignoring nested collections.
-                         On a second pass we remove the collections so that they don't appear in the body-assertion steps below
+                         there are some assertion modifications that should alter the actual/expect prior to running an
+                         assertion function or doing a direct pojo comparision. run those here
                          */
-                        UnorderedCollections_1.UnorderedCollections.process(test.expect.assertionModifications.unorderedCollections, expected, actual);
+                        if (_.isFunction(test.expect.body)) {
+                            /*
+                             In the event that 'expect.body' is a custom fn, we'll make 'expected' == 'actual'
+                             assertionModification logic relies on 'expected' and 'actual' to both be objects.
+                             Ultimately, when the assertions are run the 'expected' object set here will not
+                             be used and instead 'test.expect.body(actual)' will be evaluated.
+                             */
+                            expected = _.cloneDeep(actual);
+                        }
+                        else {
+                            expected = _.cloneDeep(test.expect.body);
+                        }
+                        if (test.expect.assertionModifications) {
+                            testResult.assertionModifications = test.expect.assertionModifications;
+                            if (test.expect.assertionModifications.ignoreKeys) {
+                                IgnoreKeys_1.IgnoreKeys.process(test.expect.assertionModifications.ignoreKeys, expected, actual, this.logger);
+                            }
+                            if (test.expect.assertionModifications.unorderedCollections) {
+                                this.logger.debug("Processing UnorderedCollections");
+                                /*
+                                 Due to the scenario where unorderedCollections may contain unorderedCollections ie)
+                                 [
+                                 {
+                                 subCollection: [1,2,3,4]
+                                 },
+                                 {
+                                 subCollection: [5,6,7,8]
+                                 }
+                                 ]
+                    
+                                 We must do a first pass where we work from the outside -> in. We just check for equality while ignoring nested collections.
+                                 On a second pass we remove the collections so that they don't appear in the body-assertion steps below
+                                 */
+                                UnorderedCollections_1.UnorderedCollections.process(test.expect.assertionModifications.unorderedCollections, expected, actual);
+                            }
+                        }
+                        // /End Assertion Modifications
+                        // IMPORTANT: the 'expected' and 'actual' at this point have been modified to remove anything that we should ignore.
+                        // that is so that keys that don't matter aren't passed to the assertionFn or the _.isEqual
+                        // Run Custom Function Assertion OR basic Pojo comparision
+                        if (_.isFunction(test.expect.body)) {
+                            bodyResult = test.expect.body(actual, testSet.variableExports);
+                            if (bodyResult === false) {
+                                bodyPass = false;
+                            } // else we pass it. ie) it doesn't return anything we assume it passed.
+                        }
+                        else {
+                            // substitue any exported variable referenced from previous tests
+                            if (!_.isEmpty(testSet.variableExports)) {
+                                this.replaceVarsInObject(expected, testSet.variableExports);
+                            }
+                            // assert the body against the provided pojo body
+                            bodyPass = _.isEqual(expected, actual);
+                        }
                     }
-                }
-                // /End Assertion Modifications
-                // IMPORTANT: the 'expected' and 'actual' at this point have been modified to remove anything that we should ignore.
-                // that is so that keys that don't matter aren't passed to the assertionFn or the _.isEqual
-                // Run Custom Function Assertion OR basic Pojo comparision
-                if (_.isFunction(test.expect.body)) {
-                    // if the test has a custom function for assertion, run it.
-                    var bodyResult = test.expect.body(actual, testSet.variableExports);
-                    if (bodyResult === false) {
+                    catch (e) {
                         bodyPass = false;
-                    } // else we pass it. ie) it doesn't return anything we assume it passed.
-                }
-                else {
-                    // substitue any exported variable referenced from previous tests
-                    if (!_.isEmpty(testSet.variableExports)) {
-                        this.replaceVarsInObject(expected, testSet.variableExports);
+                        customFnErr = {
+                            type: 'custom validation function',
+                            error: e.message,
+                            stack: e.stack
+                        };
                     }
-                    // assert the body against the provided pojo body
-                    bodyPass = _.isEqual(expected, actual);
+                    testResult.body.actual = actual;
+                    if (!bodyPass) {
+                        testResult.pass = false;
+                        testResult.body.pass = false;
+                        if (!_.isFunction(test.expect.body)) {
+                            testResult.body.expected = expected;
+                        }
+                        if (customFnErr) {
+                            testResult.body.error = customFnErr;
+                        }
+                    }
                 }
-            }
-            catch (e) {
-                bodyPass = false;
-                customFnErr = {
-                    type: 'custom validation function',
-                    error: e.message,
-                    stack: e.stack
-                };
-            }
-            testResult.body.actual = actual;
-            if (!bodyPass) {
-                testResult.pass = false;
-                testResult.body.pass = false;
-                if (!_.isFunction(test.expect.body)) {
-                    testResult.body.expected = expected;
-                }
-                if (customFnErr) {
-                    testResult.body.error = customFnErr;
-                }
-            }
-        }
-        // else {
-        //   // just return the body that was returned and consider it a pass
-        //   testResult.body.actual = _.cloneDeep(res.body);
-        // }
-        // attach the request info for reporting purposes
-        testResult.request = reqOpts;
-        cb(null, testResult);
+                // else {
+                //   // just return the body that was returned and consider it a pass
+                //   testResult.body.actual = _.cloneDeep(res.body);
+                // }
+                // attach the request info for reporting purposes
+                testResult.request = reqOpts;
+                return [2 /*return*/, testResult];
+            });
+        });
     };
     return RESTSuiteManager;
 }());

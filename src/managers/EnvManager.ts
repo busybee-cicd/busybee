@@ -2,8 +2,8 @@ import {spawn} from 'child_process';
 import * as uuid from 'uuid';
 import * as path from 'path';
 import * as _ from 'lodash';
-import * as _async from 'async';
 import * as portscanner from 'portscanner';
+import * as promiseTools from 'promise-tools';
 import {Logger, LoggerConf} from 'busybee-util';
 import {RESTClient} from '../lib/RESTClient';
 import {BusybeeParsedConfig} from "../models/config/BusybeeParsedConfig";
@@ -649,77 +649,61 @@ export class EnvManager {
   /*
    TODO: support multiple healthcheck types
    */
-  confirmHealthcheck(generatedEnvID) {
-    return new Promise((resolve, reject) => {
-      this.logger.trace(`confirmHealthcheck ${generatedEnvID}`);
-      let suiteEnvConf = this.currentEnvs.get(generatedEnvID); // current-env-specific conf
-      this.logger.trace(suiteEnvConf);
-      let healthcheckConf = suiteEnvConf.healthcheck;
+  async confirmHealthcheck(generatedEnvID) {
+    this.logger.trace(`confirmHealthcheck ${generatedEnvID}`);
+    let suiteEnvConf = this.currentEnvs.get(generatedEnvID); // current-env-specific conf
+    this.logger.trace(suiteEnvConf);
+    let healthcheckConf = suiteEnvConf.healthcheck;
 
-      if (!healthcheckConf) {
-        this.logger.info("No Healthcheck provided. Moving on.");
-        return resolve();
-      }
+    if (!healthcheckConf) {
+      this.logger.info("No Healthcheck provided. Moving on.");
+      return;
+    }
 
-      if (!healthcheckConf.type) {
-        this.logger.info("Healthcheck 'type' not provided. Skipping Healthcheck");
-        return resolve();
-      }
+    if (!healthcheckConf.type) {
+      this.logger.info("Healthcheck 'type' not provided. Skipping Healthcheck");
+      return;
+    }
 
-      if (healthcheckConf.type.toUpperCase() === "REST") {
-        let restClient = new RESTClient(this.conf, suiteEnvConf);
-        let requestConf: RequestOptsConfig = healthcheckConf.request;
+    if (healthcheckConf.type.toUpperCase() === "REST") {
+      let restClient = new RESTClient(this.conf, suiteEnvConf);
+      let requestConf: RequestOptsConfig = healthcheckConf.request;
 
-        // 1. get the initial healthcheckport definition from the
-        let healthcheckPort;
-        if (requestConf.port) {
-          healthcheckPort = requestConf.port;
-        } else {
-          healthcheckPort = suiteEnvConf.ports[0]; // default to restapi path
-        }
-        // 2. get the port offset, apply.
-        let portOffset = this.currentHosts[suiteEnvConf.hostName].envs[generatedEnvID].portOffset
-        healthcheckPort += portOffset;
-        let opts = restClient.buildRequest(requestConf, healthcheckPort);
-
-        // retries the healthcheck path every 3 seconds up to 50 times
-        // when successful calls the cb passed to confirmHealthcheck()
-        let attempt = 0;
-        _async.retry({times: healthcheckConf.retries || 50, interval: opts.timeout},
-          (asyncCb) => {
-            attempt += 1;
-            this.logger.info(`Attempting healthcheck #${attempt} for ${generatedEnvID} on port ${healthcheckPort}`);
-            this.logger.debug(opts);
-            restClient.makeRequest(opts)
-              .then((response) => {
-                this.logger.debug(response);
-                if (response.statusCode === 200) {
-                  this.logger.info(`Healthcheck Confirmed for ${generatedEnvID}!`);
-                  asyncCb(null, true);
-                } else {
-                  this.logger.debug(`Healthcheck returned: ${response.statusCode}`);
-                  this.logger.trace(response, true);
-                  asyncCb(`Healthcheck failed for ${generatedEnvID}`);
-                }
-              })
-              .catch((err) => {
-                this.logger.error(err.message);
-                asyncCb("failed");
-              });
-          }
-          , (err, results) => {
-            if (err) {
-              reject(err);
-            } else {
-              resolve(results);
-            }
-          });
+      // 1. get the initial healthcheckport definition from the
+      let healthcheckPort;
+      if (requestConf.port) {
+        healthcheckPort = requestConf.port;
       } else {
-        this.logger.info("Healthcheck 'type' not recognized. Skipping Healthcheck");
-        resolve();
+        healthcheckPort = suiteEnvConf.ports[0]; // default to restapi path
       }
+      // 2. get the port offset, apply.
+      let portOffset = this.currentHosts[suiteEnvConf.hostName].envs[generatedEnvID].portOffset
+      healthcheckPort += portOffset;
+      let opts = restClient.buildRequest(requestConf, healthcheckPort);
 
-    });
+      // retries the healthcheck path every 3 seconds up to 50 times
+      // when successful calls the cb passed to confirmHealthcheck()
+      let attempt = 0;
+      return await promiseTools.retry({times: healthcheckConf.retries || 50, interval: opts.timeout},
+        async () => {
+          attempt += 1;
+          this.logger.info(`Attempting healthcheck #${attempt} for ${generatedEnvID} on port ${healthcheckPort}`);
+          this.logger.debug(opts);
+          let response = await restClient.makeRequest(opts);
+          this.logger.debug(response);
+          if (response.statusCode === 200) {
+            this.logger.info(`Healthcheck Confirmed for ${generatedEnvID}!`);
+            return true;
+          } else {
+            this.logger.debug(`Healthcheck returned: ${response.statusCode}`);
+            this.logger.trace(response, true);
+            throw new Error(`Healthcheck failed for ${generatedEnvID}`);
+          }
+        });
+    } else {
+      this.logger.info("Healthcheck 'type' not recognized. Skipping Healthcheck");
+      return;
+    }
   }
 
   getCurrentEnv(generatedEnvID): SuiteEnvInfo {

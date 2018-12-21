@@ -246,10 +246,8 @@ function initTests(conf) {
                         logger.info('Running Reporters');
                         conf.reporters.forEach(function (r) {
                             try {
-                                if (conf.localMode) {
-                                    if (!_.isUndefined(r.skipInLocalMode) && r.skipInLocalMode) {
-                                        return;
-                                    }
+                                if (conf.localMode && !_.isUndefined(r.skipInLocalMode) && r.skipInLocalMode) {
+                                    return;
                                 }
                                 r.run(busybeeTestResults_1);
                             }

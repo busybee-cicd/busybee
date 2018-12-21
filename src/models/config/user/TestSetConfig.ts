@@ -27,7 +27,13 @@ export class TestSetConfig {
    * *<span style="color:magenta">**Allowed** if `TestSuiteConfig.type` == `USER_PROVIDED` is enabled</span>* <br>
    * Data that will be passed to the runScript as `runData` when this environment instance is started
    */
+  /**
+   * Applicable only when `controlFlow` == `parallel`. Sets the number of tests than can be run simultaneously for the TestSet
+   */
+  controlFlowLimit: number
+
   runData: any;
+
   description: string;
   /**
    *  *<span style="color:magenta">**Allowed** if `TestSuiteConfig.type` == `USER_PROVIDED` is enabled</span>* <br>
@@ -40,6 +46,7 @@ export class TestSetConfig {
   constructor() {
     this.id = void 0;
     this.controlFlow = void 0;
+    this.controlFlowLimit = void 0;
     this.runData = void 0;
     this.description = void 0;
     this.assertion = void 0;

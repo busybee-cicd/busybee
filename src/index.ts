@@ -2,7 +2,6 @@
 
 import {BusybeeParsedConfig} from './models/config/BusybeeParsedConfig';
 require('source-map-support').install();
-import * as Parallel from 'async-parallel';
 import * as _ from 'lodash';
 import * as Commander from 'commander';
 import * as fs from 'fs';
@@ -15,7 +14,6 @@ import {MockServer} from './lib/MockServer';
 import {Logger, LoggerConf} from 'busybee-util';
 import {EnvResult} from './models/results/EnvResult';
 import {TestSuiteResult} from './models/results/TestSuiteResult';
-import {BusybeeTestResults} from './ws/TestWebSocketServer';
 
 let logger;
 const ONE_SECOND = 1000;
@@ -224,10 +222,8 @@ async function initTests(conf: BusybeeParsedConfig) {
       logger.info('Running Reporters');
       conf.reporters.forEach(r => {
         try {
-          if (conf.localMode) {
-            if (!_.isUndefined(r.skipInLocalMode) && r.skipInLocalMode) {
-              return;
-            }
+          if (conf.localMode && !_.isUndefined(r.skipInLocalMode) && r.skipInLocalMode) {
+            return;
           }
 
           r.run(busybeeTestResults)

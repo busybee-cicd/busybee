@@ -4,6 +4,7 @@ import {RESTTest} from "../../RESTTest";
 export class ParsedTestSetConfig {
   id: string;
   controlFlow: string;
+  controlFlowLimit: number;
   description: string;
   runData: any;
   tests: RESTTest[];
@@ -14,6 +15,7 @@ export class ParsedTestSetConfig {
   constructor(testSetConfig: TestSetConfig) {
     this.id = testSetConfig.id;
     this.controlFlow = testSetConfig.controlFlow;
+    this.controlFlowLimit = testSetConfig.controlFlowLimit;
     this.description = testSetConfig.description;
     this.runData = testSetConfig.runData;
     this.tests = <RESTTest []> [];

@@ -1,5 +1,5 @@
-import * as _async from 'async';
 import * as _ from 'lodash';
+import * as promiseTools from 'promise-tools';
 import {Logger, LoggerConf} from 'busybee-util';
 import {RESTClient} from '../lib/RESTClient';
 import {SuiteEnvInfo} from "../lib/SuiteEnvInfo";
@@ -12,6 +12,7 @@ import {RESTTestPartResult} from "../models/results/RESTTestPartResult";
 import {RESTTestHeaderResult} from "../models/results/RESTTestHeaderResult";
 import {RESTTestResult} from "../models/results/RESTTestResult";
 import {BusybeeParsedConfig} from "../models/config/BusybeeParsedConfig";
+import { PromiseGeneratingFunction } from 'promise-tools';
 
 // support JSON.stringify on Error objects
 if (!('toJSON' in Error.prototype))
@@ -44,17 +45,17 @@ export class RESTSuiteManager {
 
   ///////// TestRunning
 
-
+  // TODO: refactor to async/await
   runRESTApiTestSets(currentEnv: SuiteEnvInfo): Promise<Array<TestSetResult>> {
     // TODO: logic for running TestSets in order
-    return new Promise<Array<TestSetResult>>(async(resolve, reject) => {
+    return new Promise<Array<TestSetResult>>(async (resolve, reject) => {
       this.logger.trace(`runRESTApiTestSets ${currentEnv.suiteID} ${currentEnv.suiteEnvID}`);
       let testSetPromises = _.map(currentEnv.testSets.values(), (testSet: ParsedTestSetConfig) => {
-        return this.runRESTApiTestSet(currentEnv, testSet);
+        return () => { return this.runRESTApiTestSet(currentEnv, testSet) }; // wrap promise in empty fn for promiseTools
       });
 
       try {
-        let testSetResults: Array<TestSetResult> = await Promise.all(testSetPromises);
+        let testSetResults: Array<TestSetResult> = await promiseTools.parallel(testSetPromises, 2);
         resolve(testSetResults);
       } catch (e) {
         this.logger.trace(`runRESTApiTestSets ERROR encountered while running testSetPromises`);
@@ -67,44 +68,50 @@ export class RESTSuiteManager {
   async runRESTApiTestSet(currentEnv: SuiteEnvInfo, testSet: ParsedTestSetConfig): Promise<TestSetResult> {
     this.logger.trace(`runRESTApiTestSet ${currentEnv.ports} ${testSet.id}`);
 
-    return new Promise<TestSetResult>((resolve, reject) => {
-      // build api test functions
-      if (!testSet.tests) {
-        reject(`testSet ${testSet.id} has no tests`);
-        return;
+    // build api test functions
+    if (!testSet.tests) {
+      throw new Error(`testSet ${testSet.id} has no tests`);
+    }
+
+    let testFns = this.buildTestTasks(currentEnv, testSet);
+
+    // run api test functions
+    this.logger.info(`Running Test Set: ${testSet.id}`);
+
+    if (testSet.description) {
+      this.logger.info(`${testSet.description}`);
+    }
+
+    let controlFlow = testSet.controlFlow || `series`;
+    this.logger.debug(`${testSet.id}: controlFlow = ${controlFlow}`);
+
+    try {
+      let testResults;
+
+      if (controlFlow === 'parallel') {
+        let limit = testSet.controlFlowLimit || 3;
+        testResults = await promiseTools.parallel(testFns, limit);
+      } else {
+        testResults = await promiseTools.series(testFns);
       }
 
-      let testFns = this.buildTestTasks(currentEnv, testSet);
+      // see if any tests failed and mark the set according
+      let pass = _.find(testResults, (tr: any) => {
+        return tr.pass === false
+      }) ? false : true;
 
-      // run api test functions
-      this.logger.info(`Running Test Set: ${testSet.id}`);
+      let testSetResult = new TestSetResult();
+      testSetResult.pass = pass;
+      testSetResult.id = testSet.id;
+      testSetResult.tests = testResults;
 
-      if (testSet.description) {
-        this.logger.info(`${testSet.description}`);
-      }
+      return testSetResult;
+    } catch (err) {
+      this.logger.trace('runRESTApiTestSet ERROR while running tests');
+      this.logger.trace(err);
 
-      let controlFlow = testSet.controlFlow || `series`;
-      this.logger.debug(`${testSet.id}: controlFlow = ${controlFlow}`);
-      _async[controlFlow](testFns, (err2: Error, testResults: Array<RESTTestResult>) => {
-        // see if any tests failed and mark the set according
-        let pass = _.find(testResults, (tr: any) => {
-          return tr.pass === false
-        }) ? false : true;
-
-        let testSetResult = new TestSetResult();
-        testSetResult.pass = pass;
-        testSetResult.id = testSet.id;
-        testSetResult.tests = testResults;
-
-        if (err2) {
-          this.logger.trace('runRESTApiTestSet ERROR while running tests');
-          this.logger.trace(err2);
-          reject(err2);
-        } else {
-          resolve(testSetResult);
-        }
-      });
-    });
+      throw err;
+    }
   }
 
   buildTestTasks(currentEnv: SuiteEnvInfo, testSet: ParsedTestSetConfig) {
@@ -118,9 +125,10 @@ export class RESTSuiteManager {
       }
       return _.isNil(test);
     });
+
     return _.map(testsWithARequest, (test: RESTTest) => {
 
-      return async (cb) => {
+      return async () => {
         // build request
         let port = currentEnv.ports[0]; // the REST api port should be passed first in the userConfigFile.
         let opts = this.restClient.buildRequest(test.request, port);
@@ -155,13 +163,13 @@ export class RESTSuiteManager {
 
         this.logger.info(`${testSet.id}: ${testIndex}: ${test.id}`);
         if (test.delayRequest) {
-          this.logger.info(`Delaying request for ${test.delayRequest / 1000} seconds.`);
+          this.logger.info(`Delaying request for ${test.delayRequest / 1000} second(s)`);
           await this.wait(test.delayRequest);
         }
 
         try {
           let response = await this.makeRequestWithRetries(opts, 0, 3);
-          this.validateTestResult(testSet, test, Object.assign({}, this.restClient.getDefaultRequestOpts(), opts), response, cb);
+          return await this.validateTestResult(testSet, test, Object.assign({}, this.restClient.getDefaultRequestOpts(), opts), response);
         } catch (err) {
           this.logger.error(err, true);
           // TODO: refactor a lot of this testResult building logic for re-use w/ the validation section
@@ -206,13 +214,15 @@ export class RESTSuiteManager {
       } else {
         retries += 1;
         this.logger.warn(`REST request failed unexpectedly, retry attempt ${retries}`);
+        await this.wait(2000);
         return await this.makeRequestWithRetries(opts, retries, retryMax);
       }
     }
   }
 
   wait(milliseconds) {
-    return new Promise((resolve, reject) => setTimeout(resolve, milliseconds))
+    this.logger.debug(`wait ${milliseconds/1000} second(s)`);
+    return new Promise((resolve) => setTimeout(resolve, milliseconds))
   }
 
   /*
@@ -289,7 +299,7 @@ export class RESTSuiteManager {
   }
 
 
-  validateTestResult(testSet: ParsedTestSetConfig, test: RESTTest, reqOpts: any, res, cb: (Error, RESTTestResult?) => {}) {
+  async validateTestResult(testSet: ParsedTestSetConfig, test: RESTTest, reqOpts: any, res) {
     this.logger.trace(`validateTestResult`);
 
     // validate results
@@ -442,7 +452,7 @@ export class RESTSuiteManager {
     // attach the request info for reporting purposes
     testResult.request = reqOpts;
 
-    cb(null, testResult);
+    return testResult;
   }
 
 }
