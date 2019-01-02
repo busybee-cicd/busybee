@@ -181,7 +181,7 @@ var MockServer = /** @class */ (function() {
     server.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
     if (this.corsActive()) {
       server.use(function(req, res, next) {
-        res.append('Access-Control-Allow-Origin', req.header('origin'));
+        res.append('Access-Control-Allow-Origin', req.header('origin') || '*');
         res.append('Access-Control-Allow-Credentials', 'true');
         next();
       });
@@ -311,7 +311,7 @@ var MockServer = /** @class */ (function() {
     var hashedReq = hash(requestOpts);
     // 1a. search the this.routeMap[test.request.path] for it using the hash
     var method = request.method.toLocaleLowerCase();
-    var resStatus; // default to mockResponse
+    var resStatus; // default to first entry in mocks[]
     if (!_.isEmpty(mock.mocks)) {
       resStatus = mock.mocks[0].response.status;
     } else {
@@ -358,9 +358,9 @@ var MockServer = /** @class */ (function() {
             mockToReturn,
             message,
             message,
-            resHeaders,
             mockResponse,
             mockData,
+            k,
             bodyToReturn;
           var _this = this;
           return __generator(this, function(_a) {
@@ -506,16 +506,13 @@ var MockServer = /** @class */ (function() {
                 } else {
                   mockResponse = mockToReturn.expect;
                 }
-                if (mockResponse) {
-                  resHeaders = Object.assign({}, resHeaders, mockResponse);
-                }
-                if (mockResponse) {
-                  _.forEach(resHeaders, function(v, k) {
-                    if (v == null) {
-                      return;
+                if (mockResponse && mockResponse.headers) {
+                  for (k in mockResponse.headers) {
+                    if (mockResponse.headers[k] == null) {
+                      return [2 /*return*/];
                     }
-                    res.append(k, v);
-                  });
+                    res.append(k, mockResponse.headers[k]);
+                  }
                 }
                 if (!(mockData && mockData.lag)) return [3 /*break*/, 2];
                 this.logger.info(

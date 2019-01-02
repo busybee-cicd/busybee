@@ -1,18 +1,18 @@
 import * as uuidv1 from 'uuid/v1';
-import {TestSuiteConfig} from "./user/TestSuiteConfig";
-import {BusybeeUserConfig} from "./BusybeeUserConfig";
-import {Logger, LoggerConf} from 'busybee-util';
+import { TestSuiteConfig } from './user/TestSuiteConfig';
+import { BusybeeUserConfig } from './BusybeeUserConfig';
+import { Logger, LoggerConf } from 'busybee-util';
 import * as glob from 'glob';
 import * as fs from 'fs';
 import * as _ from 'lodash';
 import * as path from 'path';
-import {EnvResourceConfig} from "./common/EnvResourceConfig";
-import {ParsedTestSuite} from "./parsed/ParsedTestSuiteConfig";
-import {FilePathsConfig} from "./parsed/FilePathsConfig";
-import {TypedMap} from "../../lib/TypedMap";
-import {RESTTest} from "../RESTTest";
-import {ParsedTestEnvConfig} from "./parsed/ParsedTestEnvConfig";
-import {ParsedTestSetConfig} from "./parsed/ParsedTestSetConfig";
+import { EnvResourceConfig } from './common/EnvResourceConfig';
+import { ParsedTestSuite } from './parsed/ParsedTestSuiteConfig';
+import { FilePathsConfig } from './parsed/FilePathsConfig';
+import { TypedMap } from '../../lib/TypedMap';
+import { RESTTest } from '../RESTTest';
+import { ParsedTestEnvConfig } from './parsed/ParsedTestEnvConfig';
+import { ParsedTestSetConfig } from './parsed/ParsedTestSetConfig';
 
 export class BusybeeParsedConfig {
   private logger: Logger;
@@ -51,7 +51,9 @@ export class BusybeeParsedConfig {
     this.runId = uuidv1();
 
     if (this.localMode) {
-      this.logger.info(`LocalMode detected. Host Configuration will be ignored in favor of 'localhost'`);
+      this.logger.info(
+        `LocalMode detected. Host Configuration will be ignored in favor of 'localhost'`
+      );
     }
   }
 
@@ -91,7 +93,7 @@ export class BusybeeParsedConfig {
       parsedTestSuites: this.parsedTestSuites,
       envResources: this.envResources,
       logLevel: this.logLevel
-    }
+    };
   }
 
   getTestSet2EnvMap(): TypedMap<Array<string>> {
@@ -106,7 +108,10 @@ export class BusybeeParsedConfig {
     return [...this.skipEnvProvisioning];
   }
 
-  parseTestSuites(userConf: BusybeeUserConfig, mode: string): TypedMap<ParsedTestSuite> {
+  parseTestSuites(
+    userConf: BusybeeUserConfig,
+    mode: string
+  ): TypedMap<ParsedTestSuite> {
     this.logger.trace(`parseTestSuites`);
     let parsedTestSuites = new TypedMap<ParsedTestSuite>();
     // see if the user specified to skip testSuites
@@ -115,19 +120,23 @@ export class BusybeeParsedConfig {
     // test suites regardless of mode. However, if we do...for some reason the test suite to be mocked does not include
     // any tests.
     if (mode === 'mock') {
-      let testSuite = _.find(userConf.testSuites, (suite) => {
+      let testSuite = _.find(userConf.testSuites, suite => {
         return suite.id == this.cmdOpts.testSuite;
       });
       let parsedTestSuite = this.parseTestSuite(testSuite, mode);
       parsedTestSuites.set(parsedTestSuite.suiteID, parsedTestSuite);
     } else {
-      userConf.testSuites.forEach((testSuite) => {
+      userConf.testSuites.forEach(testSuite => {
         let suiteID = testSuite.id || uuidv1();
         this.logger.trace(`suiteID: ${suiteID}`);
-        this.logger.trace(`skipTestSuites: ${JSON.stringify(this.skipTestSuites)}`);
-        if (_.find(this.skipTestSuites, (sID) => {
+        this.logger.trace(
+          `skipTestSuites: ${JSON.stringify(this.skipTestSuites)}`
+        );
+        if (
+          _.find(this.skipTestSuites, sID => {
             return sID === suiteID;
-          })) {
+          })
+        ) {
           this.logger.trace(`Skipping testSuite: ${suiteID}`);
           return;
         }
@@ -146,7 +155,12 @@ export class BusybeeParsedConfig {
     this.logger.trace(`parseTestSuite ${testSuite.id} ${mode}`);
 
     // create an id for this testSuite
-    return new ParsedTestSuite(testSuite, mode, this.testSet2EnvMap, this.env2TestSuiteMap);
+    return new ParsedTestSuite(
+      testSuite,
+      mode,
+      this.testSet2EnvMap,
+      this.env2TestSuiteMap
+    );
   }
 
   /*
@@ -160,20 +174,29 @@ export class BusybeeParsedConfig {
     let testFolders = [];
     parsedTestSuites.values().map(pst => {
       if (pst.testFolder) {
-        testFolders.push(path.join(this.filePaths.busybeeDir, pst.testFolder, '/**/*.json'));
-        testFolders.push(path.join(this.filePaths.busybeeDir, pst.testFolder, '/**/*.js'));
+        testFolders.push(
+          path.join(this.filePaths.busybeeDir, pst.testFolder, '/**/*.json')
+        );
+        testFolders.push(
+          path.join(this.filePaths.busybeeDir, pst.testFolder, '/**/*.js')
+        );
       }
     });
 
-    let files = glob.sync(`{${testFolders.join(',')}}`, {ignore: `${this.filePaths.userConfigFile}`});
+    let files = glob.sync(`{${testFolders.join(',')}}`, {
+      ignore: `${this.filePaths.userConfigFile}`
+    });
 
     // parse json files, compile testSets and add them to the conf.
-    this.logger.info("parsing files...");
+    this.logger.info('parsing files...');
     files.forEach((file: string) => {
       // support for running specific tests files
-      if (this.testFiles.length > 0 && !_.find(this.testFiles, (fileName) => {
+      if (
+        this.testFiles.length > 0 &&
+        !_.find(this.testFiles, fileName => {
           return file.endsWith(fileName);
-        })) {
+        })
+      ) {
         this.logger.info(`skipping ${file}`);
         return;
       } else {
@@ -191,10 +214,10 @@ export class BusybeeParsedConfig {
       // ensure that all of our testFiles return arrays of tests and not just a single test object
       if (!Array.isArray(tests)) {
         tests = [tests];
-        this.logger.trace("is not array of tests");
+        this.logger.trace('is not array of tests');
       }
 
-      tests.forEach((test) => {
+      tests.forEach(test => {
         this.logger.trace(test);
         test = new RESTTest(test);
 
@@ -204,21 +227,34 @@ export class BusybeeParsedConfig {
         }
 
         if (mode === 'test') {
-          if (!test.expect || (!test.expect.status && !test.expect.body && !test.expect.headers)) {
-            this.logger.debug(`test.expect not defined for ${test.id}. Skipping`);
+          if (
+            !test.expect ||
+            (!test.expect.status && !test.expect.body && !test.expect.headers)
+          ) {
+            this.logger.debug(
+              `test.expect not defined for ${test.id}. Skipping`
+            );
             return;
           }
         }
         if (mode === 'mock') {
-          test.testSet = {id: 'default'}
-          if (!test.expect && !test.mockResponse) {
-            this.logger.warn(`test.expect && test.mockResponse not defined for ${test.id}. Cannot mock!`);
+          test.testSet = { id: 'default' };
+          if (!test.expect && !test.mocks) {
+            this.logger.warn(
+              `test.expect && test.mocks not defined for ${
+                test.id
+              }. Cannot mock!`
+            );
             return;
           }
         }
 
         if (_.isUndefined(test.testSet)) {
-          this.logger.info(`test '${test.id}' does not contain required prop 'testSet'. Skipping`);
+          this.logger.info(
+            `test '${
+              test.id
+            }' does not contain required prop 'testSet'. Skipping`
+          );
           return;
         }
 
@@ -228,14 +264,18 @@ export class BusybeeParsedConfig {
         }
 
         // iterate each testSet entry for this test (1 test can run in multiple testSets)
-        test.testSet.forEach((testSetInfo) => {
+        test.testSet.forEach(testSetInfo => {
           this.logger.trace(`testSetInfo`);
           this.logger.trace(testSetInfo, true);
 
           // find any environment ids where this TestSet is present
           let testEnvIds = this.testSet2EnvMap.get(testSetInfo.id); // a TestSet can appear in more than 1 env
           if (!testEnvIds) {
-            this.logger.warn(`Unable to identify the Test Environment(s) containing the testSetId '${testSetInfo.id}'.`);
+            this.logger.warn(
+              `Unable to identify the Test Environment(s) containing the testSetId '${
+                testSetInfo.id
+              }'.`
+            );
             return;
           }
 
@@ -246,13 +286,20 @@ export class BusybeeParsedConfig {
             let suiteID = this.env2TestSuiteMap.get(testEnvId);
             if (_.isUndefined(testSetInfo.index)) {
               // push it on the end
-              parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).testsUnordered.push(test);
+              parsedTestSuites
+                .get(suiteID)
+                .testEnvs.get(testEnvId)
+                .testSets.get(testSetInfo.id)
+                .testsUnordered.push(test);
               // if (testSetInfo.id === 'asset management') {
               //   this.logger.debug(parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id), true);
               // }
             } else {
               // insert it at the proper index, fill any empty spots along the way
-              let existingTests = parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests;
+              let existingTests = parsedTestSuites
+                .get(suiteID)
+                .testEnvs.get(testEnvId)
+                .testSets.get(testSetInfo.id).tests;
               let newArrLength = testSetInfo.index + 1;
               if (existingTests && existingTests.length > newArrLength) {
                 // we need to extend the length of the array to add this at the proper index.
@@ -260,21 +307,29 @@ export class BusybeeParsedConfig {
               }
 
               // create an array of nulls of the current known maxLength and fill it back in.
-              Array(newArrLength).fill(null).forEach((d, i) => {
-                if (i == testSetInfo.index) {
-                  parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i] = test;
-                } else {
-                  if (!existingTests[i]) {
-                    parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id).tests[i] = null;
+              Array(newArrLength)
+                .fill(null)
+                .forEach((d, i) => {
+                  if (i == testSetInfo.index) {
+                    parsedTestSuites
+                      .get(suiteID)
+                      .testEnvs.get(testEnvId)
+                      .testSets.get(testSetInfo.id).tests[i] = test;
+                  } else {
+                    if (!existingTests[i]) {
+                      parsedTestSuites
+                        .get(suiteID)
+                        .testEnvs.get(testEnvId)
+                        .testSets.get(testSetInfo.id).tests[i] = null;
+                    }
                   }
-                }
-              });
+                });
             }
 
             // this.logger.trace(`testSet updated`);
             // this.logger.trace(parsedTestSuites.get(suiteID).testEnvs.get(testEnvId).testSets.get(testSetInfo.id));
           });
-          })
+        });
       });
     });
 
@@ -284,7 +339,7 @@ export class BusybeeParsedConfig {
         te.testSets.forEach((ts: ParsedTestSetConfig, tsId: string) => {
           ts.tests = ts.tests.concat(ts.testsUnordered);
         });
-      })
+      });
     });
 
     return parsedTestSuites;

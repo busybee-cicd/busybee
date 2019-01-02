@@ -1,6 +1,6 @@
 {
   "name": "busybee",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "description": "it test coordinator",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",

@@ -65,7 +65,7 @@ export class MockServer {
     server.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
     if (this.corsActive()) {
       server.use((req, res, next) => {
-        res.append('Access-Control-Allow-Origin', req.header('origin'));
+        res.append('Access-Control-Allow-Origin', req.header('origin') || '*');
         res.append('Access-Control-Allow-Credentials', 'true');
         next();
       });
@@ -216,7 +216,7 @@ export class MockServer {
     let hashedReq = hash(requestOpts);
     // 1a. search the this.routeMap[test.request.path] for it using the hash
     let method = request.method.toLocaleLowerCase();
-    let resStatus; // default to mockResponse
+    let resStatus; // default to first entry in mocks[]
     if (!_.isEmpty(mock.mocks)) {
       resStatus = mock.mocks[0].response.status;
     } else {
@@ -383,7 +383,6 @@ export class MockServer {
 
         // set headers
         res.append('busybee-mock', true);
-        let resHeaders;
         let mockResponse;
         let mockData: RESTMock; // will be populated if a mock is provided
         if (!_.isEmpty(mockToReturn.mocks)) {
@@ -398,16 +397,13 @@ export class MockServer {
           mockResponse = mockToReturn.expect;
         }
 
-        if (mockResponse) {
-          resHeaders = Object.assign({}, resHeaders, mockResponse);
-        }
-        if (mockResponse) {
-          _.forEach(resHeaders, (v, k) => {
-            if (v == null) {
+        if (mockResponse && mockResponse.headers) {
+          for (let k in mockResponse.headers) {
+            if (mockResponse.headers[k] == null) {
               return;
             }
-            res.append(k, v);
-          });
+            res.append(k, mockResponse.headers[k]);
+          }
         }
 
         // check for a delay
