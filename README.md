@@ -53,3 +53,6 @@ Check out the [Github Issues Page](https://github.com/busybee-cicd/busybee/issue
   - support testSets with state
   - support a .spec file for documenting endpoints?
 - remove placeholder 'null' entries after building testSets with skipped indexes
+
+## License
+MIT © [stowns](https://github.com/stowns)
