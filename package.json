@@ -1,7 +1,7 @@
 {
   "name": "busybee",
   "version": "2.2.2",
-  "description": "it test coordinator",
+  "description": "IT coordinator",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "bin": {
@@ -51,7 +51,6 @@
     "dev": "onchange 'src/**/*.ts' 'test/**/*.ts' -- prettier --write {{changed}} && npm run build",
     "start": "node ./dist/src/index.js",
     "docs": "typedoc --module commonjs --readme configuration.md --out docs/ src/models/RESTTest.ts src/models/config/BusybeeUserConfig.ts && touch docs/.nojekyll",
-    "remoteIT": "node --inspect-brk=9222 ./dist/src/index.js mock -t 'CR Services IT' -d /Users/simontownsend/dev/config-reviewer/config-reviewer-it-api/busybee",
     "IT": "npm run build && ava test/IT/index.js !dist/test/unit/util/**/*.js --verbose",
     "ITDebug": "export LOG_LEVEL=DEBUG && npm run build && ava test/IT/index.js --verbose && unset LOG_LEVEL",
     "test": "npm run build && ava dist/test/unit/**/*.js !dist/test/unit/util/**/*.js --verbose",
@@ -73,8 +72,5 @@
     }
   },
   "author": "Simon Townsend",
-  "license": "ISC",
-  "publishConfig": {
-    "registry": "https://devcloud.swcoe.ge.com/artifactory/api/npm/OAMFZ/"
-  }
+  "license": "MIT"
 }

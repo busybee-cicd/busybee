@@ -1,46 +1,48 @@
-<img alt="busybee" src="https://github.build.ge.com/212589146/busybee/blob/master/img/busybee7.png?raw=true" width="300" />
+# busybee
 
-busybee
-========
-
-* [Requirements](#Requirements)
-* [Quickstart](#quickstart)
-* [About](#about)
-    * [What it is](#what-it-is)
-    * [What it isn't](#what-it-isnt)
-* [Todo](#todo)
+- [Requirements](#Requirements)
+- [Quickstart](#quickstart)
+- [About](#about)
+  - [What it is](#what-it-is)
+  - [What it isn't](#what-it-isnt)
+- [Todo](#todo)
 
 ## Requirements
+
 - Node.js 8 or higher
 
 ## Quickstart
+
 ```
-npm install -g git+https://github.build.ge.com/Busybee/busybee.git
+npm install -g busybee
 busybee init
 busybee --help
 ```
 
-See [The Configuration Docs](https://github.build.ge.com/pages/Busybee/busybee/) for detailed information on config file properties.
+See [The Configuration Docs](https://github.com/pages/busybee-cicd/busybee/) for detailed information on config file properties.
 
 ## About
 
 ### What it is
+
 Busybee will coordinate the steps necessary to run your Functional Tests. It is unopinionated
-when it comes to deciding how your environments are started, when they're ready, what technologies are used, etc. Busybee is only concerned with the following:  
+when it comes to deciding how your environments are started, when they're ready, what technologies are used, etc. Busybee is only concerned with the following:
 
 1. Figure out how many [Test Suites](#TestSuite) we're dealing with.
 2. Figure out how many [Environments](#Env) are required for each [Test Suite](#TestSuite)
 3. Figure out how many [Test Sets](#TestSet) to run against each [Environment](#Env).
-2. Spin up each [Environment](#Env)
-3. Run the [Test Sets](#TestSet)
-4. Spin down each [Environment](#Env).
-5. Report results.
+4. Spin up each [Environment](#Env)
+5. Run the [Test Sets](#TestSet)
+6. Spin down each [Environment](#Env).
+7. Report results.
 
 ### What it isn't
+
 It is not a magic bullet. You still have to write tests. You still have to provide 'start' and 'stop' scripts detailing how start/stop your environments. If your [Test Suite](#TestSuite) is not a REST [Test Suite](#TestSuite) then you will also need to provide a 'run' script that actually runs your tests once the environment as been provisioned.
 
 ## Todo
-Check out the [Github Issues Page](https://github.build.ge.com/Busybee/busybee/issues) for a list of future bugfixes and enhancements
+
+Check out the [Github Issues Page](https://github.com/busybee-cicd/busybee/issues) for a list of future bugfixes and enhancements
 
 - test adapters
   - support https://github.com/postmanlabs/newman#using-newman-as-a-nodejs-module ?
