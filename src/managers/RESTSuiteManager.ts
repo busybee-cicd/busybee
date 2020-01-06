@@ -250,7 +250,7 @@ export class RESTSuiteManager {
     }
   }
 
-  wait(milliseconds) {
+  async wait(milliseconds) {
     this.logger.debug(`wait ${milliseconds / 1000} second(s)`);
     return new Promise(resolve => setTimeout(resolve, milliseconds));
   }
@@ -459,7 +459,7 @@ export class RESTSuiteManager {
         // Run Custom Function Assertion OR basic Pojo comparision
         if (_.isFunction(test.expect.body)) {
           // if the test has a custom function for assertion, run it.
-          let bodyResult = test.expect.body(actual, testSet.variableExports);
+          let bodyResult = await test.expect.body(actual, testSet.variableExports);
           if (bodyResult === false) {
             bodyPass = false;
           } // else we pass it. ie) it doesn't return anything we assume it passed.
