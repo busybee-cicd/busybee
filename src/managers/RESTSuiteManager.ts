@@ -460,6 +460,9 @@ export class RESTSuiteManager {
         if (_.isFunction(test.expect.body)) {
           // if the test has a custom function for assertion, run it.
           let bodyResult = test.expect.body(actual, testSet.variableExports);
+          if (bodyResult instanceof Promise) {
+            bodyResult = await bodyResult;
+          }
           if (bodyResult === false) {
             bodyPass = false;
           } // else we pass it. ie) it doesn't return anything we assume it passed.
