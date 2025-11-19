@@ -31,7 +31,7 @@ module.exports = [
                 varExports.userId = body.content.id;
                 // returning false or throwing an Exception will result in a failure.
                 // assertion libraries can be used here as well.
-                return (body.content.name === 'John Doe' && body.content.age === 26) ? true : false;
+                return (body.content.name === 'John Doe' && body.content.age === 26);
             }
         },
         mock: { // when running busybee in 'mock' mode, tests that use a callback function for their 'expect' should provide a POJO mock response.
