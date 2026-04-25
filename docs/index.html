@@ -1,230 +1,415 @@
 <!doctype html>
-<html class="default no-js">
-<head>
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>busybee</title>
-	<meta name="description" content="">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="assets/css/main.css">
-</head>
-<body>
-<header>
-	<div class="tsd-page-toolbar">
-		<div class="container">
-			<div class="table-wrap">
-				<div class="table-cell" id="tsd-search" data-index="assets/js/search.js" data-base=".">
-					<div class="field">
-						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
-						<input id="tsd-search-field" type="text" />
-					</div>
-					<ul class="results">
-						<li class="state loading">Preparing search index...</li>
-						<li class="state failure">The search index is not available</li>
-					</ul>
-					<a href="index.html" class="title">busybee</a>
-				</div>
-				<div class="table-cell" id="tsd-widgets">
-					<div id="tsd-filter">
-						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
-						<div class="tsd-filter-group">
-							<div class="tsd-select" id="tsd-filter-visibility">
-								<span class="tsd-select-label">All</span>
-								<ul class="tsd-select-list">
-									<li data-value="public">Public</li>
-									<li data-value="protected">Public/Protected</li>
-									<li data-value="private" class="selected">All</li>
-								</ul>
-							</div>
-							<input type="checkbox" id="tsd-filter-inherited" checked />
-							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
-							<input type="checkbox" id="tsd-filter-externals" checked />
-							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
-							<input type="checkbox" id="tsd-filter-only-exported" />
-							<label class="tsd-widget" for="tsd-filter-only-exported">Only exported</label>
-						</div>
-					</div>
-					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="tsd-page-title">
-		<div class="container">
-			<ul class="tsd-breadcrumb">
-				<li>
-					<a href="globals.html">Globals</a>
-				</li>
-			</ul>
-			<h1> busybee</h1>
-		</div>
-	</div>
-</header>
-<div class="container container-main">
-	<div class="row">
-		<div class="col-8 col-content">
-			<div class="tsd-panel tsd-typography">
-				<h1 id="busybee-configuration">Busybee Configuration</h1>
-				<p><em>Welcome to the home of Busybee&#39;s configuration documentation. The definitions are auto-generated using <a href="http://typedoc.org/">Typedoc</a> and while not perfect for documenting the JSON config that a user must provide, Typedoc served as the quickest path to achieving thorough and maintainable documentation of the models that user-provide JSON is mapped to once parsed. We will likely re-visit our documentation strategy in the future</em></p>
-				<h2 id="configuring-a-busybee-testsuite">Configuring A Busybee TestSuite</h2>
-				<h3 id="busybeeuserconfig">BusybeeUserConfig</h3>
-				<p>In order to run Busybee one must first set up a top-level <code>config.js/json</code> file which will be parsed by Busybee at runtime and mapped to the <a href="classes/_src_models_config_busybeeuserconfig_.busybeeuserconfig.html">BusybeeUserConfig</a> model. The BusybeeUserConfig is where a user will define not only the TestSuite(s) but also the available compute resources available to Busybee. Please reference the <a href="classes/_src_models_config_busybeeuserconfig_.busybeeuserconfig.html">BusybeeUserConfig</a> for more information on how to structure your <code>config.js/json</code>.</p>
-				<h4 id="rest-vs-user_provided-testsuite-s">REST vs USER_PROVIDED TestSuite&#39;s</h4>
-				<p>Busybee provides a test schema for testing REST api&#39;s. If a REST api is what you would like to test with your TestSuite then configure the <code>type</code> as <code>&#39;REST&#39;</code> and provide <a href="classes/_src_models_resttest_.resttest.html">RESTTest</a> files. When you run <code>busybee test</code> if everything is configured properly your <a href="classes/_src_models_resttest_.resttest.html">RESTTest</a> will be parsed and used to run requests against an already running REST service or one that Busybee has provisioned for testing purposes.</p>
-				<h3 id="providing-sh-scripts-for-starting-and-stopping-environments">Providing .sh scripts for starting and stopping environments</h3>
-				<p>In many cases you will want Busybee to spin up your Service(s) being tested and then tear them down afterward. In order to do this you must provide a <code>startScript</code> and a <code>stopScript</code>. This are simply <code>.sh</code> files that will be called once Busybee has identified an available resource to provision your test environment to. Busybee will pass all of the necesssary information to your <code>startScript</code> and <code>stopScript</code> as json so that you can provision your environment accordingly.</p>
-				<p>Example of parsing json passed to startScript using the <code>jq</code> commandline tool.</p>
-				<pre><code><span class="hljs-meta">#!/bin/bash</span>
-ENV_ID=$(<span class="hljs-built_in">echo</span> <span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> | jq -r <span class="hljs-string">".generatedEnvID"</span>)
-HOST=$(<span class="hljs-built_in">echo</span> <span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> | jq -r <span class="hljs-string">".hostName"</span>)
-API_PORT=$(<span class="hljs-built_in">echo</span> <span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> | jq -r <span class="hljs-string">".ports[0]"</span>) <span class="hljs-comment"># ports are passed in the same order in which they are provided in your config.json</span>
-BUSYBEE_DIR=$(<span class="hljs-built_in">echo</span> <span class="hljs-string">"<span class="hljs-variable">$1</span>"</span> | jq -r <span class="hljs-string">".busybeeDir"</span>)
-</code></pre><h3 id="user_provided-testsuite-s">USER_PROVIDED TestSuite&#39;s</h3>
-				<p>The only additional requirement of a <code>USER_PROVIDED</code> TestSuite is that a <code>runScript</code> is configured. The <code>runScript</code> will be called once an envirnmonet has been provisioned and is ready (in the even that Busybee is configured to do so) or once an existing environment has been confirmed to be ready. The <code>runScript</code> is where you should run your test commands, reporters, etc. A successful run should return an <code>exit 0</code></p>
-			</div>
-		</div>
-		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
-			<nav class="tsd-navigation primary">
-				<ul>
-					<li class="globals  ">
-						<a href="globals.html"><em>Globals</em></a>
-					</li>
-					<li class="label tsd-is-external">
-						<span>Internals</span>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="modules/_src_models_resttest_.html">"src/models/RESTTest"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="modules/_src_models_config_busybeeuserconfig_.html">"src/models/config/<wbr>Busybee<wbr>User<wbr>Config"</a>
-					</li>
-					<li class="label tsd-is-external">
-						<span>Externals</span>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_node_modules_json_typescript_mapper_index_.html">"node_<wbr>modules/json-<wbr>typescript-<wbr>mapper/index"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_node_modules_json_typescript_mapper_libs_utils_.html">"node_<wbr>modules/json-<wbr>typescript-<wbr>mapper/libs/utils"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_restmock_.html">"src/models/RESTMock"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_resttestassertionmodifications_.html">"src/models/RESTTest<wbr>Assertion<wbr>Modifications"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_resttestexpect_.html">"src/models/RESTTest<wbr>Expect"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_resttestset_.html">"src/models/RESTTest<wbr>Set"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_responsebody_.html">"src/models/<wbr>Response<wbr>Body"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_config_common_envconfig_.html">"src/models/config/common/<wbr>Env<wbr>Config"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_config_common_envresourceconfig_.html">"src/models/config/common/<wbr>Env<wbr>Resource<wbr>Config"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_config_common_mockserverconfig_.html">"src/models/config/common/<wbr>Mock<wbr>Server<wbr>Config"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_config_common_requestoptsconfig_.html">"src/models/config/common/<wbr>Request<wbr>Opts<wbr>Config"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_config_user_envinstanceconfig_.html">"src/models/config/user/<wbr>Env<wbr>Instance<wbr>Config"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_config_user_healthcheckconfig_.html">"src/models/config/user/<wbr>Health<wbr>Check<wbr>Config"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_config_user_hostconfig_.html">"src/models/config/user/<wbr>Host<wbr>Config"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_config_user_proxyconfig_.html">"src/models/config/user/<wbr>Proxy<wbr>Config"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_config_user_testsetconfig_.html">"src/models/config/user/<wbr>Test<wbr>Set<wbr>Config"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_src_models_config_user_testsuiteconfig_.html">"src/models/config/user/<wbr>Test<wbr>Suite<wbr>Config"</a>
-					</li>
-				</ul>
-			</nav>
-			<nav class="tsd-navigation secondary menu-sticky">
-				<ul class="before-current">
-				</ul>
-			</nav>
-		</div>
-	</div>
-</div>
-<footer class="with-border-bottom">
-	<div class="container">
-		<h2>Legend</h2>
-		<div class="tsd-legend-group">
-			<ul class="tsd-legend">
-				<li class="tsd-kind-module"><span class="tsd-kind-icon">Module</span></li>
-				<li class="tsd-kind-object-literal"><span class="tsd-kind-icon">Object literal</span></li>
-				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
-				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
-				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
-				<li class="tsd-kind-index-signature"><span class="tsd-kind-icon">Index signature</span></li>
-				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
-				<li class="tsd-kind-enum-member"><span class="tsd-kind-icon">Enumeration member</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-enum"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-enum"><span class="tsd-kind-icon">Method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
-				<li class="tsd-kind-interface tsd-has-type-parameter"><span class="tsd-kind-icon">Interface with type parameter</span></li>
-				<li class="tsd-kind-constructor tsd-parent-kind-interface"><span class="tsd-kind-icon">Constructor</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
-				<li class="tsd-kind-index-signature tsd-parent-kind-interface"><span class="tsd-kind-icon">Index signature</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
-				<li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li>
-				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li>
-				<li class="tsd-kind-index-signature tsd-parent-kind-class"><span class="tsd-kind-icon">Index signature</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited accessor</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected accessor</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private accessor</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
-				<li class="tsd-kind-call-signature tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
-			</ul>
-		</div>
-	</div>
-</footer>
-<div class="container tsd-generator">
-	<p>Generated using <a href="http://typedoc.org/" target="_blank">TypeDoc</a></p>
-</div>
-<div class="overlay"></div>
-<script src="assets/js/main.js"></script>
-<script>if (location.protocol == 'file:') document.write('<script src="assets/js/search.js"><' + '/script>');</script>
-</body>
+<html class="default" lang="en" data-base=".">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="IE=edge" />
+    <title>busybee</title>
+    <meta name="description" content="Documentation for busybee" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="assets/style.css" />
+    <link rel="stylesheet" href="assets/highlight.css" />
+    <script defer src="assets/main.js"></script>
+    <script async src="assets/icons.js" id="tsd-icons-script"></script>
+    <script async src="assets/search.js" id="tsd-search-script"></script>
+    <script async src="assets/navigation.js" id="tsd-nav-script"></script>
+  </head>
+  <body>
+    <script>
+      document.documentElement.dataset.theme =
+        localStorage.getItem('tsd-theme') || 'os';
+      document.body.style.display = 'none';
+      setTimeout(
+        () =>
+          app ? app.showPage() : document.body.style.removeProperty('display'),
+        500,
+      );
+    </script>
+    <header class="tsd-page-toolbar">
+      <div class="tsd-toolbar-contents container">
+        <div class="table-cell" id="tsd-search">
+          <div class="field">
+            <label
+              for="tsd-search-field"
+              class="tsd-widget tsd-toolbar-icon search no-caption"
+              ><svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                aria-hidden="true"
+              >
+                <use href="assets/icons.svg#icon-search"></use></svg></label
+            ><input type="text" id="tsd-search-field" aria-label="Search" />
+          </div>
+          <div class="field"><div id="tsd-toolbar-links"></div></div>
+          <ul class="results">
+            <li class="state loading">Preparing search index...</li>
+            <li class="state failure">The search index is not available</li>
+          </ul>
+          <a href="index.html" class="title">busybee</a>
+        </div>
+        <div class="table-cell" id="tsd-widgets">
+          <a
+            href="#"
+            class="tsd-widget tsd-toolbar-icon menu no-caption"
+            data-toggle="menu"
+            aria-label="Menu"
+            ><svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              aria-hidden="true"
+            >
+              <use href="assets/icons.svg#icon-menu"></use></svg
+          ></a>
+        </div>
+      </div>
+    </header>
+    <div class="container container-main">
+      <div class="col-content">
+        <div class="tsd-page-title"><h1>busybee</h1></div>
+        <div class="tsd-panel tsd-typography">
+          <a id="busybee-configuration" class="tsd-anchor"></a>
+          <h1 class="tsd-anchor-link">
+            Busybee Configuration<a
+              href="#busybee-configuration"
+              aria-label="Permalink"
+              class="tsd-anchor-icon"
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <use href="assets/icons.svg#icon-anchor"></use></svg
+            ></a>
+          </h1>
+          <p>
+            <em
+              >Welcome to the home of Busybee's configuration documentation. The
+              definitions are auto-generated using
+              <a href="http://typedoc.org/">Typedoc</a> and while not perfect
+              for documenting the JSON config that a user must provide, Typedoc
+              served as the quickest path to achieving thorough and maintainable
+              documentation of the models that user-provide JSON is mapped to
+              once parsed. We will likely re-visit our documentation strategy in
+              the future</em
+            >
+          </p>
+          <a id="configuring-a-busybee-testsuite" class="tsd-anchor"></a>
+          <h2 class="tsd-anchor-link">
+            Configuring A Busybee TestSuite<a
+              href="#configuring-a-busybee-testsuite"
+              aria-label="Permalink"
+              class="tsd-anchor-icon"
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <use href="assets/icons.svg#icon-anchor"></use></svg
+            ></a>
+          </h2>
+          <a id="busybeeuserconfig" class="tsd-anchor"></a>
+          <h3 class="tsd-anchor-link">
+            BusybeeUserConfig<a
+              href="#busybeeuserconfig"
+              aria-label="Permalink"
+              class="tsd-anchor-icon"
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <use href="assets/icons.svg#icon-anchor"></use></svg
+            ></a>
+          </h3>
+          <p>
+            In order to run Busybee one must first set up a top-level
+            <code>config.js/json</code> file which will be parsed by Busybee at
+            runtime and mapped to the <code>BusybeeUserConfig</code> model. The
+            BusybeeUserConfig is where a user will define not only the
+            TestSuite(s) but also the available compute resources. Please
+            reference the <code>BusybeeUserConfig</code> for more information on
+            how to structure your <code>config.js/json</code>.
+          </p>
+          <a id="rest-vs-user_provided-testsuites" class="tsd-anchor"></a>
+          <h4 class="tsd-anchor-link">
+            REST vs USER_PROVIDED TestSuite's<a
+              href="#rest-vs-user_provided-testsuites"
+              aria-label="Permalink"
+              class="tsd-anchor-icon"
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <use href="assets/icons.svg#icon-anchor"></use></svg
+            ></a>
+          </h4>
+          <p>
+            Busybee provides a test schema for testing REST api's. If a REST api
+            is what you would like to test with your TestSuite then configure
+            the <code>type</code> as <code>'REST'</code> and provide
+            <code>RESTTest</code> files. When you run
+            <code>busybee test</code> if everything is configured properly your
+            <code>RESTTest</code> will be parsed and used to run requests
+            against an already running REST service or one that Busybee has
+            provisioned for testing purposes.
+          </p>
+          <a
+            id="providing-sh-scripts-for-starting-and-stopping-environments"
+            class="tsd-anchor"
+          ></a>
+          <h3 class="tsd-anchor-link">
+            Providing .sh scripts for starting and stopping environments<a
+              href="#providing-sh-scripts-for-starting-and-stopping-environments"
+              aria-label="Permalink"
+              class="tsd-anchor-icon"
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <use href="assets/icons.svg#icon-anchor"></use></svg
+            ></a>
+          </h3>
+          <p>
+            You may want Busybee to spin up your Service(s) being tested and
+            then tear them down afterward. In order to do this you must provide
+            a <code>startScript</code> and a <code>stopScript</code>. This are
+            simply <code>.sh</code> files that will be called once Busybee has
+            identified an available resource to provision your test environment
+            to. Busybee will pass all of the necesssary information to your
+            <code>startScript</code> and <code>stopScript</code> as json so that
+            you can provision your environment accordingly.
+          </p>
+          <p>
+            Example of parsing json passed to startScript using the
+            <code>jq</code> commandline tool.
+          </p>
+          <pre><code><span class="hl-0">#!/bin/bash</span><br/><span class="hl-1">ENV_ID</span><span class="hl-2">=</span><span class="hl-3">$</span><span class="hl-2">(</span><span class="hl-4">echo</span><span class="hl-2"> </span><span class="hl-5">&quot;$1&quot;</span><span class="hl-2"> | </span><span class="hl-4">jq</span><span class="hl-2"> -</span><span class="hl-4">r</span><span class="hl-2"> </span><span class="hl-5">&quot;.generatedEnvID&quot;</span><span class="hl-2">)</span><br/><span class="hl-1">HOST</span><span class="hl-2">=</span><span class="hl-3">$</span><span class="hl-2">(</span><span class="hl-4">echo</span><span class="hl-2"> </span><span class="hl-5">&quot;$1&quot;</span><span class="hl-2"> | </span><span class="hl-4">jq</span><span class="hl-2"> -</span><span class="hl-4">r</span><span class="hl-2"> </span><span class="hl-5">&quot;.hostName&quot;</span><span class="hl-2">)</span><br/><span class="hl-1">API_PORT</span><span class="hl-2">=</span><span class="hl-3">$</span><span class="hl-2">(</span><span class="hl-4">echo</span><span class="hl-2"> </span><span class="hl-5">&quot;$1&quot;</span><span class="hl-2"> | </span><span class="hl-4">jq</span><span class="hl-2"> -</span><span class="hl-4">r</span><span class="hl-2"> </span><span class="hl-5">&quot;.ports[0]&quot;</span><span class="hl-2">) # </span><span class="hl-4">ports</span><span class="hl-2"> </span><span class="hl-4">are</span><span class="hl-2"> </span><span class="hl-4">passed</span><span class="hl-2"> </span><span class="hl-6">in</span><span class="hl-2"> </span><span class="hl-4">the</span><span class="hl-2"> </span><span class="hl-4">same</span><span class="hl-2"> </span><span class="hl-4">order</span><span class="hl-2"> </span><span class="hl-6">in</span><span class="hl-2"> </span><span class="hl-4">which</span><span class="hl-2"> </span><span class="hl-4">they</span><span class="hl-2"> </span><span class="hl-4">are</span><span class="hl-2"> </span><span class="hl-4">provided</span><span class="hl-2"> </span><span class="hl-6">in</span><span class="hl-2"> </span><span class="hl-4">your</span><span class="hl-2"> </span><span class="hl-4">config</span><span class="hl-2">.</span><span class="hl-4">json</span><br/><span class="hl-1">BUSYBEE_DIR</span><span class="hl-2">=</span><span class="hl-3">$</span><span class="hl-2">(</span><span class="hl-4">echo</span><span class="hl-2"> </span><span class="hl-5">&quot;$1&quot;</span><span class="hl-2"> | </span><span class="hl-4">jq</span><span class="hl-2"> -</span><span class="hl-4">r</span><span class="hl-2"> </span><span class="hl-5">&quot;.busybeeDir&quot;</span><span class="hl-2">)</span>
+</code><button>Copy</button></pre>
+
+          <a id="user_provided-testsuites" class="tsd-anchor"></a>
+          <h3 class="tsd-anchor-link">
+            USER_PROVIDED TestSuite's<a
+              href="#user_provided-testsuites"
+              aria-label="Permalink"
+              class="tsd-anchor-icon"
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <use href="assets/icons.svg#icon-anchor"></use></svg
+            ></a>
+          </h3>
+          <p>
+            The only additional requirement of a
+            <code>USER_PROVIDED</code> TestSuite is that a
+            <code>runScript</code> is configured. The
+            <code>runScript</code> will be called once an envirnmonet has been
+            provisioned and is ready (in the even that Busybee is configured to
+            do so) or once an existing environment has been confirmed to be
+            ready. The <code>runScript</code> is where you should run your test
+            commands, reporters, etc. A successful run should return an
+            <code>exit 0</code>
+          </p>
+        </div>
+      </div>
+      <div class="col-sidebar">
+        <div class="page-menu">
+          <div class="tsd-navigation settings">
+            <details class="tsd-accordion">
+              <summary class="tsd-accordion-summary">
+                <h3>
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <use href="assets/icons.svg#icon-chevronDown"></use></svg
+                  >Settings
+                </h3>
+              </summary>
+              <div class="tsd-accordion-details">
+                <div class="tsd-filter-visibility">
+                  <span class="settings-label">Member Visibility</span>
+                  <ul id="tsd-filter-options">
+                    <li class="tsd-filter-item">
+                      <label class="tsd-filter-input"
+                        ><input
+                          type="checkbox"
+                          id="tsd-filter-protected"
+                          name="protected"
+                        /><svg
+                          width="32"
+                          height="32"
+                          viewBox="0 0 32 32"
+                          aria-hidden="true"
+                        >
+                          <rect
+                            class="tsd-checkbox-background"
+                            width="30"
+                            height="30"
+                            x="1"
+                            y="1"
+                            rx="6"
+                            fill="none"
+                          ></rect>
+                          <path
+                            class="tsd-checkbox-checkmark"
+                            d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25"
+                            stroke="none"
+                            stroke-width="3.5"
+                            stroke-linejoin="round"
+                            fill="none"
+                          ></path></svg
+                        ><span>Protected</span></label
+                      >
+                    </li>
+                    <li class="tsd-filter-item">
+                      <label class="tsd-filter-input"
+                        ><input
+                          type="checkbox"
+                          id="tsd-filter-inherited"
+                          name="inherited"
+                          checked
+                        /><svg
+                          width="32"
+                          height="32"
+                          viewBox="0 0 32 32"
+                          aria-hidden="true"
+                        >
+                          <rect
+                            class="tsd-checkbox-background"
+                            width="30"
+                            height="30"
+                            x="1"
+                            y="1"
+                            rx="6"
+                            fill="none"
+                          ></rect>
+                          <path
+                            class="tsd-checkbox-checkmark"
+                            d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25"
+                            stroke="none"
+                            stroke-width="3.5"
+                            stroke-linejoin="round"
+                            fill="none"
+                          ></path></svg
+                        ><span>Inherited</span></label
+                      >
+                    </li>
+                    <li class="tsd-filter-item">
+                      <label class="tsd-filter-input"
+                        ><input
+                          type="checkbox"
+                          id="tsd-filter-external"
+                          name="external"
+                        /><svg
+                          width="32"
+                          height="32"
+                          viewBox="0 0 32 32"
+                          aria-hidden="true"
+                        >
+                          <rect
+                            class="tsd-checkbox-background"
+                            width="30"
+                            height="30"
+                            x="1"
+                            y="1"
+                            rx="6"
+                            fill="none"
+                          ></rect>
+                          <path
+                            class="tsd-checkbox-checkmark"
+                            d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25"
+                            stroke="none"
+                            stroke-width="3.5"
+                            stroke-linejoin="round"
+                            fill="none"
+                          ></path></svg
+                        ><span>External</span></label
+                      >
+                    </li>
+                  </ul>
+                </div>
+                <div class="tsd-theme-toggle">
+                  <label class="settings-label" for="tsd-theme">Theme</label
+                  ><select id="tsd-theme">
+                    <option value="os">OS</option>
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                  </select>
+                </div>
+              </div>
+            </details>
+          </div>
+          <details open class="tsd-accordion tsd-page-navigation">
+            <summary class="tsd-accordion-summary">
+              <h3>
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <use href="assets/icons.svg#icon-chevronDown"></use></svg
+                >On This Page
+              </h3>
+            </summary>
+            <div class="tsd-accordion-details">
+              <a href="#busybee-configuration"
+                ><span>Busybee <wbr />Configuration</span></a
+              >
+              <ul>
+                <li>
+                  <a href="#configuring-a-busybee-testsuite"
+                    ><span
+                      >Configuring <wbr />A <wbr />Busybee
+                      <wbr />Test<wbr />Suite</span
+                    ></a
+                  >
+                </li>
+                <li>
+                  <ul>
+                    <li>
+                      <a href="#busybeeuserconfig"
+                        ><span>Busybee<wbr />User<wbr />Config</span></a
+                      >
+                    </li>
+                    <li>
+                      <ul>
+                        <li>
+                          <a href="#rest-vs-user_provided-testsuites"
+                            ><span
+                              >REST vs USER_<wbr />PROVIDED
+                              <wbr />Test<wbr />Suite&#39;s</span
+                            ></a
+                          >
+                        </li>
+                      </ul>
+                    </li>
+                    <li>
+                      <a
+                        href="#providing-sh-scripts-for-starting-and-stopping-environments"
+                        ><span
+                          >Providing .sh scripts for starting and stopping
+                          environments</span
+                        ></a
+                      >
+                    </li>
+                    <li>
+                      <a href="#user_provided-testsuites"
+                        ><span
+                          >USER_<wbr />PROVIDED
+                          <wbr />Test<wbr />Suite&#39;s</span
+                        ></a
+                      >
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </details>
+        </div>
+        <div class="site-menu">
+          <nav class="tsd-navigation">
+            <a href="modules.html">busybee</a>
+            <ul class="tsd-small-nested-navigation" id="tsd-nav-container">
+              <li>Loading...</li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+    <footer>
+      <p class="tsd-generator">
+        Generated using
+        <a href="https://typedoc.org/" target="_blank">TypeDoc</a>
+      </p>
+    </footer>
+    <div class="overlay"></div>
+  </body>
 </html>

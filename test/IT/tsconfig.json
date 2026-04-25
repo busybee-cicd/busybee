@@ -1,15 +1,21 @@
 {
-    "compilerOptions": {
-        "lib": ["es6"],
-        "target": "es5",
-        "sourceMap": true,
-        "inlineSources": true,
-        "module": "commonjs",
-        "moduleResolution": "node",
-        "types" : ["node"],
-        "experimentalDecorators": true,
-        "emitDecoratorMetadata": true
-
-    },
-    "include": ["."]
+  "compilerOptions": {
+    "lib": ["es2022"],
+    "outDir": "../../dist",
+    "target": "es2022",
+    "sourceMap": true,
+    "inlineSources": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "types": ["node"],
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "baseUrl": "../..",
+    "paths": {
+      "json-typescript-mapper": ["src/types/json-typescript-mapper.d.ts"]
+    }
+  },
+  "include": ["."]
 }

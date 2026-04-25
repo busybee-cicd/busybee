@@ -16,7 +16,7 @@ export class UserProvidedSuiteManager {
   constructor(
     conf: BusybeeParsedConfig,
     suiteEnvConf: SuiteEnvInfo,
-    envManager: EnvManager
+    envManager: EnvManager,
   ) {
     this.conf = _.cloneDeep(conf);
     this.suiteEnvConf = suiteEnvConf;
@@ -40,10 +40,10 @@ export class UserProvidedSuiteManager {
 
   async runTestSets(generatedEnvID): Promise<Array<TestSetResult>> {
     this.logger.trace(
-      `runTestSets ${this.suiteEnvConf.suiteID} ${this.suiteEnvConf.suiteEnvID}`
+      `runTestSets ${this.suiteEnvConf.suiteID} ${this.suiteEnvConf.suiteEnvID}`,
     );
     this.logger.trace(this.suiteEnvConf, true);
-    let testSetPromises = this.suiteEnvConf.testSets.values().map(testSet => {
+    let testSetPromises = this.suiteEnvConf.testSets.values().map((testSet) => {
       return this.runTestSet(testSet, generatedEnvID);
     });
 
@@ -51,7 +51,7 @@ export class UserProvidedSuiteManager {
       return await Promise.all(testSetPromises);
     } catch (e) {
       this.logger.trace(
-        `runTestSets ERROR encountered while running testSetPromises`
+        `runTestSets ERROR encountered while running testSetPromises`,
       );
       throw e;
     }
@@ -59,12 +59,12 @@ export class UserProvidedSuiteManager {
 
   async runTestSet(
     testSet: ParsedTestSetConfig,
-    generatedEnvID: string
+    generatedEnvID: string,
   ): Promise<TestSetResult> {
     this.logger.trace(
       `runTestSet | ${this.suiteEnvConf.suiteID} | ${
         this.suiteEnvConf.suiteEnvID
-      } | ${testSet.id}`
+      } | ${testSet.id}`,
     );
     this.logger.trace(testSet, true);
 
@@ -82,16 +82,16 @@ export class UserProvidedSuiteManager {
         hostName: this.suiteEnvConf.hostName,
         ports: this.suiteEnvConf.ports,
         busybeeDir: busybeeDir,
-        runData: testSet.runData
+        runData: testSet.runData,
       };
 
       let returnData = await this.envManager.runScript(scriptPath, [
-        JSON.stringify(args)
+        JSON.stringify(args),
       ]);
       if (testSet.assertion) {
         try {
           // assertion() must explicity return false OR throw an Error to be considered failed
-          let assertionResult = testSet.assertion(returnData);
+          let assertionResult = testSet.assertion(returnData as string);
           if (assertionResult === false) {
             testSetResult.pass = false;
           }

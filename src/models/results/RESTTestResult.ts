@@ -1,10 +1,8 @@
-import {RESTTestHeaderResult} from "./RESTTestHeaderResult";
-import {RESTTestPartResult} from "./RESTTestPartResult";
-import {RESTTestAssertionModifications} from "../RESTTestAssertionModifications";
-import test from "ava";
+import { RESTTestHeaderResult } from './RESTTestHeaderResult';
+import { RESTTestPartResult } from './RESTTestPartResult';
+import { RESTTestAssertionModifications } from '../RESTTestAssertionModifications';
 
 export class RESTTestResult {
-
   id: string;
   pass: boolean;
   status: RESTTestPartResult;
@@ -12,6 +10,7 @@ export class RESTTestResult {
   body: RESTTestPartResult;
   assertionModifications: RESTTestAssertionModifications;
   request: any;
+  latencyMs: number;
 
   constructor(id: string) {
     this.pass = true;
@@ -20,5 +19,4 @@ export class RESTTestResult {
     this.headers;
     this.body;
   }
-
 }

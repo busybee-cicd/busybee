@@ -17,17 +17,17 @@ import { PromiseGeneratingFunction } from 'promise-tools';
 // support JSON.stringify on Error objects
 if (!('toJSON' in Error.prototype))
   Object.defineProperty(Error.prototype, 'toJSON', {
-    value: function() {
+    value: function () {
       var alt = {};
 
-      Object.getOwnPropertyNames(this).forEach(function(key) {
+      Object.getOwnPropertyNames(this).forEach(function (key) {
         alt[key] = this[key];
       }, this);
 
       return alt;
     },
     configurable: true,
-    writable: true
+    writable: true,
   });
 
 export class RESTSuiteManager {
@@ -45,11 +45,11 @@ export class RESTSuiteManager {
   ///////// TestRunning
 
   async runRESTApiTestSets(
-    currentEnv: SuiteEnvInfo
+    currentEnv: SuiteEnvInfo,
   ): Promise<Array<TestSetResult>> {
     // TODO: logic for running TestSets in order
     this.logger.trace(
-      `runRESTApiTestSets ${currentEnv.suiteID} ${currentEnv.suiteEnvID}`
+      `runRESTApiTestSets ${currentEnv.suiteID} ${currentEnv.suiteEnvID}`,
     );
     let testSetPromises = _.map(
       currentEnv.testSets.values(),
@@ -57,18 +57,18 @@ export class RESTSuiteManager {
         return () => {
           return this.runRESTApiTestSet(currentEnv, testSet);
         }; // wrap promise in empty fn for promiseTools
-      }
+      },
     );
 
     try {
       let testSetResults: Array<TestSetResult> = await promiseTools.parallel(
         testSetPromises,
-        2
+        2,
       );
       return testSetResults;
     } catch (e) {
       this.logger.trace(
-        `runRESTApiTestSets ERROR encountered while running testSetPromises`
+        `runRESTApiTestSets ERROR encountered while running testSetPromises`,
       );
       throw e;
     }
@@ -76,7 +76,7 @@ export class RESTSuiteManager {
 
   async runRESTApiTestSet(
     currentEnv: SuiteEnvInfo,
-    testSet: ParsedTestSetConfig
+    testSet: ParsedTestSetConfig,
   ): Promise<TestSetResult> {
     this.logger.trace(`runRESTApiTestSet ${currentEnv.ports} ${testSet.id}`);
 
@@ -130,7 +130,7 @@ export class RESTSuiteManager {
 
   buildTestTasks(currentEnv: SuiteEnvInfo, testSet: ParsedTestSetConfig) {
     this.logger.trace(
-      `RESTSuiteManager:buildTestTasks <testSet> ${currentEnv.ports}`
+      `RESTSuiteManager:buildTestTasks <testSet> ${currentEnv.ports}`,
     );
     this.logger.trace(testSet);
 
@@ -149,15 +149,15 @@ export class RESTSuiteManager {
         let opts = this.restClient.buildRequest(test.request, port);
         // filter everything in the request opts for variables that should be set via variableExports
         this.logger.trace(
-          'opts before processRequestOptsForVariableDeclarations'
+          'opts before processRequestOptsForVariableDeclarations',
         );
         this.logger.trace(opts);
         opts = this.processRequestOptsForVariableDeclarations(
           opts,
-          testSet.variableExports
+          testSet.variableExports,
         );
         this.logger.trace(
-          'opts after processRequestOptsForVariableDeclarations'
+          'opts after processRequestOptsForVariableDeclarations',
         );
         this.logger.trace(opts);
 
@@ -170,7 +170,7 @@ export class RESTSuiteManager {
           // matching the current testSet
           let testSetConf = test.testSet;
           if (Array.isArray(testSetConf)) {
-            testSetConf = _.find(testSetConf, c => {
+            testSetConf = _.find(testSetConf, (c) => {
               return c.id == testSet.id;
             });
           }
@@ -185,23 +185,27 @@ export class RESTSuiteManager {
         this.logger.info(`${testSet.id}: ${testIndex}: ${test.id}`);
         if (test.delayRequest) {
           this.logger.info(
-            `Delaying request for ${test.delayRequest / 1000} second(s)`
+            `Delaying request for ${test.delayRequest / 1000} second(s)`,
           );
           await this.wait(test.delayRequest);
         }
 
+        let requestStart = Date.now();
         try {
           let response = await this.makeRequestWithRetries(opts, 0, 3);
+          let latencyMs = Date.now() - requestStart;
           return await this.validateTestResult(
             testSet,
             test,
             Object.assign({}, this.restClient.getDefaultRequestOpts(), opts),
-            response
+            response,
+            latencyMs,
           );
         } catch (err) {
           this.logger.error(err, true);
           // TODO: refactor a lot of this testResult building logic for re-use w/ the validation section
           let testResult = new RESTTestResult(test.id);
+          testResult.latencyMs = Date.now() - requestStart;
           testResult.pass = false;
           if (test.expect.status) {
             testResult.status = new RESTTestPartResult();
@@ -224,7 +228,7 @@ export class RESTSuiteManager {
             testResult.body.error = {
               type: 'error during request',
               error: err.message,
-              stack: err.stack
+              stack: err.stack,
             };
           }
         }
@@ -242,7 +246,7 @@ export class RESTSuiteManager {
       } else {
         retries += 1;
         this.logger.warn(
-          `REST request failed unexpectedly, retry attempt ${retries}`
+          `REST request failed unexpectedly, retry attempt ${retries}`,
         );
         await this.wait(2000);
         return await this.makeRequestWithRetries(opts, retries, retryMax);
@@ -252,7 +256,7 @@ export class RESTSuiteManager {
 
   wait(milliseconds) {
     this.logger.debug(`wait ${milliseconds / 1000} second(s)`);
-    return new Promise(resolve => setTimeout(resolve, milliseconds));
+    return new Promise((resolve) => setTimeout(resolve, milliseconds));
   }
 
   /*
@@ -261,12 +265,12 @@ export class RESTSuiteManager {
    */
   processRequestOptsForVariableDeclarations(
     opts: any,
-    variableExports: any
+    variableExports: any,
   ): any {
     // check url
     opts.url = this.replaceVars(opts.url, variableExports);
     let objBasedPropsToCheck = ['qs', 'headers', 'body'];
-    objBasedPropsToCheck.forEach(prop => {
+    objBasedPropsToCheck.forEach((prop) => {
       if (opts[prop]) {
         opts[prop] = this.replaceVarsInObject(opts[prop], variableExports);
       }
@@ -284,7 +288,7 @@ export class RESTSuiteManager {
       if (_.isObject(value) && !_.isArray(value)) {
         obj[propName] = this.replaceVarsInObject(value, variableExports);
       } else if (_.isArray(value)) {
-        obj[propName] = value.map(v => {
+        obj[propName] = value.map((v) => {
           return this.replaceVarsInObject(v, variableExports);
         });
       } else if (_.isString(value)) {
@@ -307,12 +311,12 @@ export class RESTSuiteManager {
       let varName = str.substr(2).slice(0, -1);
       this.logger.trace;
       this.logger.trace(
-        `Setting literal ${variableExports[varName]} for '${varName}'`
+        `Setting literal ${variableExports[varName]} for '${varName}'`,
       );
       return variableExports[varName];
     }
 
-    let replaced = str.replace(/#{\w+}/g, match => {
+    let replaced = str.replace(/#{\w+}/g, (match) => {
       match = match.substr(2).slice(0, -1); // remove #{}
       this.logger.trace(`Setting ${match} for '${str}'`);
       this.logger.trace(variableExports, true);
@@ -337,12 +341,14 @@ export class RESTSuiteManager {
     testSet: ParsedTestSetConfig,
     test: RESTTest,
     reqOpts: any,
-    res
+    res,
+    latencyMs: number,
   ) {
     this.logger.trace(`validateTestResult`);
 
     // validate results
     let testResult = new RESTTestResult(test.id);
+    testResult.latencyMs = latencyMs;
 
     if (test.expect.status) {
       testResult.status = new RESTTestPartResult();
@@ -424,7 +430,7 @@ export class RESTSuiteManager {
               test.expect.assertionModifications.ignoreKeys,
               expected,
               actual,
-              this.logger
+              this.logger,
             );
           }
 
@@ -447,7 +453,7 @@ export class RESTSuiteManager {
             UnorderedCollections.process(
               test.expect.assertionModifications.unorderedCollections,
               expected,
-              actual
+              actual,
             );
           }
         }
@@ -479,7 +485,7 @@ export class RESTSuiteManager {
         customFnErr = {
           type: 'custom validation function',
           error: e.message,
-          stack: e.stack
+          stack: e.stack,
         };
       }
 

@@ -15,9 +15,10 @@ export class ConfigParser {
   }
 
   parse(mode): BusybeeParsedConfig {
+    const configPath = this.filePaths.userConfigFile.replace(/\.[^.]+$/, '');
     let userConfig: BusybeeUserConfig = deserialize(
       BusybeeUserConfig,
-      require(this.filePaths.userConfigFile)
+      require(configPath),
     );
     return new BusybeeParsedConfig(userConfig, this.cmdOpts, mode);
   }

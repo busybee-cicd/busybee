@@ -3,7 +3,7 @@
 import { BusybeeParsedConfig } from './models/config/BusybeeParsedConfig';
 require('source-map-support').install();
 import * as _ from 'lodash';
-import * as Commander from 'commander';
+import { program } from 'commander';
 import * as fs from 'fs';
 import * as path from 'path';
 const appVersion = require('../../package.json').version;
@@ -21,47 +21,48 @@ const ONE_MINUTE = ONE_SECOND * 60;
 const ONE_HOUR = ONE_MINUTE * 60;
 //process.env.UV_THREADPOOL_SIZE = '128';
 
-Commander.version(appVersion);
+program.version(appVersion);
 
 // TODO: REMOVE protocol and host from cmdOpts...need to be per test suite
-Commander.command('test')
+program
+  .command('test')
   .description('execute tests')
   .option(
     '-c, --userConfigFile <userConfigFile>',
-    'Config File. defaults to userConfigFile.json. parsed as being relative to --directory'
+    'Config File. defaults to userConfigFile.json. parsed as being relative to --directory',
   )
   .option('-d, --directory <directory>', 'Test Directory. defaults to busybee/')
   .option('-D, --debug', 'convenience flag for debug mode')
   .option(
     '-l, --localMode',
-    'ignores any host configuration in favor of localhost with a capacity of 100'
+    'ignores any host configuration in favor of localhost with a capacity of 100',
   )
   .option('-L, --logLevel <level>', '[DEBUG, INFO, WARN, ERROR]')
   .option(
     '-o, --onComplete <onComplete>',
-    'The filename of javascript module placed in your busybee/ directory. Will be called on complete. ex module) module.exports = (err, results) => { console.log(err || JSON.stringify(results)); }'
+    'The filename of javascript module placed in your busybee/ directory. Will be called on complete. ex module) module.exports = (err, results) => { console.log(err || JSON.stringify(results)); }',
   )
   .option(
     '-s, --skipEnvProvisioning <ids>',
-    'list of comma-separated TestSuite ids. Environments will not be provisioned for these TestSuites prior to running tests'
+    'list of comma-separated TestSuite ids. Environments will not be provisioned for these TestSuites prior to running tests',
   )
   .option(
     '-k, --skipTestSuite <ids>',
-    'list of comma-separated TestSuite ids to skip'
+    'list of comma-separated TestSuite ids to skip',
   )
   .option(
     '-t, --testFiles <filenames>',
-    'list of comma-separated test files to run. ie) test.json,test2.json,users/mytest.json'
+    'list of comma-separated test files to run. ie) test.json,test2.json,users/mytest.json',
   )
   .option(
     '-e, --envInstances <ids>',
-    'list of comma-separated envInstance ids to run'
+    'list of comma-separated envInstance ids to run',
   )
   .option(
     '-w, --wsserver <port>',
-    'enable a websocket server at the specified port'
+    'enable a websocket server at the specified port',
   )
-  .action(options => {
+  .action((options) => {
     let configParser = new ConfigParser(options);
     const conf: BusybeeParsedConfig = configParser.parse('test');
     const loggerConf = new LoggerConf(this, conf.logLevel, null);
@@ -70,27 +71,28 @@ Commander.command('test')
     initTests(conf);
   });
 
-Commander.command('mock')
+program
+  .command('mock')
   .description('runs a mockResponse REST API server using your tests as mocks')
   .option(
     '-c, --userConfigFile <userConfigFile>',
-    'Config File. defaults to userConfigFile.json. parsed as being relative to --directory'
+    'Config File. defaults to userConfigFile.json. parsed as being relative to --directory',
   )
   .option('-d, --directory <directory>', 'Test Directory. defaults to busybee/')
   .option('-D, --debug', 'convenience flag for debug mode')
   .option('-L, --logLevel <level>', '[DEBUG, INFO, WARN, ERROR]')
   .option(
-    '-n, --noProxy, Will ignore any userConfigFile.json proxy configuration and skip proxy attempts'
+    '-n, --noProxy, Will ignore any userConfigFile.json proxy configuration and skip proxy attempts',
   )
   .option(
     '-t, --testSuite <id>',
-    'Required. The ID of the REST Api TestSuite that you would like to run a mock server for'
+    'Required. The ID of the REST Api TestSuite that you would like to run a mock server for',
   )
   .option(
     '-w, --wsserver <port>',
-    'enable a websocket server at the specified port'
+    'enable a websocket server at the specified port',
   )
-  .action(options => {
+  .action((options) => {
     if (!options.testSuite) {
       console.log(`'--testSuite' is a required argument, exiting`);
       return;
@@ -101,14 +103,14 @@ Commander.command('mock')
     logger = new Logger(loggerConf);
 
     // identify the TestSuite.
-    let testSuite = _.find(conf.parsedTestSuites.values(), suite => {
+    let testSuite = _.find(conf.parsedTestSuites.values(), (suite) => {
       return suite.suiteID == options.testSuite;
     });
     if (!testSuite) {
       logger.error(
         `No TestSuite with the id ${
           options.testSuite
-        } could be identified, exiting`
+        } could be identified, exiting`,
       );
       return;
     }
@@ -116,28 +118,28 @@ Commander.command('mock')
     new MockServer(testSuite, conf);
   });
 
-Commander.command('init')
-  .description('set up busybee folder and example userConfigFile/test')
+program
+  .command('init')
+  .description('set up busybee folder with example config and test files')
   .action(() => {
-    const exampleConf = require('./init/userConfigFile.json');
-    const exampleTest = require('./init/test.json');
+    const exampleTest = require(path.join(__dirname, './init/test.json'));
     const busybeeDir = path.join(process.cwd(), 'busybee');
     if (!fs.existsSync(busybeeDir)) fs.mkdirSync(busybeeDir);
     if (!fs.existsSync(path.join(busybeeDir, 'test.json')))
       fs.writeFileSync(
         path.join(busybeeDir, 'test.json'),
-        JSON.stringify(exampleTest, null, '\t')
+        JSON.stringify(exampleTest, null, '\t'),
       );
-    if (!fs.existsSync(path.join(busybeeDir, 'userConfigFile.json')))
-      fs.writeFileSync(
-        path.join(busybeeDir, 'userConfigFile.json'),
-        JSON.stringify(exampleConf, null, '\t')
+    if (!fs.existsSync(path.join(busybeeDir, 'config.js')))
+      fs.copyFileSync(
+        path.join(__dirname, './init/config.js'),
+        path.join(busybeeDir, 'config.js'),
       );
 
     console.log('Busybee initialized!');
   });
 
-Commander.parse(process.argv);
+program.parse(process.argv);
 
 function formatElapsed(start: number, end: number): string {
   let elapsed = end - start;
@@ -222,9 +224,11 @@ async function initTests(conf: BusybeeParsedConfig) {
   // flatten all env promises so that we can run them via Promise.all
   let envResultsPromises: Promise<EnvResult>[] = [];
   for (let suiteId in testManager.testSuiteTasks) {
-    testManager.testSuiteTasks[suiteId].envResults.forEach(envResultPromise => {
-      envResultsPromises.push(envResultPromise);
-    });
+    testManager.testSuiteTasks[suiteId].envResults.forEach(
+      (envResultPromise) => {
+        envResultsPromises.push(envResultPromise);
+      },
+    );
   }
 
   let start = Date.now();
@@ -243,7 +247,7 @@ async function initTests(conf: BusybeeParsedConfig) {
           envResult.suiteID,
           envResult.type,
           envResult.testSets,
-          true
+          true,
         );
         suiteResults[envResult.suiteID] = sr;
       } else {
@@ -256,12 +260,12 @@ async function initTests(conf: BusybeeParsedConfig) {
     const busybeeTestResults = {
       runId: envManager.getRunId(),
       runTimestamp: envManager.getRunTimestamp(),
-      data: suiteResultsList
+      data: suiteResultsList,
     };
 
     if (conf.reporters && !_.isEmpty(conf.reporters)) {
       logger.info('Running Reporters');
-      conf.reporters.forEach(r => {
+      conf.reporters.forEach((r) => {
         try {
           if (
             conf.localMode &&
@@ -282,7 +286,7 @@ async function initTests(conf: BusybeeParsedConfig) {
     if (conf.onComplete) {
       let scriptPath = (conf.onComplete = path.join(
         conf.filePaths.busybeeDir,
-        conf.onComplete
+        conf.onComplete,
       ));
 
       try {
@@ -305,7 +309,7 @@ async function initTests(conf: BusybeeParsedConfig) {
     if (conf.onComplete) {
       let scriptPath = (conf.onComplete = path.join(
         conf.filePaths.busybeeDir,
-        conf.onComplete
+        conf.onComplete,
       ));
 
       try {

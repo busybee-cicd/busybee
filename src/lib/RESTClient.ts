@@ -1,4 +1,3 @@
-import * as request from 'request-promise';
 import * as _ from 'lodash';
 import { Logger, LoggerConf } from 'busybee-util';
 import { RequestOptsConfig } from '../models/config/common/RequestOptsConfig';
@@ -7,7 +6,6 @@ import { BusybeeParsedConfig } from '../models/config/BusybeeParsedConfig';
 export class RESTClient {
   conf: BusybeeParsedConfig;
   suiteEnvConf: any;
-  apiRequest: any;
   private logger: any;
   private defaultRequestOpts: any;
 
@@ -16,21 +14,10 @@ export class RESTClient {
     this.suiteEnvConf = _.cloneDeep(suiteEnvConf);
     const loggerConf = new LoggerConf(this, conf.logLevel, null);
     this.logger = new Logger(loggerConf);
-    const standardRequestOpts = {
-      json: true,
-      resolveWithFullResponse: true, // don't resolve just the body (request-promise option)
-      simple: false // only reject() if the request fails for technical reasons (not status code other than 200, request-promise option).
-    };
     this.defaultRequestOpts = Object.assign(
-      {},
-      standardRequestOpts,
-      this.suiteEnvConf.defaultRequestOpts
+      { timeout: 30000 },
+      this.suiteEnvConf.defaultRequestOpts,
     );
-    this.apiRequest = request.defaults(this.defaultRequestOpts);
-
-    // if (conf.debug) {
-    //   this.apiRequest.debug = true;
-    // }
   }
 
   getDefaultRequestOpts() {
@@ -76,7 +63,7 @@ export class RESTClient {
     let req = {
       method: requestConf.method || 'GET',
       url: url,
-      timeout: requestConf.timeout || 30000 // default 30 seconds
+      timeout: requestConf.timeout || 30000, // default 30 seconds
     };
 
     if (requestConf.query) {
@@ -92,10 +79,63 @@ export class RESTClient {
     return req;
   }
 
-  makeRequest(opts) {
-    // run the test
+  async makeRequest(opts) {
     this.logger.trace('Request opts');
     this.logger.trace(opts);
-    return this.apiRequest(opts);
+
+    const url = new URL(opts.url);
+    if (opts.qs) {
+      Object.entries(opts.qs).forEach(([k, v]) =>
+        url.searchParams.set(k, String(v)),
+      );
+    }
+
+    const headers: Record<string, string> = Object.assign(
+      {},
+      this.defaultRequestOpts.headers,
+      opts.headers,
+    );
+
+    let body: string | undefined;
+    if (opts.body !== undefined) {
+      body = JSON.stringify(opts.body);
+      if (!headers['Content-Type'] && !headers['content-type']) {
+        headers['Content-Type'] = 'application/json';
+      }
+    }
+
+    const timeout = opts.timeout || this.defaultRequestOpts.timeout || 30000;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+    try {
+      const response = await fetch(url.toString(), {
+        method: opts.method || 'GET',
+        headers,
+        body,
+        signal: controller.signal,
+      });
+
+      let responseBody: any;
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        responseBody = await response.json();
+      } else {
+        responseBody = await response.text();
+      }
+
+      const responseHeaders: Record<string, string> = {};
+      response.headers.forEach((value, name) => {
+        responseHeaders[name] = value;
+      });
+
+      return {
+        statusCode: response.status,
+        body: responseBody,
+        headers: responseHeaders,
+      };
+    } finally {
+      clearTimeout(timeoutId);
+    }
   }
 }

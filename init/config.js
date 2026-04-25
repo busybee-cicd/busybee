@@ -1,0 +1,46 @@
+module.exports = {
+  envResources: [
+    {
+      hosts: [
+        {
+          name: 'localhost',
+        },
+      ],
+    },
+  ],
+  testSuites: [
+    {
+      id: 'My Test Suite',
+      protocol: 'http',
+      ports: [8180],
+      root: '/v1',
+      env: {
+        healthcheck: {
+          type: 'REST',
+          request: {
+            path: '/healthcheck',
+          },
+        },
+      },
+      envInstances: [
+        {
+          id: 'My Test Env',
+          testSets: [
+            {
+              id: 'My Test Set',
+            },
+          ],
+        },
+      ],
+      mockServer: {
+        port: 3001,
+        root: '/my/mockserver/root/v1',
+        proxy: {
+          protocol: 'http',
+          host: 'localhost',
+          port: 3000,
+        },
+      },
+    },
+  ],
+};

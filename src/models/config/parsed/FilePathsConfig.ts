@@ -7,8 +7,10 @@ export class FilePathsConfig {
   constructor(cmdOpts: any) {
     const opts = Object.assign({}, cmdOpts);
     let dir = opts.directory ? opts.directory : 'busybee';
-    let cFile = opts.config ? opts.config : 'config.js';
-    this.busybeeDir = path.isAbsolute(dir) ? dir : path.join(process.cwd(), dir);
+    let cFile = opts.config ? opts.config : 'config.json';
+    this.busybeeDir = path.isAbsolute(dir)
+      ? dir
+      : path.join(process.cwd(), dir);
     this.userConfigFile = path.join(this.busybeeDir, cFile);
   }
 }

@@ -1,8 +1,8 @@
-import * as uuidv1 from 'uuid/v1';
+import { v1 as uuidv1 } from 'uuid';
 import { TestSuiteConfig } from './user/TestSuiteConfig';
 import { BusybeeUserConfig } from './BusybeeUserConfig';
 import { Logger, LoggerConf } from 'busybee-util';
-import * as glob from 'glob';
+import { globSync } from 'glob';
 import * as fs from 'fs';
 import * as _ from 'lodash';
 import * as path from 'path';
@@ -41,9 +41,9 @@ export class BusybeeParsedConfig {
     this.logLevel = this.getLogLevel();
     const loggerConf = new LoggerConf(this, this.logLevel, null);
     this.logger = new Logger(loggerConf);
+    this.onComplete = userConfig.onComplete;
     this.parseCmdOpts();
     this.filePaths = new FilePathsConfig(this.cmdOpts);
-    this.onComplete = userConfig.onComplete;
     this.parsedTestSuites = this.parseTestSuites(userConfig, mode);
     this.envResources = userConfig.envResources;
     this.reporters = userConfig.reporters;
@@ -52,7 +52,7 @@ export class BusybeeParsedConfig {
 
     if (this.localMode) {
       this.logger.info(
-        `LocalMode detected. Host Configuration will be ignored in favor of 'localhost'`
+        `LocalMode detected. Host Configuration will be ignored in favor of 'localhost'`,
       );
     }
   }
@@ -92,7 +92,7 @@ export class BusybeeParsedConfig {
     return {
       parsedTestSuites: this.parsedTestSuites,
       envResources: this.envResources,
-      logLevel: this.logLevel
+      logLevel: this.logLevel,
     };
   }
 
@@ -110,7 +110,7 @@ export class BusybeeParsedConfig {
 
   parseTestSuites(
     userConf: BusybeeUserConfig,
-    mode: string
+    mode: string,
   ): TypedMap<ParsedTestSuite> {
     this.logger.trace(`parseTestSuites`);
     let parsedTestSuites = new TypedMap<ParsedTestSuite>();
@@ -120,20 +120,20 @@ export class BusybeeParsedConfig {
     // test suites regardless of mode. However, if we do...for some reason the test suite to be mocked does not include
     // any tests.
     if (mode === 'mock') {
-      let testSuite = _.find(userConf.testSuites, suite => {
+      let testSuite = _.find(userConf.testSuites, (suite) => {
         return suite.id == this.cmdOpts.testSuite;
       });
       let parsedTestSuite = this.parseTestSuite(testSuite, mode);
       parsedTestSuites.set(parsedTestSuite.suiteID, parsedTestSuite);
     } else {
-      userConf.testSuites.forEach(testSuite => {
+      userConf.testSuites.forEach((testSuite) => {
         let suiteID = testSuite.id || uuidv1();
         this.logger.trace(`suiteID: ${suiteID}`);
         this.logger.trace(
-          `skipTestSuites: ${JSON.stringify(this.skipTestSuites)}`
+          `skipTestSuites: ${JSON.stringify(this.skipTestSuites)}`,
         );
         if (
-          _.find(this.skipTestSuites, sID => {
+          _.find(this.skipTestSuites, (sID) => {
             return sID === suiteID;
           })
         ) {
@@ -159,7 +159,7 @@ export class BusybeeParsedConfig {
       testSuite,
       mode,
       this.testSet2EnvMap,
-      this.env2TestSuiteMap
+      this.env2TestSuiteMap,
     );
   }
 
@@ -172,19 +172,19 @@ export class BusybeeParsedConfig {
     this.logger.trace(this.testSet2EnvMap, true);
     // build up a list of testFolders
     let testFolders = [];
-    parsedTestSuites.values().map(pst => {
+    parsedTestSuites.values().map((pst) => {
       if (pst.testFolder) {
         testFolders.push(
-          path.join(this.filePaths.busybeeDir, pst.testFolder, '/**/*.json')
+          path.join(this.filePaths.busybeeDir, pst.testFolder, '/**/*.json'),
         );
         testFolders.push(
-          path.join(this.filePaths.busybeeDir, pst.testFolder, '/**/*.js')
+          path.join(this.filePaths.busybeeDir, pst.testFolder, '/**/*.js'),
         );
       }
     });
 
-    let files = glob.sync(`{${testFolders.join(',')}}`, {
-      ignore: `${this.filePaths.userConfigFile}`
+    let files = globSync(`{${testFolders.join(',')}}`, {
+      ignore: `${this.filePaths.userConfigFile}`,
     });
 
     // parse json files, compile testSets and add them to the conf.
@@ -193,7 +193,7 @@ export class BusybeeParsedConfig {
       // support for running specific tests files
       if (
         this.testFiles.length > 0 &&
-        !_.find(this.testFiles, fileName => {
+        !_.find(this.testFiles, (fileName) => {
           return file.endsWith(fileName);
         })
       ) {
@@ -217,7 +217,7 @@ export class BusybeeParsedConfig {
         this.logger.trace('is not array of tests');
       }
 
-      tests.forEach(test => {
+      tests.forEach((test) => {
         this.logger.trace(test);
         test = new RESTTest(test);
 
@@ -232,7 +232,7 @@ export class BusybeeParsedConfig {
             (!test.expect.status && !test.expect.body && !test.expect.headers)
           ) {
             this.logger.debug(
-              `test.expect not defined for ${test.id}. Skipping`
+              `test.expect not defined for ${test.id}. Skipping`,
             );
             return;
           }
@@ -243,7 +243,7 @@ export class BusybeeParsedConfig {
             this.logger.warn(
               `test.expect && test.mocks not defined for ${
                 test.id
-              }. Cannot mock!`
+              }. Cannot mock!`,
             );
             return;
           }
@@ -253,7 +253,7 @@ export class BusybeeParsedConfig {
           this.logger.info(
             `test '${
               test.id
-            }' does not contain required prop 'testSet'. Skipping`
+            }' does not contain required prop 'testSet'. Skipping`,
           );
           return;
         }
@@ -264,7 +264,7 @@ export class BusybeeParsedConfig {
         }
 
         // iterate each testSet entry for this test (1 test can run in multiple testSets)
-        test.testSet.forEach(testSetInfo => {
+        test.testSet.forEach((testSetInfo) => {
           this.logger.trace(`testSetInfo`);
           this.logger.trace(testSetInfo, true);
 
@@ -274,13 +274,13 @@ export class BusybeeParsedConfig {
             this.logger.warn(
               `Unable to identify the Test Environment(s) containing the testSetId '${
                 testSetInfo.id
-              }'.`
+              }'.`,
             );
             return;
           }
 
           // for every testEnv that this testSet exists, update it with this testSet
-          testEnvIds.forEach(testEnvId => {
+          testEnvIds.forEach((testEnvId) => {
             this.logger.trace(`testEnvId`);
             this.logger.trace(testEnvId);
             let suiteID = this.env2TestSuiteMap.get(testEnvId);

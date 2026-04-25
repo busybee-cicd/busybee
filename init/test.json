@@ -1,26 +1,21 @@
-[{
-  "name": "my test",
-  "testSet": {
-    "id": "My Test Set",
-    "index": 0
-  },
-  "request": {
-    "method": "GET",
-    "path": "/my-endpoint",
-    "query": {
-      "myQueryParam": "myQueryValue"
+[
+  {
+    "id": "my test",
+    "testSet": {
+      "id": "My Test Set"
     },
-    "body": {
-      "myBodyKey": "myBodyValue"
-    }
-  },
-  "expect": {
-    "status": 200,
-    "headers": {
-      "my-expected-header": "myExpectedHeaderValue"
+    "request": {
+      "method": "GET",
+      "path": "/my-endpoint",
+      "query": {
+        "myQueryParam": "myQueryValue"
+      }
     },
-    "body": {
-      "myExpectedKey": "myExpectedValue"
+    "expect": {
+      "status": 200,
+      "headers": {
+        "my-expected-header": "myExpectedHeaderValue"
+      }
     }
   }
-}]
+]

@@ -1,11 +1,9 @@
 import { ChildProcess } from 'child_process';
-import { GenericTestContext, Context } from 'ava';
 import { Logger, IOUtil } from 'busybee-util';
 
 export class ITUtil {
-
   static getResult(childProc: ChildProcess, logger = null): Promise<any> {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       let returned = false;
 
       childProc.stdout.on('data', (data) => {
@@ -14,7 +12,7 @@ export class ITUtil {
           if (l.startsWith('RESULTS:')) {
             resolve(JSON.parse(l.replace('RESULTS: ', '')));
           }
-        })
+        });
       });
 
       childProc.stderr.on('data', (data) => {
@@ -28,22 +26,17 @@ export class ITUtil {
       childProc.on('close', () => {
         if (!returned) {
           returned = true;
-          // remove the nested 'date' property from actual/expected since this will be different each run
           resolve();
         }
       });
     });
   }
 
-  /**
-   * looks for occurrences of strings in a stdout stream of a child process
-   * when given an assertions object {stringToFind: numberOfOccurrences}
-   *
-   * @param childProc
-   * @param assertions
-   * @param logger
-   */
-  static analyzeOutputFrequency(childProc: ChildProcess, assertions: any, logger = null): Promise<any> {
+  static analyzeOutputFrequency(
+    childProc: ChildProcess,
+    assertions: any,
+    logger = null,
+  ): Promise<any> {
     return new Promise((resolve, reject) => {
       let actual = {};
 
@@ -76,19 +69,12 @@ export class ITUtil {
     });
   }
 
-  /**
-   *
-   * reads from stdout and shifts entries out of the provided array as they are encountered.
-   * if all items are encountered in the order in which they appear in the stdout stream then the
-   * collection should be empty when resolved
-   *
-   * @param childProc
-   * @param expect
-   * @param t
-   * @param startsWith
-   * @param logger
-   */
-  static expectInOrder(childProc: ChildProcess, expect: Array<string>, t: GenericTestContext<Context<any>>, startsWith:boolean = false, logger:Logger = null): Promise<Array<string>> {
+  static expectInOrder(
+    childProc: ChildProcess,
+    expect: Array<string>,
+    startsWith: boolean = false,
+    logger: Logger = null,
+  ): Promise<Array<string>> {
     return new Promise((resolve, reject) => {
       let returned = false;
       childProc.stdout.on('data', (data) => {
@@ -106,8 +92,7 @@ export class ITUtil {
               expect.shift();
             }
           }
-
-        })
+        });
       });
 
       childProc.stderr.on('data', (data) => {
@@ -133,16 +118,12 @@ export class ITUtil {
     });
   }
 
-  /**
-   * waits for a provided string to appear in stdout and then resolves
-   *
-   * @param childProc
-   * @param target
-   * @param t
-   * @param startsWith
-   * @param logger
-   */
-  static waitFor(childProc: ChildProcess, target: string, t: GenericTestContext<Context<any>>, startsWith:boolean = false, logger:Logger = null): Promise<Array<string>> {
+  static waitFor(
+    childProc: ChildProcess,
+    target: string,
+    startsWith: boolean = false,
+    logger: Logger = null,
+  ): Promise<void> {
     return new Promise((resolve, reject) => {
       let returned = false;
       childProc.stdout.on('data', (data) => {
@@ -160,8 +141,7 @@ export class ITUtil {
               resolve();
             }
           }
-
-        })
+        });
       });
 
       childProc.stderr.on('data', (data) => {
@@ -171,9 +151,8 @@ export class ITUtil {
             logger.debug(msg);
           }
           returned = true;
-          t.fail(msg);
           childProc.kill('SIGHUP');
-          reject(msg);
+          reject(new Error(msg));
         }
       });
 

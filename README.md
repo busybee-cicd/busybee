@@ -7,10 +7,6 @@
   - [What it isn't](#what-it-isnt)
 - [Todo](#todo)
 
-## Requirements
-
-- Node.js 8 or higher
-
 ## Quickstart
 
 ```
@@ -25,34 +21,36 @@ See [The Configuration Docs](https://github.com/pages/busybee-cicd/busybee/) for
 
 ### What it is
 
-Busybee will coordinate the steps necessary to run your Functional Tests. It is unopinionated
-when it comes to deciding how your environments are started, when they're ready, what technologies are used, etc. Busybee is only concerned with the following:
+Busybee started as integration testing tool specifically for testing REST API's via an opinionated schema and grew to include several features such as
 
-1. Figure out how many [Test Suites](#TestSuite) we're dealing with.
-2. Figure out how many [Environments](#Env) are required for each [Test Suite](#TestSuite)
-3. Figure out how many [Test Sets](#TestSet) to run against each [Environment](#Env).
-4. Spin up each [Environment](#Env)
-5. Run the [Test Sets](#TestSet)
-6. Spin down each [Environment](#Env).
-7. Report results.
+- environment provisioning - busybee can coordinate spinning up and tearing down enviornments in conjunction with test execition
+- arbitrary test scripts - while busybee provides a spec for defining JSON REST API tests, it can just as easily run your `do-whatever-i-say.sh` during the test execution phase and wait for a response.
+- proxy server (mock mode) - for TDD flows where UI engineers want to start before the API is working, busybee can convert a RestTest definition into a working endpoint that returns mock data. Requests to the busybee proxy server which don't match any endpoints (test definitions) are proxied through to the real API.
 
-### What it isn't
+#### Concepts
 
-It is not a magic bullet. You still have to write tests. You still have to provide 'start' and 'stop' scripts detailing how start/stop your environments. If your [Test Suite](#TestSuite) is not a REST [Test Suite](#TestSuite) then you will also need to provide a 'run' script that actually runs your tests once the environment as been provisioned.
+**TestSuite**
+The top-level unit of configuration. A TestSuite defines the protocol, host, ports, and root path used to connect to the service under test. It also declares the optional `startScript`/`stopScript` shell scripts for environment lifecycle management and a `healthcheck` for confirming the service is ready before tests run. If no `startScript` is provided, Busybee assumes the service is already running and skips provisioning.
+
+**EnvInstance**
+Each TestSuite can declare one or more EnvInstances. An EnvInstance represents one running copy of the environment. Multiple EnvInstances allow the same TestSuite to run against several environments concurrently — useful for parallel load or configuration testing. Each EnvInstance declares which TestSets it will execute.
+
+**TestSet**
+A TestSet is a named group of tests that run together within an EnvInstance. Tests are assigned to a TestSet from within their test file (via the `testSet.id` field), not from config. This means tests are discovered by globbing the configured `testFolder` — any test file that references a known TestSet id is automatically included. TestSets run in series by default; parallel execution with a concurrency limit is also supported.
+
+**Tests**
+For REST TestSuites, individual tests are defined in `.json` or `.js` files under the `testFolder`. Each test specifies a `request` (method, path, headers, query, body) and an `expect` (status, headers, body). Tests can optionally declare an `index` to enforce execution order within their TestSet; unindexed tests run after indexed ones. Busybee makes the request, compares the response against the expectation, and records a pass/fail result along with latency.
+
+**startScript / stopScript**
+Optional shell scripts called before and after test execution respectively. Busybee passes environment details (host, ports, generated environment ID) as a JSON argument. The `startScript` is responsible for starting the service; the `stopScript` for tearing it down. Both are omitted when Busybee is used against an already-running service.
+
+**onComplete**
+An optional JS module (configured via `--onComplete` or in config) that receives the full result set once all TestSuites have finished. Use it to integrate with external reporting systems, post results to CI, or trigger notifications.
 
 ## Todo
 
 Check out the [Github Issues Page](https://github.com/busybee-cicd/busybee/issues) for a list of future bugfixes and enhancements
 
-- test adapters
-  - support https://github.com/postmanlabs/newman#using-newman-as-a-nodejs-module ?
-    - may just want a commandline opt for running postman tests and another for converting them to Busybee formay since Busybee supports additional features like sets and indexes.
-- support healthcheck script
-- transpile to support older versions of node
-- Mock Server
-  - support testSets with state
-  - support a .spec file for documenting endpoints?
-- remove placeholder 'null' entries after building testSets with skipped indexes
-
 ## License
+
 MIT © [stowns](https://github.com/stowns)
