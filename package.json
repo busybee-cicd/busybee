@@ -24,7 +24,7 @@
     "portscanner": "^2.2.0",
     "promise-tools": "^2.1.0",
     "source-map-support": "^0.5.21",
-    "uuid": "^11.0.0",
+    "uuid": "^14.0.0",
     "ws": "^8.20.0"
   },
   "devDependencies": {
