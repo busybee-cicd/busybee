@@ -36,11 +36,11 @@
     "@types/ws": "^8.5.0",
     "busybee-html-reporter": "3.0.1",
     "husky": "^9.1.7",
-    "npm-watch": "^0.11.0",
+    "npm-watch": "^0.13.0",
     "onchange": "^7.1.0",
     "prettier": "^3.5.3",
     "pretty-quick": "^4.0.0",
-    "typedoc": "^0.27.0",
+    "typedoc": "^0.28.20",
     "typescript": "^5.8.3"
   },
   "scripts": {
